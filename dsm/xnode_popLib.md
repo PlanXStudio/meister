@@ -29,6 +29,15 @@ delta = time.ticks_diff(time.ticks_ms(), start)
 print("Operation took %d ms to execute"%(delta))
 ```
 
+```python
+t0 = time.ticks_ms()
+while True:
+    t1 = time.ticks_ms()
+    if (t1 - t0 => 10): #10ms
+        t1 = t0
+	#todo
+```
+
 **Led Class**
 - Led()
   - Create LED Object  
@@ -180,9 +189,3 @@ for _ in range(5):
      print("Sea Level = %.1f hPa, Pressure = %d"%(sea_level, press))
      time.sleep(1)
 ```
-
-```python
-
-```
-
-## Extensions
