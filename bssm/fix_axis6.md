@@ -6,7 +6,7 @@
 ## Working
 **Change Directory**
 ```sh
-cd /usr/loca/lib/python3.6/dist-packages/pop/
+cd /usr/local/lib/python3.6/dist-packages/pop
 ```
 
 **Run VIM***
@@ -21,7 +21,7 @@ sudo vi Pilot.py
 <i>
 ```
 
-**Insert the code below**
+**Insert the code below (lines 380-453)**
 ```python
 class axis6: 
     STANDARD_GRAVITY = 9.80665
@@ -103,6 +103,7 @@ IMU = axis6
 ```sh
 <ESC>
 :x
+cd -
 ```
 
 ## UnitTest (JupyterLab)
@@ -114,9 +115,9 @@ from threading import Thread
 ```
 ---
 ```python
-delay = widgets.IntSlider(max=10000, description='delay')
-gyro = [widgets.FloatSlider(min=-9.8, max=9.8, description='gyro_'+s) for s in ('x', 'y', 'z')]
-accel = [widgets.FloatSlider(min=-9.8, max=9.8, step=0.01, description='accel_'+s) for s in ('x', 'y', 'z')]
+delay = widgets.IntSlider(max=1000, value=1, description='delay')
+gyro = [widgets.FloatSlider(min=-90, max=90, description='gyro_'+s) for s in ('x', 'y', 'z')] #degree/s
+accel = [widgets.FloatSlider(min=-12, max=12, step=0.01, description='accel_'+s) for s in ('x', 'y', 'z')] #m/s^2
 display(delay)
 for i in range(3):
     display(gyro[i])
