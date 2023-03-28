@@ -2,9 +2,7 @@
 > lidar.py
 ```python
 from pop.LiDAR import Rplidar
-
 import math
-import random
 
 class Lidar:
     def __init__(self, width, directions):
@@ -42,6 +40,7 @@ class Lidar:
 ```python
 from pop.Pilot import SerBot
 from lidar import Lidar
+import random
 
 def main():
     serbot_width = 500
