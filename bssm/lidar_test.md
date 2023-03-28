@@ -1,6 +1,6 @@
 ## 2D Lidar Test
 
-```pythohn
+```python
 from pop.LiDAR import Rplidar
 import matplotlib.pyplot as plt
 import numpy as np
