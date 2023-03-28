@@ -1,34 +1,31 @@
-## Load Module
+## Define Lidar Class
+> lidar.py
 ```python
-from pop.Pilot import SerBot
-from pop import LiDAR
+from pop.LiDAR import Rplidar
 
 import math
 import random
-```
 
-## Define Lidar Class
-```python
 class Lidar:
     def __init__(self, width, directions):
         self.serbot_width = width
         self.degrees = list(range(0, 360, 360 // directions))
 
-        self.lidar = LiDAR.Rplidar()
+        self.lidar = Rplidar()
         self.lidar.connect()
         self.lidar.startMotor()
 
     def __del__(self):
         self.lidar.stopMotor()
 
-    def calcAngle(self, length):
+    def __calcAngle(self, length):
         tan = (self.serbot_width / 2) / length
         angle = math.atan(tan) * (180 / math.pi)
         return angle
 
     def collisonDetect(self, length):
         detect = [0] * len(self.degrees)
-        angle = self.calcAngle(length)
+        angle = self.__calcAngle(length)
         ret = self.lidar.getVectors()
         for degree, distance, _ in ret:
             for i, detect_direction in enumerate(self.degrees):
@@ -41,7 +38,11 @@ class Lidar:
 ```
 
 ## Example Collision Detect
+> lidar_cd.py
 ```python
+from pop.Pilot import SerBot
+from lidar import Lidar
+
 def main():
     serbot_width = 500
     direction_count = 8
