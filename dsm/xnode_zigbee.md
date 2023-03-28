@@ -116,4 +116,32 @@ for info in scan:
 if dist_eui64:
     print(dist_eui64)
     xnode.transmit(dist_eui64, "hi, i am Route_X02!!!")
+
+**Tx Power**
+```python
+from pop import xnode
+import time
+
+pl = 0x00
+
+while True:
+    if pl <= 0x04:
+        xnode.atcmd('PL',pl) #Power Level (default 0x04(max))
+        print('PL' + str(pl))
+        pl += 0x01
+        time.sleep(5)
+    else:
+        pl = 0x00 
+```
+
+**Rx Power**
+```python
+from pop import xnode
+
+while True:
+    try:
+        for device in xnode.discover():
+            print("NI : ", device['node_id'], ", rssi : ",device['rssi'],", DB : ", xnode.atcmd('DB'))
+    except:
+        pass
 ```
