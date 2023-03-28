@@ -189,3 +189,100 @@ for _ in range(5):
      print("Sea Level = %.1f hPa, Pressure = %d"%(sea_level, press))
      time.sleep(1)
 ```
+
+**Uart**
+- Uart()
+  - Create Uart Object
+- write(data)
+  - write string
+- read()
+  - read byte
+
+```python
+from pop import Uart
+from pop import Led, Battery
+
+uart = Uart()
+led = Led()
+battery = Battery()
+
+uart.write("Start...\n")
+
+while True:
+    cmd = uart.read().decode()
+    if cmd == 'q':
+        break
+    elif cmd == 'l':
+        led.off() if led.stat() else led.on()
+	uart.write("\nLed %s\n"%("ON" if led.stat() else "OFF"))
+    elif cmd == 'b':
+        uart.write("\nBattery: %.2f Volt\n"%(battery.read()))
+    else:
+        uart.write("\nUnknown command\n")
+uart.write("\nThe End...\n")
+```
+>> *xnode -pcom<port_num> run -i <file_name>.py*
+>>> *-i* is echo
+
+**File**
+- open(file, mode)
+  - Create file object
+    - file: file name
+    - mode: 'r' (read: default) or 'w' (write). --> 'a' (append) is not support
+- write(data)
+  - write data to file
+- readline()
+  - read a file line by line. None if there are no more lines to read 
+- close()
+  - close file
+
+```python
+from pop import Led, Light, Tphg
+import time, os
+
+led = Led()
+light = Light()
+tphg = Tpht()
+
+f_name = 'sensors.dat'
+
+if f_name in os.listdir():
+    os.remove(f_name)
+
+f = open(f_name, 'w')
+
+f.write('LIGHT, TEMP, HUMI\n')
+
+for _ in range(10):
+    led.off() if led.stat() else led.on()
+    
+    l = light.read()
+    t, _, h, _ = tphg.read()
+    
+    data = "%d,%.2f,%.2f"%(l, t, h)
+    
+    print(data)
+    f.write(data+'\n')
+    time.sleep(1)
+    
+f.close()
+```
+>> *xnode -pcom<port_num> put <file_name>.py main.py*  
+>>> XNode reset  
+  
+>> *xnode -pcom<port_num> get sensors.dat sensors.dat*  
+
+
+```python
+f_name = 'sensors.dat'
+
+f = open(f_name)
+
+while True:
+    data = f.readline()
+    if not data:
+        break
+    print(data,end='')
+     
+f.close()
+```
