@@ -9,47 +9,52 @@ from pop.Pilot import SerBot
 from pop.Pilot import IMU
 from pop.LiDAR import Rplidar
 import timeit
+import time
+
+DEST2TIME_MS = 5000
+DETECT_LANGE_MM = 300
+DEFAULT_SPEED = 50
+H_RANGE = 45 // 2
 
 bot = None
 imu = None
 lidar = None
-DEST2TIME = 5000
-DETECT = 300
-CHECK_TURN = False
 
 def init():
     global bot, imu, lidar
-    
+
     bot = SerBot()
     imu = IMU()
     lidar = Rplidar()
 
-    bot.setSpeed(50)
-    bot.forward()
-
     lidar.connect()
     lidar.startMotor()
+
+    bot.setSpeed(DEFAULT_SPEED)
+    bot.forward()
 
 def destroy():
     bot.stop()
     lidar.stopMotor()
 
-def forward_detect(point_frame, dest):
+def forward_detect(point_frame):
     for p in point_frame:
-        if p[0] > (360-30) or p[0] < (0+30):
-            if p[1] <= dest:
+        if p[0] > (360-H_RANGE) or p[0] < (0+H_RANGE):
+            if p[1] <= DETECT_LANGE_MM:
                 return True
         else:
             return False
 
 def turn_180():
+    curr_speed = bot.getSpeed()
+    bot.turnLeft()
     pass
 
 def stablilizer(yaw):
     pass
 
 def main():
-    global CHECK_TURN
+    check_trun = False
 
     init()
 
@@ -57,9 +62,9 @@ def main():
 
     while True:
         t1_ms = timeit.default_timer()
-        if (t1_ms - t0_ms) * 1000 >= DEST2TIME:
-            if not CHECK_TURN:
-                CHECK_TURN = True
+        if (t1_ms - t0_ms) * 1000 >= DEST2TIME_MS:
+            if not check_trun:
+                check_trun = True
                 turn_180()
                 t0_ms = timeit.default_timer()
             else:
@@ -69,7 +74,7 @@ def main():
         point_frame = lidar.getVectors()
 
         stablilizer(yaw)
-        detect = forward_detect(point_frame, DETECT)
+        detect = forward_detect(point_frame)
     
         print(yaw, detect)
 
