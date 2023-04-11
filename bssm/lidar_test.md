@@ -6,9 +6,11 @@
   - Extra settings > Disable access control (Check)
 
 ## SerBot GUI Run  
-> DISPLAY=192.168.101.120:0 <GUI Program>
+> DISPLAY=192.168.101.120:0 ***GUI_Program***  
+> ex) DISPLAY=192.168.101.120:0 python3 lidar_test.py
 
 ## Test Code
+- lidar_test.py
 ```python
 from pop.LiDAR import Rplidar
 import matplotlib.pyplot as plt
