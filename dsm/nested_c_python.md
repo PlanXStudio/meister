@@ -84,7 +84,7 @@ int main() {
 
 ## Closure
 - python
-//--------------------------------
+```python
 def outer(m):
   def inner(n):
     return m + n
@@ -102,6 +102,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
 
 -c (Version 1)
 ```c
