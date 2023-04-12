@@ -209,7 +209,7 @@ battery = Battery()
 uart.write("Start...\n")
 
 while True:
-    cmd = uart.read().decode()
+    cmd = uart.read(1).decode()
     if cmd == 'q':
         break
     elif cmd == 'l':
