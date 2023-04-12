@@ -143,7 +143,7 @@ int main() {
 }
 ```
 -c (Version 2)
-```
+```c
 #include <stdlib.h>
 
 typedef struct nested_t nested_t;
