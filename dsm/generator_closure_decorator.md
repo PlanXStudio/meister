@@ -98,8 +98,8 @@ def main():
     while True:
         b = get_battery() 
         l = get_light()
-        E = get_tphg()
-        fmt = "%.1f, %.2f, %.2f, %.2f, %.2f, %.2f"%(b, l, E[0], E[1], E[2], E[3])
+        t, p, h, g = get_tphg() # Return tuple(temp, press, humi, gas)
+        fmt = "%.1f, %.2f, %.2f, %.2f, %.2f, %.2f"%(b, l, t, p, h, g)
         print(fmt)
         f.write(fmt + '\n')
         time.sleep(1)
