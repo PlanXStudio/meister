@@ -94,7 +94,7 @@ def main():
         os.remove(F_NAME)
     
     f = open(F_NAME, 'w')
-    f.write("BATTER, LIGHT, TEMP, PRESS, HUMI, GAS\n")
+    f.write("BATTER, LIGHT, TEMP, PRESS, HUMI, GAS\n") #CSV(Comma-Separated-Values)
     while True:
         b = get_battery() 
         l = get_light()
