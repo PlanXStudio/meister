@@ -6,28 +6,7 @@
 ### Coordinator
 - client.py
 ```python
-from pop import xnode
-from pop import Tphg
 
-import time
-
-tphg = Tphg()
-   
-while True:
-    p = xnode.receive()
-    if p:
-        sea = float(p['payload'])
-        altitude, _ = tphg.altitude(sea) 
-        xnode.transmit(p['sender_eui64'], str(altitude))
-    else:
-        time.sleep(0.1)
-```
-
-- xnode -p<com_port> run client.py
-
-### Router
-- server.py
-```python
 from pop import xnode
 from time import sleep
 
@@ -43,6 +22,28 @@ while True:
         else:
             sleep(0.1)
     sleep(10)
+```
+
+- xnode -p<com_port> run client.py
+
+### Router
+- server.py
+```python
+from pop import xnode
+from pop import Tphg
+
+import time
+
+tphg = Tphg()
+   
+while True:
+    p = xnode.receive()
+    if p:
+        sea = float(p['payload'])
+        altitude, _ = tphg.altitude(sea) 
+        xnode.transmit(p['sender_eui64'], str(altitude))
+    else:
+        time.sleep(0.1)
 ```
 
 - xnode -p<com_port> put server.py main.py
