@@ -7,13 +7,13 @@
 ```python
 from pop.Pilot import SerBot
 from pop.Pilot import IMU
-from pop import AI
+from pop.AI import Linear_Regression
 import numpy as np
 import time
 
 bot = SerBot()
 imu = IMU()
-linear = AI.Linear_Regression(ckpt_name='ktd')
+linear = Linear_Regression(ckpt_name='ktd')
 
 dataset = {'gyro':[], 'steer':[]}
 bot.setSpeed(50)
@@ -46,12 +46,12 @@ linear.train(times=100, print_every=10)
 ```python
 from pop.Pilot import SerBot
 from pop.Pilot import IMU
-from pop import AI
+from pop.AI import Linear_Regression
 import time
 
 bot = SerBot()
 imu = IMU()
-linear = AI.Linear_Regression(True, ckpt_name='ktd')
+linear = Linear_Regression(True, ckpt_name='ktd')
 
 bot.forward()
 bot.setSpeed(50)
