@@ -4,6 +4,7 @@
 > sudo pip3 install --upgrade pandas
 
 ## Training
+- ktd_training.py
 ```python
 from pop.Pilot import SerBot
 from pop.Pilot import IMU
@@ -43,6 +44,7 @@ linear.train(times=100, print_every=10)
 ```
 
 ## Prediction
+- ktd_prediction.py
 ```python
 from pop.Pilot import SerBot
 from pop.Pilot import IMU
