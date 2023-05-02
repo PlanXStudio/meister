@@ -22,20 +22,19 @@ bot.setSpeed(50)
 for n in np.arange(-1.0, 1.0+0.1, 0.2):
     n = round(n, 1)
     bot.steering = n
+ 
     bot.forward()
-    time.sleep(0.5)
+    time.sleep(0.5)   
     gy = imu.getGyro('z')
     time.sleep(0.5)
+    
     bot.backward()
     time.sleep(1)
     bot.stop()
-    n = -n #Is this correct ???
 
     dataset['gyro_z'].append([gy])
     dataset['steer'].append([n]) 
-
     print({'gyro_z':gy, 'steer':n}) 
-
 
 linear.X_data = dataset['gyro_z']
 linear.Y_data = dataset['steer']
@@ -61,7 +60,8 @@ bot.setSpeed(50)
 try:
     while True: 
         gz = imu.getGyro('z')
-        pred_steer = linear.run([gz])[0][0]
+        pred_steer = round(linear.run([gz])[0][0], 1)
+        pred_steer = -pred_steer #Is this correct ???   
         
         """
         You need to calculate a reasonable 'pred_steer' to put in here. 
