@@ -15,7 +15,7 @@ bot = SerBot()
 imu = IMU()
 linear = Linear_Regression(ckpt_name='ktd')
 
-dataset = {'gyro':[], 'steer':[]}
+dataset = {'gyro_z':[], 'steer':[]}
 bot.setSpeed(50)
 
 for n in np.arange(-1.0, 1.0+0.1, 0.2):
@@ -30,13 +30,13 @@ for n in np.arange(-1.0, 1.0+0.1, 0.2):
     bot.stop()
     n = -n #Is this correct ???
 
-    dataset['gyro'].append([gy])
+    dataset['gyro_z'].append([gy])
     dataset['steer'].append([n]) 
 
-    print({'gyro':gy, 'steer':n}) 
+    print({'gyro_z':gy, 'steer':n}) 
 
 
-linear.X_data = dataset['gyro']
+linear.X_data = dataset['gyro_z']
 linear.Y_data = dataset['steer']
 
 linear.train(times=100, print_every=10)
@@ -58,14 +58,14 @@ bot.setSpeed(50)
 
 try:
     while True: 
-        pred = imu.getGyro('z')
-        value = linear.run([pred])[0][0]
+        gz = imu.getGyro('z')
+        pred_steer = linear.run([gz])[0][0]
         
         """
-        You need to calculate a reasonable value to put in here. 
-        ex) (value+0.1) * 1.5
+        You need to calculate a reasonable 'pred_steer' to put in here. 
+        ex) (pred_steer+0.1) * 1.5
         """
-        bot.steering = 1.0 if value > 1.0 else -1.0 if value < -1.0 else value 
+        bot.steering = 1.0 if pred_steer > 1.0 else -1.0 if pred_steer < -1.0 else pred_steer 
         
         time.sleep(0.1)
 except KeyboardInterrupt:
