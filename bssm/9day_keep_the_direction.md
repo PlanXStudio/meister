@@ -9,7 +9,7 @@ import numpy as np
 import time
 
 bot = SerBot()
-imut = IMU()
+imu = IMU()
 
 dataset = {'gyro':[], 'steer':[]}
 bot.setSpeed(50)
