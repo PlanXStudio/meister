@@ -45,16 +45,18 @@ if __name__ == '__main__':
 ```sh
 sudo apt install python3-pyqt5
 ```
-> append
+> append 
+  - for Multimedia
 ```
 sudo apt install python3-pyqt5.qtmultimedia
 ```
 
-> option
+  - for Designer
 ```sh
 sudo apt install pyqt5-dev-tools
 ```
-> hold
+
+  - for GTK style (hold)
 ```sh
 sudo apt-get build-dep qt5-default
 sudo apt install libcanberra-gtk-module
