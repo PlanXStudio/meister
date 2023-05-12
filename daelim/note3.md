@@ -58,12 +58,11 @@ sudo apt install pyqt5-dev-tools
 
   - for GTK style (hold)
 ```sh
-sudo apt-get build-dep qt5-default
 sudo apt install libcanberra-gtk-module
 sudo apt install qt5-style-plugins 
 echo "export QT_QPA_PLATFORMTHEME=gtk2" >> ~/.profile
 ```
 
 ## Tutorials
-[Official](https://doc.qt.io/qtforpython-6/tutorials/index.html#)  
-[Blog](https://wikidocs.net/21923)
+[![Official](https://doc.qt.io/qtforpython-6/_static/qtforpython.png)](https://doc.qt.io/qtforpython-6/tutorials/index.html#)  
+[![Blog](http://wiki.hash.kr/images/3/37/%EC%9C%84%ED%82%A4%EB%8F%85%EC%8A%A4_%EB%A1%9C%EA%B3%A0.png)](https://wikidocs.net/21923)
