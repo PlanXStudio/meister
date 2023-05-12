@@ -38,7 +38,7 @@ if __name__ == '__main__':
 - Install nomachine on your PC
 [Nomachine Client](https://www.nomachine.com/)
 
-  - [Document](https://ubunlog.com/ko/nomachine-%EC%9B%90%EA%B2%A9-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%8F%84%EA%B5%AC/)
+  - [gettting started](https://www.nomachine.com/getting-started-with-nomachine)
 
 - Install pyqt5 on Mavin
 > preinstall
