@@ -30,7 +30,7 @@ def loop():
             bot.forward(60)
             bot.steering =  1.0 if x > 1.0 else -1.0 if x < -1.0 else x
  
-        print(f"{x}, {bot.steering}")            
+        print(f"{rate}, {bot.steering}")            
     else:
         bot.stop()
         print("person not dectected...")  
