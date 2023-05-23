@@ -24,7 +24,8 @@ Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller
     winget install Microsoft.WindowsTerminal.Preview
     ```
 
-## Install Mosquitto (MQTT Broker)
+## Install MQTT Broker
+> Eclipse Mosquitto (https://mosquitto.org/)
 - Linux (Include WSL)
 ```sh
 sudo apt install mosquitto
@@ -34,6 +35,19 @@ sudo apt install mosquitto-clients
 ```sh
 brew install mosquitto
 brew install mosquitto-clients
+```
+
+## Install MQTT Pyton Clinet Library
+> Eclipse Paho MQTT Python client library (https://pypi.org/project/paho-mqtt/)
+
+- Linux (Include WSL)
+```sh
+pip3 install paho-mqtt
+```
+
+- Mac
+```sh
+pip install paho-mqtt
 ```
 
 ## Public MQTT Brokers
