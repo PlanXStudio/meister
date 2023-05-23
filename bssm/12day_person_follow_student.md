@@ -1,5 +1,5 @@
 
-## 이준영/
+## 이준영, 김지윤
 ```python
 import time
 from pop import Camera
@@ -76,7 +76,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-## 황우석/
+## 황우석, 
 ```python
 from pop import Camera
 from pop.Pilot import Object_Follow
