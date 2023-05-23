@@ -19,14 +19,12 @@ def setup():
     print("It starts in about 10 seconds.")
 
 def loop():
-    global person_not_found_cnt
-
     person = of.detect(index='person')
     if person:
         x = round(person['x'] * 4, 1)
         rate = round(person['size_rate'], 1)
         
-        if rate < 0.2:
+        if rate > 0.2:
             bot.stop()
         else:
             bot.forward(60)
