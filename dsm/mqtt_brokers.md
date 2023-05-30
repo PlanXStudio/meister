@@ -24,6 +24,17 @@ Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller
     winget install Microsoft.WindowsTerminal.Preview
     ```
 
+## Tos (Ubuntu-22.04)
+> [Tos2 Download](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EU4SYg8BnTlNmw5FOOqXJkwBWjKSLI70lRymqrlPLTA6Rg?e=dWESo0)
+- Unzip
+  - Tos2.tar
+- Import WSL
+  ```sh
+  cd ~
+  mkdir wsl_instances\Tos2
+  wsl --import Tos2 .\wsl_instances\Tos2 .\Tos2.tar
+  ```
+
 ## Install MQTT Broker
 > Eclipse Mosquitto (https://mosquitto.org/)
 - Linux (Include WSL)
