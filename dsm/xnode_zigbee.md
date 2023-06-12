@@ -116,6 +116,7 @@ for info in scan:
 if dist_eui64:
     print(dist_eui64)
     xnode.transmit(dist_eui64, "hi, i am Route_X02!!!")
+```
 
 **Tx Power**
 ```python
