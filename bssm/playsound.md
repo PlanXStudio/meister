@@ -18,17 +18,10 @@ class PlaySound:
     def __del__(self):
         self.stop()
 
-    def __play(self, path):
-        self._task = Process(target=playsound, args=(path,))
+    def __play(self):
+        self.stop()
+        self._task = Process(target=playsound, args=(self._paths[self._curr_pos],))
         self._task.start()
-
-    def _play(self):
-        if hasattr(self, '_task') and self._task.is_alive():
-            self._task.terminate()
-            self._task.join()
-
-        print("play", self._paths[self._curr_pos])
-        self.__play(self._paths[self._curr_pos])
 
     def is_play(self):
         return hasattr(self, '_task') and self._task.is_alive()
@@ -37,26 +30,26 @@ class PlaySound:
         if self.is_play():
             return
 
-        self._play()
+        self.__play()
 
     def next(self):
         self._curr_pos += 1
         if self._curr_pos > self._last_pos:
             self._curr_pos = 0
 
-        self._play()
+        self.__play()
 
     def prev(self):
         self._curr_pos -= 1
         if self._curr_pos < 0:
             self._curr_pos = self._last_pos
             
-        self._play()
+        self.__play()
 
     def stop(self):
         if hasattr(self, '_task') and self._task.is_alive():
             self._task.terminate()
-            self._task.join()        
+            self._task.join()                
 ```
 
 ## Test code
