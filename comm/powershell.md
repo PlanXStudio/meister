@@ -11,7 +11,11 @@
   winget search Microsoft.WindowsTerminal
   winget search Microsoft.PowerShell
   ```
-
+- Check environment variable
+  ```sh
+  get-childitem env:
+  ```
+  
 ## Install Tools
 - PowerShell Run at **Administrator**
 - Install Tools
