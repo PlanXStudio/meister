@@ -143,8 +143,38 @@
 > Documentation (https://learn.microsoft.com/en-us/powershell/module/psreadline/)
 > GitHub (https://github.com/PowerShell/PSReadLine)
 
+*PSFzf*
+> GitHub (https://github.com/kelleyma49/PSFzf)
+
 *Modern Unix*
 > GitHub (https://github.com/ibraheemdev/modern-unix)
 
-*PSFzf*
-> GitHub (https://github.com/kelleyma49/PSFzf)
+  >> Core  
+  cat -> bat (https://github.com/sharkdp/bat)  
+  ls -> lsd (https://github.com/lsd-rs/lsd)  
+  diff -> delta (https://github.com/dandavison/delta)  
+  du -> dust (https://github.com/bootandy/dust)  
+  du -> duf (https://github.com/muesli/duf)  
+  cd -> zoxide (https://github.com/ajeetdsouza/zoxide)  
+
+  >> Search  
+  tree -> broot (https://github.com/Canop/broot)  
+  sed -> sd (https://github.com/chmln/sd)  
+  grep -> ripgrep(rg) (https://github.com/BurntSushi/ripgrep)  
+  fzf (https://github.com/junegunn/fzf)
+
+  >> System  
+  ps -> procs (https://github.com/dalance/procs)  
+  time -> hyperfine (https://github.com/sharkdp/hyperfine)  
+  gtop/htop -> bottom(btm) (https://github.com/ClementTsang/bottom)  
+
+  >> Network  
+  ping -> gping (https://github.com/orf/gping)  
+  dig -> dog (https://github.com/ogham/dog)  
+  wget -> xh (https://github.com/ducaale/xh)  
+
+  >> Etc  
+  cheat (https://github.com/cheat/cheat)  
+  
+> Custom install  
+  lazygit (https://github.com/jesseduffield/lazygit)
