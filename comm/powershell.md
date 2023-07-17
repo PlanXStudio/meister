@@ -79,8 +79,9 @@
 - PowerShell Settins
   ```sh
   (Get-Command oh-my-posh).Source
-  Get-PoshThemes
   oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\quick-term.omp.json" | Invoke-Expression
+
+  Get-PoshThemes
 
   $PROFILE | Get-Member -Type NoteProperty
   
