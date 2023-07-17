@@ -59,6 +59,8 @@
 
 - Install Modules
   ```sh
+  Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
+  
   Install-Module -Name Terminal-Icons -Repository PSGallery 
   Install-Module -Name modern-unix-win 
   Install-Module -Name PSFzf 
