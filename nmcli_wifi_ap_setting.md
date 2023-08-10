@@ -8,7 +8,7 @@ nmcli device
 nmcli device wifi list
 ```
 
-## Join AP
+## Connect AP
 ```sh
 sudo nmcli device wifi connect <want_ap_ssid> password <ap_passwd>
 ```
