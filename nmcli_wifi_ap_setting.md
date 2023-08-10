@@ -1,3 +1,8 @@
+## Interface List
+```sh
+nmcli device
+```
+
 ## AP List
 ```sh
 nmcli device wifi list
@@ -8,7 +13,7 @@ nmcli device wifi list
 sudo nmcli device wifi connect <want_ap_ssid> password <ap_passwd>
 ```
 
-## Remove Join AP 
+## Disconnect Wi-Fi 
 ```sh
-sudo nmcli connect delete <connected_ssid>
+sudo nmcli device disconnect wlan0
 ```
