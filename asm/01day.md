@@ -31,7 +31,11 @@ python get-pip.py
 python -m pip install --upgrade pip
 ```
 
-## 환경변수 path 추가
+## 시스템 환경변수 path 추가
+```sh
+sysdm.cpl ,3
+```
+
 - C:\VSCode\ext\python
 - C:\VSCode\ext\python\Scripts
 
