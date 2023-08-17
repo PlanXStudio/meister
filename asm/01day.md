@@ -49,3 +49,6 @@ pip install paho-mqtt
 ## VSCode 확장 설치
 - python
 - jupyter
+  ```sh
+  code --install-extension extension-id
+  ```
