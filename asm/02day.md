@@ -54,26 +54,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 ```
-**signal 콜백**
-```python
-import signal
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-def main():   
-    client = Client()
-    sigint(client)
-    client.on_connect = on_connect
-    client.connect(MQTT_SERVER)
-    client.loop_forever()
-
-if __name__ == "__main__":
-    main()
-```
 
 ### 정리
 - paho.mqtt.client 모듈의 Client 클래스 로드
@@ -87,22 +67,14 @@ if __name__ == "__main__":
 
 ```python
 from paho.mqtt.client import Client
-import signal
 
 MQTT_SERVER = "broker.hivemq.com"
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
 
 def main():   
     client = Client()
-    sigint(client)
     client.on_connect = on_connect
     client.connect(MQTT_SERVER)
     client.loop_forever()
@@ -121,12 +93,17 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         client.subscribe(TOPIC_HELLO)   
 
-def on_message(client, userdata, msg):
-    print(msg.topic + " " + msg.payload.decode())
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        client.subscribe(TOPIC_HELLO)   
+
+def on_subscribe(client, userdata, mid, granted_qos):
+    print("Successfully subscribe")
 
 def main():
     client = Client()
     client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
 ```
 
@@ -150,6 +127,9 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         client.subscribe(TOPIC_HELLO)   
 
+def on_subscribe(client, userdata, mid, granted_qos):
+    print("Successfully subscribe")
+
 def on_message(client, userdata, msg):
     print(msg.topic + " " + msg.payload.decode())
 
@@ -157,6 +137,7 @@ def main():
     client = Client()
     sigint(client)
     client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
     client.connect(MQTT_SERVER)
     client.loop_forever()
@@ -168,12 +149,12 @@ if __name__ == "__main__":
 
 ### 토픽 메시지 발생
 ```python
-MY_TOPIC = "asm/hello"
+TOPIC_HELLO = "asm/hello"
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         msg = input("Enter your message: ")
-        client.publish(MY_TOPIC, msg)
+        client.publish(TOPIC_HELLO, msg)
 
 def on_publish(client, userdata, mid):
     msg = input("Enter your message: ")
@@ -224,28 +205,30 @@ if __name__ == "__main__":
 </details>
 
 ## 응용 예제
+
+### 난수 발행 및 구독
 asm/randint 토픽에 1초 단위로 난수를 발행하는 발행자와 이를 구독하는 구독자를 구현해 보자
 
-### asm/randint 토픽
+**sm/randint 토픽**
 ```python
 TOPIC_RADINT = "asm/randint"
 ```
 
-### 1초 단위 지연
+**1초 단위 지연**
 ```python
 import time
 
 time.sleep(1)
 ```
 
-### 난수 생성
+**난수 생성**
 ```python
 from random import randint
 
 value = randint(10)
 ```
 
-### 1초 단위로 난수 발행
+**1초 단위로 난수 발생**
 - 1초 단위로 TOPIC_RANDINT 토픽에 0 ~ 10 사이 난수를 발생하는 함수 정의
   ```python
   def rand_publish(client):
@@ -263,17 +246,10 @@ value = randint(10)
 ```python
 from paho.mqtt.client import Client
 from random import randint
-import signal
 import time
 
 MQTT_SERVER = "broker.hivemq.com"
 TOPIC_RADINT = "asm/randint"
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
 
 def rand_publish(client):
     value = randint(0, 10)
@@ -290,7 +266,6 @@ def on_publish(client, userdata, mid):
 
 def main():
     client = Client()
-    sigint(client)
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.connect(MQTT_SERVER)
@@ -301,7 +276,7 @@ if __name__ == "__main__":
 ```
 </details>
 
-### 난수 구독자
+**난수 구독자**
 - 연결되면 TOPIC_RANDINT 구독
 - on_message 콜백에서 페이로드를 int 타입으로 변경
 
@@ -310,32 +285,107 @@ if __name__ == "__main__":
 
 ```python
 from paho.mqtt.client import Client
-import signal
 
 MQTT_SERVER = "broker.hivemq.com"
 TOPIC_RADINT = "asm/randint"
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("ok")
         client.subscribe(TOPIC_RADINT)   
 
+def on_subscribe(client, userdata, mid, granted_qos):
+    print("Successfully subscribe")
+
 def on_message(client, userdata, msg):
     print(int(msg.payload))
 
 def main():   
     client = Client()
-    sigint(client)
     client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
     client.connect(MQTT_SERVER)
     client.loop_forever()
+
+if __name__ == "__main__":
+    main()
+```
+</details>
+
+### 간단한 채팅
+하나의 프로그램(파일)로 채팅 구현
+
+**스레드로 input() 대기 문제 해결**
+```python
+from threading import Thread
+
+def post_data(client):
+    payload = input()
+    client.publish(TOPIC_CHATT_MY, payload)
+
+Thread(target=post_data, args=(client,)).start()
+```
+
+**다중 토픽**
+- 전체 메시지 구독
+```python
+TOPIC_CHATT_ALL = "asm/chatt/+"
+```
+
+- 자신의 메시지 발생
+```python
+TOPIC_CHATT_MY = "asm/chatt/chanmin"
+```
+
+**토픽 구독 및 발생**
+- on_subscribe 콜백: 서버로부터 토픽 구독 확인
+- on_publish 콜백: 서버로부터 토픽 메시지 게시 확인
+- on_message 콜백: 서버로부터 토픽 메시지 수신
+
+<details>
+<summary>전체 코드</summary>
+
+```python
+from paho.mqtt.client import Client
+from threading import Thread
+
+MQTT_SERVER = "broker.hivemq.com"
+TOPIC_CHATT_ALL = "asm/chatt/+"
+TOPIC_CHATT_MY = "asm/chatt/chanmin"
+
+def post_data(client):
+    payload = input()
+    client.publish(TOPIC_CHATT_MY, payload)
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Successfully connected")
+        client.subscribe(TOPIC_CHATT_ALL)
+    else:
+        print("Failed to connect")
+        client.disconnect()
+
+def on_subscribe(client, userdata, mid, granted_qos):
+        Thread(target=post_data, args=(client,)).start()
+
+def on_publish(client, userdata, mid):
+    Thread(target=post_data, args=(client,)).start()
+
+def on_message(client, userdata, msg):
+    print(msg.topic, "->", msg.payload.decode())
+
+def main():
+    client = Client()
+    client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
+    client.on_publish = on_publish
+    client.on_message = on_message
+    client.connect(MQTT_SERVER)
+    try:
+        client.loop_forever()
+    except KeyboardInterrupt:
+        client.disconnect()
 
 if __name__ == "__main__":
     main()
