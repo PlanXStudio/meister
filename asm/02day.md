@@ -19,8 +19,6 @@ pip install paho-mqtt
 pip show paho-mqtt 
 ```
 
-[paho-mqtt 다운로드](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/Ee7TuEQjzGVNsY1E-dLSosoBT1oB5yP56h6MNTkZJtfAtQ?e=05sWgV)
-
 ### MQTT 브로커(서버) 연결
 ```python
 from paho.mqtt.client import Client
