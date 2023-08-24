@@ -201,7 +201,7 @@ if __name__ == "__main__":
 ### 난수 발행 및 구독
 asm/randint 토픽에 1초 단위로 난수를 발행하는 발행자와 이를 구독하는 구독자를 구현해 보자
 
-**sm/randint 토픽**
+**토픽**
 ```python
 TOPIC_RADINT = "asm/randint"
 ```
@@ -308,14 +308,7 @@ if __name__ == "__main__":
 ### 간단한 채팅
 하나의 프로그램(파일)로 채팅 구현
 
-**스레드로 input() 대기 문제 해결**
-- input()을 실행하면 사용자가 ENTER키를 누를 때까지 명령 프롬프트(쉘)는 차단됨
-  - 브로커로부터 메시지 수신 가능
-  - 명령 프롬프트(쉘)가 차단된 동안에는 print()로 메시지를 출력할 수 없음
-- input() 구문을 스레드로 메인 프로그램과 분리해 실행 
-  - 스레드는 메인 프로그램과 별개로 새로운 프로그램처럼 동작
-  - 전역 변수과 함수는 공유함
-    
+**스레드로 input() 대기 문제 해결**    
 ```python
 from threading import Thread
 
@@ -325,6 +318,14 @@ def post_data(client):
 
 Thread(target=post_data, args=(client,)).start()
 ```
+
+> input()을 실행하면 사용자가 ENTER키를 누를 때까지 명령 프롬프트(쉘)는 차단됨  
+>> 브로커로부터 메시지 수신 가능  
+>> 명령 프롬프트(쉘)가 차단된 동안에는 print()로 메시지를 출력할 수 없음  
+>> input() 구문을 스레드로 메인 프로그램과 분리해 실행  
+>>> 스레드는 메인 프로그램과 별개로 새로운 프로그램처럼 동작  
+>>> 전역 변수과 함수는 공유함 
+
 
 **다중 토픽**
 - 전체 메시지 구독
@@ -363,7 +364,7 @@ def on_connect(client, userdata, flags, rc):
         client.subscribe(TOPIC_CHATT_ALL)
     else:
         print("Failed to connect")
-        client.disconnect()
+        client.loop_stop()
 
 def on_subscribe(client, userdata, mid, granted_qos):
         Thread(target=post_data, args=(client,)).start()
