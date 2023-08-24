@@ -19,7 +19,7 @@ pip install paho-mqtt
 pip show paho-mqtt 
 ```
 
-### MQTT 서버 연결
+### MQTT 브로커(서버) 연결
 ```python
 from paho.mqtt.client import Client
 
@@ -33,26 +33,24 @@ if __name__ == "__main__":
     main()
 ```
 
-### 연결 콜백 및 메시지 루프
+### 연결 응답 콜백 및 메시지 루프
 ```python
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    if rc == 0:
+        print("Connected to the", MQTT_SERVER)
 
+def main():
+    client = Client()
+    client.on_connect = on_connect
+```
+
+### 메시지 루프
+```python
 def main():
     client = Client()
     client.on_connect = on_connect
     client.connect(MQTT_SERVER)
     client.loop_forever()
-```
-
-### 키보드 인터럽트 예외 처리
-**try/except 구문**
-```python
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
 ```
 
 ### 정리
@@ -71,7 +69,8 @@ from paho.mqtt.client import Client
 MQTT_SERVER = "broker.hivemq.com"
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    if rc == 0:
+        print("Connected to the", MQTT_SERVER)
 
 def main():   
     client = Client()
@@ -87,19 +86,16 @@ if __name__ == "__main__":
 
 ### 토픽 구독
 **토픽**
-- 영문자, 숫자, _, -로 구성되며 /로 계층(레벨) 표현
-  - asm/hello, asm/hello/123
-- 계층 대체(특수) 문자는 #, +
-  - #: 현재 및 하위 모든 계층 대체
-  - +: 현재 계층 대체
-
 ```python
 TOPIC_HELLO = "asm/hello"
+```
+> 영문자, 숫자, _, -로 구성되며 /로 계층(레벨) 표현
+>> #: 현재 및 하위 모든 계층 대체  
+>> +: 현재 계층 대체  
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        client.subscribe(TOPIC_HELLO)   
 
+**토픽 구독 및 응답 콜백**
+```python
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         client.subscribe(TOPIC_HELLO)   
@@ -109,10 +105,23 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 def main():
     client = Client()
-    client.on_connect = on_connect
     client.on_subscribe = on_subscribe
+```
+
+**메시지 수신 콜백**
+```pythno
+def on_message(client, userdata, msg):
+    print(msg.topic, msg.payload) 
+
+def main():
+    client = Client()
     client.on_message = on_message
 ```
+
+> [주의] 보낸 데이터의 유형에 따라 msg.payload를 다음과 같이 변환 후 사용해야 함
+>> 문자열: msg.payload.decode()  
+>> 정수: int(msg.payload)  
+>> 실수: float(msg.payload)  
 
 <details>
 <summary>전체 코드</summary>
@@ -147,9 +156,8 @@ if __name__ == "__main__":
 </details>
 
 ### 토픽 메시지 발행
+**토픽 발행 및 콜백**
 ```python
-TOPIC_HELLO = "asm/hello"
-
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to MQTT server")
@@ -157,11 +165,6 @@ def on_connect(client, userdata, flags, rc):
 
 def on_publish(client, userdata, mid):
     print("Message published")
-
-def main():
-    client = Client()
-    client.on_connect = on_connect
-    client.on_publish = on_publish
 ```
 
 <details>
