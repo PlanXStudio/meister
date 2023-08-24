@@ -33,7 +33,7 @@ if __name__ == "__main__":
     main()
 ```
 
-### 연결 응답 콜백 및 메시지 루프
+### 연결 응답 콜백
 ```python
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
