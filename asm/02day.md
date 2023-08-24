@@ -85,7 +85,7 @@ if __name__ == "__main__":
 </details>
 
 
-### 토픽 메시지 구독
+### 토픽 구독
 **토픽**
 - 영문자, 숫자, _, -로 구성되며 /로 계층(레벨) 표현
   - asm/hello, asm/hello/123
@@ -119,16 +119,9 @@ def main():
 
 ```python
 from paho.mqtt.client import Client
-import signal
 
 MQTT_SERVER = "broker.hivemq.com"
 TOPIC_HELLO = "asm/hello"
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -142,7 +135,6 @@ def on_message(client, userdata, msg):
 
 def main():   
     client = Client()
-    sigint(client)
     client.on_connect = on_connect
     client.on_subscribe = on_subscribe
     client.on_message = on_message
@@ -154,18 +146,17 @@ if __name__ == "__main__":
 ```
 </details>
 
-### 토픽 메시지 발생
+### 토픽 메시지 발행
 ```python
 TOPIC_HELLO = "asm/hello"
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        msg = input("Enter your message: ")
-        client.publish(TOPIC_HELLO, msg)
+        print("Connected to MQTT server")
+        client.publish(TOPIC_HELLO, "Hello World!")
 
 def on_publish(client, userdata, mid):
-    msg = input("Enter your message: ")
-    client.publish(MY_TOPIC, msg)
+    print("Message published")
 
 def main():
     client = Client()
@@ -178,29 +169,20 @@ def main():
 
 ```python
 from paho.mqtt.client import Client
-import signal
 
 MQTT_SERVER = "broker.hivemq.com"
-MY_TOPIC = "asm/hello"
-
-def sigint(client):   
-    def signal_handler(signal, frame):
-        client.disconnect()
-
-    signal.signal(signal.SIGINT, signal_handler)
+TOPIC_HELLO = "asm/hello"
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        msg = input("Enter your message: ")
-        client.publish(MY_TOPIC, msg)
+        print("Connected to MQTT server")
+        client.publish(TOPIC_HELLO, "Hello World!")
 
 def on_publish(client, userdata, mid):
-    msg = input("Enter your message: ")
-    client.publish(MY_TOPIC, msg)
+    print("Message published")
 
 def main():
     client = Client()
-    sigint(client)
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.connect(MQTT_SERVER)
