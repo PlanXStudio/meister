@@ -21,30 +21,18 @@ network={
 }
 ```
 
-### 수정한 wpa_supplicant.conf를 /etc/wpa_supplicant/ 디렉토리로 복사
+### 수정한 wpa_supplicant.conf를 /etc/wpa_supplicant/ 디렉토리로 이동
 ```sh
 sudo mv wpa_supplicant.conf /etc/wpa_supplicant/
-```
-
-### 현재 디렉토리의 wpa_supplicant.conf 삭제
-```sh
-rm ./wpa_supplicant.conf
 ```
 
 ### 네트워크 서비스 다시 시작
 > AP의 DHCP 서버를 통해 IP를 할당받아야 함
 ```sh
 sudo systemctl restart dhcpcd
-sudo systemctl restart networking.service
 ```
 
 ### Wi-Fi 어뎁터에 동적으로 할당된 IP 확인
 ```sh
 ifconfig wlan0
-```
-
-- 만약 IP가 할당되지 않았으면 실습장비를 재 시작해 볼 것
-  ```sh
-  sudo reboot
-  ```
-  
+```  
