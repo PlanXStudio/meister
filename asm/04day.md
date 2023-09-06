@@ -71,7 +71,7 @@ if __name__ == "__main__":
 ```
 
 ### LED, 픽셀 디스플레이 제어 구독
-> iot.actuator.py
+> iot_actuators.py
 ```python
 from paho.mqtt.client import Client
 from pop import Leds, Pixels
