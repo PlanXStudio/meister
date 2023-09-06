@@ -1,7 +1,7 @@
 # MQTT 기반 IoT 센서 제어 종합 과제
 
 ## paho-mqtt 라이브러리 사용자 인자
-> Client() 객체를 만들 때 userdata 인자에 사용자 데이터 전달 가능
+> Client() 객체를 만들 때 userdata 인자에 사용자 데이터 전달 가능  
 > 모든 callback 함수의 userdata 인자로 넘겨짐
 > 여러 개의 데이터는 튜플 또는 리스트로 전달
 
