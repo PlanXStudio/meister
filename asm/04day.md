@@ -1,6 +1,29 @@
 # MQTT 기반 IoT 센서 제어 종합 과제
 
-## 샘플 코드
+## paho-mqtt 라이브러리 사용자 인자
+> Client() 객체를 만들 때 userdata 인자에 사용자 데이터 전달 가능
+> 모든 callback 함수의 userdata 인자로 넘겨짐
+> 여러 개의 데이터는 튜플 또는 리스트로 전달
+
+```python
+def on_connect(client, userdata, flags, rc):
+    global f
+
+    if rc == 0:
+        print("Connected")
+        f = open("result_sensor.txt", '+a')
+        post_sensors(client, userdata)
+
+def main():
+    cds = Cds()
+    us = Ultrasonic()
+    th = TempHumi()
+    vr = Potentiometer()
+
+    client = Client(userdata=(cds, us, th, vr))
+```
+
+## 샘플
 ### 빛, 움직임 감지, 거리 감지, 온도/습도, 가변저항 센서값 발행
 > iot_sensors.py
 
@@ -175,7 +198,7 @@ if __name__ == "__main__":
 - PC에서 센서값을 구독하고 액추에이터 제어 토픽을 발행하는 프로그램을 작성해 봅니다.
   - paho MQTT 클라이언트 라이브러리를 이용합니다.
   - 브로커 및 센서값 구독과 액추에이터 제어 발행 토픽은 MQTTX에서 테스트한 것과 같습니다.
-  - 2개의 파이썬 스크립트로 구현한 후 실행해 봅니다.
+  - 2개의 파이썬 스크립트(iot_sensors_sub.py, iot_actuators_pub.py)로 구현한 후 실행해 봅니다.
 - [심화(난이도 최상)] 실습장비에서 실행되는 2개의 샘플과 PC에서 구현한 결과물은 각각 하나의 파이썬 스크립트로 병합해 봅니다.
   - 실습장비의 센서값 발행과 액추에이터 제어 구독을 하나의 파이썬 스크립트에서 처리해야 합니다.
   - PC의 센서값 구독과 액추에이터 제어 발행을 하나의 파이썬 스크립트에서 처리해야 합니다.
