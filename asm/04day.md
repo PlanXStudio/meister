@@ -102,7 +102,7 @@ from time import strftime
 
 MQTT_SERVER = "broker.hivemq.com"
 
-TOPIC_IOT_ACTUATOR = "asm/iot/actuator" 
+TOPIC_IOT_ACTUATOR = "asm/iot/actuators" 
 
 f = None
 start_time = None
