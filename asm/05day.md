@@ -4,7 +4,7 @@
 |구분|Windows (cmd)| Windows (pwsh) | Linux|
 |----|-------|-------|-----|
 |파일 분류 이름공| 폴더 | 폴더 | 디렉토리|
-|파일복사|	copy|	co | cp|
+|파일복사|	copy|	cp | cp|
 |파일 이동|	move|	mv | mv|
 |파일 목록보기|	dir|	ls | ls|
 |파일 삭제|	del, erase|	rm | rm|
