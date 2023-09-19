@@ -60,7 +60,7 @@
 - 파이썬 코드 실행
 
 ## Tutorial
-[Linux 101](https://koreaoffice-my.sharepoint.com/:b:/g/personal/devcamp_korea_ac_kr/EdckMnQG59VNqr1iV954x9cBx_KDmaFLW0Kpf7qNUal7ag?e=YpWWku)
+[Linux 101 링크](https://koreaoffice-my.sharepoint.com/:b:/g/personal/devcamp_korea_ac_kr/EdckMnQG59VNqr1iV954x9cBx_KDmaFLW0Kpf7qNUal7ag?e=YpWWku)
 
 ## Work Linux
 - [WSL2 링크](https://github.com/microsoft/WSL/releases/download/2.0.0/wsl.2.0.0.0.x64.msi)
