@@ -63,4 +63,16 @@
 [Linux 101](https://koreaoffice-my.sharepoint.com/:b:/g/personal/devcamp_korea_ac_kr/EdckMnQG59VNqr1iV954x9cBx_KDmaFLW0Kpf7qNUal7ag?e=YpWWku)
 
 ## Work Linux
-[Tos2](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EYBrZMC3uEJBqirmRD1inBsBvNz6N3-prbNWJ114N6XMOQ?e=hgEO7M)
+- WSL2 (https://github.com/microsoft/WSL/releases/download/2.0.0/wsl.2.0.0.0.x64.msi)
+  - 받은 wsl.x.y.z.msi 설치
+  - WSL 하위 시스템 설치 (온라인 리눅스 배포판 제외) 
+  ```sh
+  wsl --install --no-distribution
+  ```
+- Ubuntu-22.04 커스텀 버전 (https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EYBrZMC3uEJBqirmRD1inBsBvNz6N3-prbNWJ114N6XMOQ?e=hgEO7M)
+  - 받은 Tos2의 압축을 해제한 후 설치
+  ```sh
+  cd ~
+  mkdir WSL
+  wsl --import Tos2 ~/WSL/Tos2 Tos2.tar
+  ```    
