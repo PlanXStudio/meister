@@ -1,0 +1,354 @@
+# Zigbee 기반 IoT 저전력 무선 장치
+
+## 마이크로파이썬 CLI 명령 for XNode
+
+### 시리얼 포트 찾기
+```sh
+xnode scan
+```
+
+### 노드 파일 시스템 경로 확인
+```sh
+xnode -p com3 ls
+xnode -p com3 /flash
+xnode -p com3 /flash/lib
+```
+> xnode -p <포트 번호> ls [XNode 경로]
+> 디폴트는 루트(/)
+
+### PC 디렉토리를 XNode에 복사
+```sh
+xnode -p com3 pub lib
+xnode -p com3 ls /flash/lib
+```
+> xnode -p <포트 번호> put <PC 경로> [XNode 경로]
+> 디폴트는 /flash
+
+### PC의 마이크로파이썬 스크립트를 XNode에서 실행
+```sh
+xnode -p com3 run app.py
+```
+> xnode -p <포트 번호> run [옵션] main.py
+- run 인자로 프로그램을 실행하면 종료 전까지 시리얼을 통해 print() 문의 출력을 기다림
+- 옵션
+  - -n: print() 문의 출력을 기다리지 않고 명령 종료. 
+    - 프로그램은 XNode에서 계속 실행될 수 있음
+    - XNode에서 시리얼로 출력하는 데이터를 다른 툴(PuTTY, smon 등)로 확인할 때 사용
+  - -i: PC의 키보드 입력을 시리얼을 통해 XNode에 실행 중인 프로그램에 전달
+    - XNode에서 실행 중인 프로그램은 시리얼로부터 데이터를 읽는 구문이 구현되어 있어야 함
+    - 누른 키를 터미널 창에 표시함 (Echo on)
+  - -ni (또는 -n -i): -i와 같으나 누른 키를 터미널 창에 표시하지 않음 (Echo off)
+
+### PC 파일을 XNode에 복사
+```sh
+xnode -p com3 put app.py main.py
+xnode -p com3 ls
+```
+> xnode -p <포트 번호> put <PC 경로> [XNode 경로]
+> 디폴트는 /flash
+
+### XNode 파일 삭제
+```sh
+xnode -p com3 rm main.py
+xnode -p com3 ls 
+```
+> xnode -p <포트 번호> rm <파일명>
+
+### XNode 디렉토리 삭제
+```sh
+xnode -p com3 rmdir /flash/lib
+xnode -p com3 ls
+```
+> xnode -p <포트 번호> rmdir <XNode 경로>
+
+
+### XNode 파일 시스템 초기화
+```sh
+xnode -p com3 format b
+xnode -p com3 ls
+```
+
+## Pop 라이브러리 (for XNode)
+### 모듈 로드
+```python
+from pop import Led, Battery, AmbientLight, Tphg
+import time  
+```
+
+### time 모듈 함수
+- sleep(n)
+  - Delay time
+  - n: 초 단위 지연. 실수값은 밀리초
+- sleep_ms(n)
+  - 밀리초 단위 지연
+- ticks_ms()
+  - 틱 카운트(부팅 후 1 밀리초마다 1씩 증가하는 값) 반환
+- ticks_diff(m, n)
+  - m, n: 카운트 값
+  - m - n 결과 반환
+
+```python
+import time
+
+start = time.ticks_ms()
+
+time.sleep(1)
+time.sleep_ms(500)
+
+delta = time.ticks_diff(time.ticks_ms(), start)
+
+print("Operation took %d ms to execute"%(delta))
+```
+
+```python
+t0 = time.ticks_ms()
+while True:
+    t1 = time.ticks_ms()
+    if (t1 - t0 => 10): #10ms
+        t1 = t0
+	#todo
+```
+
+### pop 모듈 Led 클래스
+- Led()
+  - LED 객체 생성  
+- on()
+  - LED 켜기
+- off()
+  - LED 끄기
+- stat()
+  - LED 상태 반환. 켜져 있으면 True, 아니면 False
+
+```python
+from pop import Led
+import time
+
+hz100 = 1/100
+
+l = Led()	
+print("max light")
+l.on()
+time.sleep(2)
+
+print("1/2 light")
+for i in range(1, 50*2+1):
+    l.off()
+    print(1 if l.stat() else 0, end='')
+    time.sleep(int(hz100/2)) 
+    l.on()
+    time.sleep(int(hz100/2))
+    print(1 if l.stat() else 0, end='')
+l.off()
+```
+
+```python
+from pop import Led
+import time
+
+class LedEx(Led):
+    def __init__(self):
+        super().__init__()
+
+    def toggle(self):
+        self.off() if self.stat() else self.on()
+
+l = LedEx()	
+
+for _ in range(10):
+    l.toggle()
+    print("Led on" if l.stat() else "Led off")
+    time.sleep(.1)
+```
+
+### pop 모듈 Batter 클래스
+- Battery()
+  - Batter 객체 생성
+- read()
+  - 현재 배터리 전압 읽기(볼트(V) 단위). 3.2보다 작으면 충전 필요.
+
+```python
+from pop import Battery
+import time
+
+b = Battery()
+
+max = 4.2
+min = 3.2
+block = 10
+   
+step = (max-min) / block
+block_table = {i*10:(min+step*i) for i in range(block+1)}
+print(block_table)
+
+for _ in range(10):
+    val = b.read()
+    print("Battery: %.1f Volt"%(val), end=", ")
+    print("HIGH") if val >= block_table[80] else print("MIDDLE") if val >= block_table[30] else print("LOW")
+    time.sleep(1)
+```
+
+## pop 모듈 AmbientLight 클래스**
+- AmbientLight()
+  - AmbientLight 객체 생성
+- read()
+  - 럭스(lux) 단위 주변광 밝기 읽기
+
+```python
+from pop import AmbientLight
+import time
+
+lx = AmbientLight()
+t0 = time.ticks_ms()
+
+while True:
+    t1 = time.ticks_ms()
+    if time.ticks_diff(t1, t0) >= 1000:
+        t0 = t1
+        val = lx.read()
+        print("light = %d lx"%(val))
+```
+
+### pop 모듈 Tphg 클래스
+- Tphg()
+  - Tpgh 객체 생성
+- read()
+  - 튜플로 (온도, 기압, 습도, 가스값) 읽기
+- sealevel(altitude)
+  - altitude: 현재 측정된 고도
+  - 반환값은 튜플로 (해수면 기압, 기압)
+- altitude(sealevel)
+  - sealevel: 현재 측정된 해수면 기압
+  - 반환값은 튜플로 (고도, 기압)
+
+```python
+from pop import Tphg
+import time
+
+tphg = Tphg()
+   
+for _ in range(5):
+    temp, _, humi, _ = tphg.read()
+    print("Temp = %.1f C, Humi = %.1f RH"%(temp, humi))
+    time.sleep(1)
+```
+
+```python
+from pop import Tphg
+import time
+
+tphg = Tphg()
+   
+for _ in range(5):
+    altitude, press = tphg.altitude(1013.4) #https://www.weather.go.kr/weather/observation/currentweather.jsp
+    print("Altitude = %d m, Pressure = %d"%(altitude, press))
+    time.sleep(1)
+```
+
+```python
+from pop import Tphg
+import time
+
+tphg = Tphg()
+   
+for _ in range(5):
+     sea_level, press = tphg.sealevel(88) #dsm altitude (https://earth.google.com/web/)
+     print("Sea Level = %.1f hPa, Pressure = %d"%(sea_level, press))
+     time.sleep(1)
+```
+
+### pop 모듈 Uart 클래스
+- Uart()
+  - Uart 객체 생성
+- write(data)
+  - 데이터 쓰기
+- read()
+  - 데이터 읽기
+
+```python
+from pop import Uart
+from pop import Led, Battery
+
+uart = Uart()
+led = Led()
+battery = Battery()
+
+uart.write("Start...\n")
+
+while True:
+    cmd = uart.read(1).decode()
+    if cmd == 'q':
+        break
+    elif cmd == 'l':
+        led.off() if led.stat() else led.on()
+	uart.write("\nLed %s\n"%("ON" if led.stat() else "OFF"))
+    elif cmd == 'b':
+        uart.write("\nBattery: %.2f Volt\n"%(battery.read()))
+    else:
+        uart.write("\nUnknown command\n")
+uart.write("\nThe End...\n")
+```
+>> *xnode -pcom<port_num> run -i <file_name>.py*
+>>> *-i* is echo
+
+### 파일 객체 생성 및 데이터 읽고 쓰기
+- open(file, mode)
+  - 파일 객체 생성
+    - file: 파일 이름
+    - mode: 'r' (read: 기본값t) or 'w' (write). --> 'a' (append)는 마이크로파이썬에서 지원하지 않음
+- write(data)
+  - 파일에 데이터 쓰기
+- readline()
+  - 파일에서 줄 단위로 읽기. 더 이상 읽을 줄이 없으면 None 반환 
+- close()
+  - 파일 객체 닫기
+
+```python
+from pop import Led, Light, Tphg
+import time, os
+
+led = Led()
+light = Light()
+tphg = Tpht()
+
+f_name = 'sensors.dat'
+
+if f_name in os.listdir():
+    os.remove(f_name)
+
+f = open(f_name, 'w')
+
+f.write('LIGHT, TEMP, HUMI\n')
+
+for _ in range(10):
+    led.off() if led.stat() else led.on()
+    
+    l = light.read()
+    t, _, h, _ = tphg.read()
+    
+    data = "%d,%.2f,%.2f"%(l, t, h)
+    
+    print(data)
+    f.write(data+'\n')
+    time.sleep(1)
+    
+f.close()
+```
+>> *xnode -pcom<port_num> put <file_name>.py main.py*  
+>>> XNode reset  
+  
+>> *xnode -pcom<port_num> get sensors.dat sensors.dat*  
+
+
+```python
+f_name = 'sensors.dat'
+
+f = open(f_name)
+
+while True:
+    data = f.readline()
+    if not data:
+        break
+    print(data,end='')
+     
+f.close()
+```
