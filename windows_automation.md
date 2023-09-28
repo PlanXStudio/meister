@@ -5,7 +5,7 @@
   winget install Microsoft.PowerShell.Preview =s winget
   winget install JanDeDobbeleer.OhMyPosh -s winget
   winget install Git.Bit -s winget
-
+  
   Install-Module -Name Terminal-Icons -Repository PSGallery
   install-module posh-git
   Install-Module -Name modern-unix-win
