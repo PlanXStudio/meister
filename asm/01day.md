@@ -41,12 +41,17 @@ sysdm.cpl ,3
 - C:\VSCode\ext\python
 - C:\VSCode\ext\python\Scripts
 
-## 라이브러리 설치
+## 파이썬 패키지(라이브러리) 설치
 ```sh
 pip install numpy
 pip install matplotlib
 pip install paho-mqtt
 ```
+
+- 모든 파이썬 패키지를 최신 버전으로 업그레이드 (PowerShell)
+  ```sh
+  pip freeze | %{$_.split('==')[0]} | %{pip install --upgrade $_}
+  ```
 
 ## VSCode 확장 설치
 ### 확장
