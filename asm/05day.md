@@ -36,31 +36,45 @@
 
 ### 파일 구분
 - 일반
-- 폴더
+- 폴더/디렉토리
 - 숨김
-- (리눅스) 읽기/쓰기/실행ㅇ
+- 특수 파일(리눅스)
+
+### 파일 권한(리눅스)
+- 읽기(r)
+- 쓰기(w)
+- 실행(x)
+
+### 파일 소유자/그룹/기타
+- 관리자
+- 일반
 
 ### 경로
-- 경로 구분 문자 /
+- 경로 구분 문자: /
 - 절대 경로
 - 상대 경로
   - .
   - ..
-
-### 폴더 생성 및 이동, 삭제
-- 작업공간
+- 기타
+  - 루트 폴더/디렉토리
+  - 홈 폴더/디렉토리
+  - 현재 폴더/디렉토리
+  - 작업 폴더/디렉토리/작업공간
+    
+### 폴더/디렉토리 생성 및 변경, 이동, 삭제
 - mkdir
+- cd
 - mv
 - rm
 
-### VSCode 연계
+### VSCode의 터미널 연계
 - 작업공간
 - 하위 폴더 생성
 - 하위 폴더에 파이썬 소스 생성
 - 파이썬 코드 실행
 
 ## Tutorial
-Linux 101 학습 문서(https://koreaoffice-my.sharepoint.com/:b:/g/personal/devcamp_korea_ac_kr/EdckMnQG59VNqr1iV954x9cBx_KDmaFLW0Kpf7qNUal7ag?e=YpWWku)
+[Linux 101 학습 문서 다운로드](https://koreaoffice-my.sharepoint.com/:b:/g/personal/devcamp_korea_ac_kr/EdckMnQG59VNqr1iV954x9cBx_KDmaFLW0Kpf7qNUal7ag?e=YpWWku)
 
 ## Work Linux
 - WSL2 V2.0(https://github.com/microsoft/WSL/releases/download/2.0.0/wsl.2.0.0.0.x64.msi)
@@ -70,7 +84,7 @@ Linux 101 학습 문서(https://koreaoffice-my.sharepoint.com/:b:/g/personal/dev
   wsl --install --no-distribution
   ```
   
-- Ubuntu-22.04 커스텀 버전(https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EYBrZMC3uEJBqirmRD1inBsBvNz6N3-prbNWJ114N6XMOQ?e=hgEO7M)
+- [Ubuntu-22.04 커스텀 버전 다운로드](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EYBrZMC3uEJBqirmRD1inBsBvNz6N3-prbNWJ114N6XMOQ?e=hgEO7M)
   - 다운받은 Tos2의 압축을 해제한 후 홈 디렉토리로 복사
   - 홈 디렉토리에서 배포판 설치
     ```sh
