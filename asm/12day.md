@@ -1,4 +1,4 @@
-# Zigbee 제어를 위한 MicroPython 프로그래밍 심화
+# Zigbee 기반 XNode 제어를 위한 MicroPython 프로그래밍 심화
 
 ## Processing(Arduino) 프로그래밍 구조 적용
 ```python
