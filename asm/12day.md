@@ -96,11 +96,11 @@ def writeLine(buffer):
       - 주변광 밝기 송신
     - tphg
       - temp, humi, all 옵션에 따라 온도 또는 숩도 또는 온도, 습도 송신
-  - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신
+  - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신  
 
 <details>
-<summery>전체 코드</summery>    
-    
+<summary>전체 코드</summary>
+
 ```python
 from time import sleep
 from pop import Uart
@@ -180,6 +180,21 @@ if __name__ == '__main__':
   ```python
   cmd = readLine().lower().split(" ")
   ```
-- [심화] loop() 구조를 요구에 맞게 수정해 보라
-  - if문으로 처리하는 해당 명령 블록을 각각 doLed(), doBattery(), doLight(), doTpgh() 함수로 수정해 보라.
-  - if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
+- loop() 구조를 다음 요구에 맞게 수정해 보라
+  - 해당 명령 처리 블록을 각각 doLed(), doBattery(), doLight(), doTpgh() 함수 호출로 변경했다. 동일한 결과를 갖도록 해당 함수를 구현하라.
+    ```python
+    def loop():
+        cmd = readLine().lower().split(" ")
+            
+        if cmd[0] == "led" and len(cmd) == 2:
+            doLed(cmd[1])
+        elif cmd[0] == "battery" and len(cmd) == 1:
+            doBattery()
+        elif cmd[0] == "light" and len(cmd) == 1:
+            doLight()
+        elif cmd[0] == "tphg" and len(cmd) == 2:
+            doTphg(cmd[1])
+        else:
+            writeLine("Unknown command")
+    ```
+  - [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
