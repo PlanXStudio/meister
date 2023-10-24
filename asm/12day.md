@@ -1,6 +1,7 @@
 # Zigbee 기반 XNode 제어를 위한 MicroPython 프로그래밍 심화
 
-## Processing(Arduino) 프로그래밍 구조 적용
+## XNode 프로그래밍
+### Processing(Arduino) 프로그래밍 구조 적용
 > 프로세싱은 예술가를 위해 언어로 멀티미디어 프로그래밍에 사용되었으며 Arduino도 이 구조를 채택함
 ```python
 from time import sleep
@@ -23,7 +24,7 @@ def main():
 - [심화] main() 함수의 while 루프에서 sleep()을 사용하는 이유는 무엇인가?
 
 
-## UART 수신 처리
+### UART 수신 처리
 > Uart 객체를 만든 후 read() 메소드로 xnode가 수신한 데이터 읽기
 >> xnode -p<포트번호> run -i <MicroPython스크립트>
 
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 - <BACKSPACE>에 대한 바이트 문자열은 무엇인가?
 - <ENTER>에 대한 바이트 문자열은 무엇인가?
 
-## UART 줄 단위 수신 함수(readLine()) 구현
+### UART 줄 단위 수신 함수(readLine()) 구현
 > 줄 단위 수신은 1바이트씩 <ENTER> 전까지 누적해 읽음
 
 ```python
@@ -74,7 +75,7 @@ def readLine():
 - 왜 1바이트씩 읽어 처리하는가?
 - Uart() 객체로 읽은 데이터를 decode()로 변환하는 이유는?
 
-## UART 줄 단위 송신 함수(writeLine()) 구현
+### UART 줄 단위 송신 함수(writeLine()) 구현
 > 송신할 문자열 끝에 <ENTER>를 추가해 write() 메소드에 전달
 >> write() 메소드에 문자열을 전달하면 xnode는 이를 바이트 문자열로 바꿔 송신
 ```python
@@ -83,7 +84,7 @@ def writeLine(buffer):
     uart.write(buffer)
 ```
 
-## UART로 XNode를 제어하는 통합 스크립트 작성
+### UART로 XNode를 제어하는 통합 스크립트 작성
 - PC에서 명령을 전송하면 XNode는 Uart로 이를 수신한 후 해당 작업 수행
  Led, Battery, AmbientLight, Tphg, Uart 객체 사용  
 - 페이로드 정의
@@ -199,7 +200,9 @@ if __name__ == '__main__':
     ```
   - [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
 
-## XNode를 위한 PC 시리얼 통신 프로그램 작성
+
+## PC 프로그래밍
+### XNode를 위한 PC 시리얼 통신 프로그램 작성
 > PC에는 pyserial 라이브러리가 설치되어 있어야 함
 >> pip install pyserial
 ```python
@@ -232,3 +235,7 @@ if __name__ == "__main__":
   python <Python스크립트>
   ```
   
+### XNode 제어를 MQTT를 통해 인터넷으로 확장
+> paho-mqtt 라이브러리를 이용해 인터넷에서 XNode LED 제어 및 센서값 읽기
+- XNode 기능 제어를 발행과 구독으로 구분해 보라
+- 앞서 구현한 PC 스크립트에 MQTT를 추가한 후 MQTTX 툴로 결과를 확인해 보라.
