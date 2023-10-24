@@ -181,7 +181,7 @@ if __name__ == '__main__':
   cmd = readLine().lower().split(" ")
   ```
 - loop() 구조를 다음 요구에 맞게 수정해 보라
-  - 해당 명령 처리 블록을 각각 doLed(), doBattery(), doLight(), doTpgh() 함수 호출로 변경했다. 동일한 결과를 갖도록 해당 함수를 구현하라.
+  - 해당 명령을 각각 doLed(), doBattery(), doLight(), doTpgh() 함수에서 처리되도록 변경했다. 해당 함수를 구현하라.
     ```python
     def loop():
         cmd = readLine().lower().split(" ")
