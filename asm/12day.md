@@ -1,5 +1,8 @@
 # Zigbee 기반 XNode 제어를 위한 MicroPython 프로그래밍 심화
-
+- [VSCode 다운로드](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EeZDFUrmbqBBsFNwhkXNGdQB0QnclPjdaY_rTfOzJssBNQ?e=mpFaKY)
+  - C:\에 압축해제 (C:\VSCode)
+  - 사용자 환경 변수 PATH에 C:\VSCode\ext\python과  C:\VSCode\ext\python\Scripts 경로 추가
+    
 ## XNode 프로그래밍
 ### Processing(Arduino) 프로그래밍 구조 적용
 > 프로세싱은 예술가를 위해 언어로 멀티미디어 프로그래밍에 사용되었으며 Arduino도 이 구조를 채택함
