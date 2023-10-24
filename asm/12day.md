@@ -97,6 +97,9 @@ def writeLine(buffer):
     - tphg
       - temp, humi, all 옵션에 따라 온도 또는 숩도 또는 온도, 습도 송신
   - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신
+
+<details>
+<summery>전체 코드</summery>    
     
 ```python
 from time import sleep
@@ -167,6 +170,8 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+</details>
+
 - 다음 코드의 의미는 무엇인가?
   ```python
   led, battery, light, tphg, uart = Led(), Battery(), AmbientLight(), Tphg(), Uart()
