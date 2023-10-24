@@ -1,6 +1,7 @@
 # Zigbee 기반 XNode 제어를 위한 MicroPython 프로그래밍 심화
 
 ## Processing(Arduino) 프로그래밍 구조 적용
+> 프로세싱은 예술가를 위해 언어로 멀티미디어 프로그래밍에 사용되었으며 Arduino도 이 구조를 채택함
 ```python
 from time import sleep
 
