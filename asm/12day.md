@@ -198,3 +198,37 @@ if __name__ == '__main__':
             writeLine("Unknown command")
     ```
   - [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
+
+## XNode를 위한 PC 시리얼 통신 프로그램 작성
+> PC에는 pyserial 라이브러리가 설치되어 있어야 함
+>> pip install pyserial
+```python
+from serial import Serial
+from time import sleep
+
+PORT = "COM10"
+
+def main():
+    ser = Serial(PORT, 115200, timeout=0)
+
+    ser.write("led on\r".encode())
+    sleep(1)
+    ser.write("led off\r".encode())
+    sleep(1)
+    
+    ser.write("tphg all\r".encode())
+    sleep(0.5)
+    print(ser.readline().decode())
+    
+if __name__ == "__main__":
+    main()
+```
+- XNode에서 시리얼 포트를 독점하지 않도록 주의
+  ```sh
+  xnode -p<포트번호> run -n <MicroPython스크립트>
+  ```
+- XNode MicorPython 스크립트를 실행한 후 PC Python 스크립트 실행
+  ```sh
+  python <Python스크립트>
+  ```
+  
