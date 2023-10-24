@@ -186,14 +186,14 @@ if __name__ == '__main__':
     def loop():
         cmd = readLine().lower().split(" ")
             
-        if cmd[0] == "led" and len(cmd) == 2:
-            doLed(cmd[1])
-        elif cmd[0] == "battery" and len(cmd) == 1:
-            doBattery()
-        elif cmd[0] == "light" and len(cmd) == 1:
-            doLight()
-        elif cmd[0] == "tphg" and len(cmd) == 2:
-            doTphg(cmd[1])
+        if cmd[0] == "led":
+            doLed(cmd)
+        elif cmd[0] == "battery":
+            doBattery(cmd)
+        elif cmd[0] == "light":
+            doLight(cmd)
+        elif cmd[0] == "tphg":
+            doTphg(cmd)
         else:
             writeLine("Unknown command")
     ```
