@@ -6,6 +6,9 @@
 ## XNode 프로그래밍
 ### Processing(Arduino) 프로그래밍 구조 적용
 > 프로세싱은 예술가를 위해 언어로 멀티미디어 프로그래밍에 사용되었으며 Arduino도 이 구조를 채택함
+>> xnode scan
+>> xnode -p<포트번호> run <MicroPython스크립트>
+
 ```python
 from time import sleep
 
@@ -20,6 +23,9 @@ def main():
     while True:
         loop()
         sleep(0.01)
+
+if __name__ == "__main__":
+    main()
 ```
 - setup() 함수의 역할은 무엇인가?
 - loop() 함수의 역할은 무엇인가?
