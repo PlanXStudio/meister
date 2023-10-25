@@ -43,7 +43,7 @@ def setup():
 
 def loop():
     oneByte = uart.read(1)
-    uart.write("> %s\n"%oneByte)
+    uart.write("> %s\n"%(oneByte))
 
 def main():
     setup()
@@ -99,7 +99,7 @@ def writeLine(buffer):
     - light
       - 주변광 밝기 송신
     - tphg
-      - temp, humi, all 옵션에 따라 온도 또는 숩도 또는 온도, 습도 송신
+      - temp, humi, all 옵션에 따라 온도 또는 습도 또는 온도, 습도 송신
   - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신  
 
 <details>
