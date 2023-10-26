@@ -114,7 +114,7 @@ def writeLine(buffer):
 ```python
 from time import sleep
 from pop import Uart
-from pop import Led, Battery, AmbientLight, Tphg, Uart
+from pop import Led, Battery, AmbientLight, Tphg
 
 led, battery, light, tpht, uart = None, None, None, None, None
 
