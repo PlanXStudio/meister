@@ -72,11 +72,14 @@
 
 ## Auto 제어
 - Library/CORE/lib와 Library/HOME/lib 폴더에 저장된 Pop 라이브러리를 XNode로 복사
+- 현재 위치가 작업공간(C:/Users/<계정>/iot) 일 때, 아래와 같이 설치
   ```sh
-  cd ~/iot/xnode/Library/CORE
+  cd ./xnode/Library/CORE
   xnode -p<포트> put lib
-  cd ~/iot/xnode/Library/HOME
+  cd ../
+  cd ./HOME
   xnode -p<포트> put lib
+  cd ../../
   ```
 
 ### 릴레이
@@ -92,7 +95,7 @@
   - XNode의 D6(CH2) 또는 D5(CH3) 포트로 릴레이 ON/OFF
   - FAN 객체(기본값은 채널3)의 on(), off() 메소드로 제어
     ```python
-    fan = FAN(pin='D5') #기본값은 채널3
+    fan = FAN() #기본값은 채널3(D5)
     fan.on()
     fan.off()
     ```
@@ -104,7 +107,7 @@
   - XNode의 D6(CH2) 또는 D5(CH3) 포트로 릴레이 ON/OFF
   - Light 객체의 on(), off() 메소드로 제어
   ```python
-  light = Light(pin=‘D6') #기본값은 채널2
+  light = Light() #기본값은 채널2 (D6)
   light.on()
   light.off()
   ```
@@ -116,7 +119,7 @@
   - XNode D0 포트로 채널 ON/OFF
   - DoorLock 객체의 work() 메소드로 제어
   ```python
-  dl = DoorLock(pin=‘D0') #기본값은 채널1
+  dl = DoorLock() #기본값은 채널1(D0)
   dl.work()
   ```
 
