@@ -1,4 +1,4 @@
-# IoT 개발환경 for 마이크로컨트로러
+# IoT 개발환경 for 마이크로컨트롤러
 ## VSCode 통합개발환경
 - [VSCode 다운로드](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EeZDFUrmbqBBsFNwhkXNGdQB0QnclPjdaY_rTfOzJssBNQ?e=mpFaKY)
   - C:\에 압축해제
