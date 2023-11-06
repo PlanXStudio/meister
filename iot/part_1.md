@@ -1,7 +1,7 @@
 # IoT 개발환경 for 마이크로컨트롤러
 ## 실습환경
 - PC와 실습장치(이하 Auto 제어기)를 USB 케이블(A to microB)로 연결 (시리얼 통신)
-  - Auto 제어기에는 고성능 마이크로컨트롤러(Cortex-M4)와 Zigbee 모뎀(저전력 개인무선통신)이 포함되어 있음
+  - Auto 제어기에는 고성능 마이크로컨트롤러(Cortex-M4)와 Zigbee 모뎀(저전력 개인무선통신), 릴레이, PWM 컨트롤러, 터미널 포트 등이 포함되어 있음
   - 마이크로파이썬(마이크로컨트롤러를 위한 파이썬 축소 버전)으로 동작
 - 케이블링 (수행평가 항목임!)
   - Auto 제어기에 12V DC 전원 어댑터 연결
@@ -16,19 +16,19 @@
 - C:\에 압축해제 (반디집 권장)
    - 결과: C:\VSCode
 - 사용자 환경 변수 PATH에 python.exe(파이썬 인터프리터), pip.exe(외부 파이썬 라이브러리 설치 툴) 경로 추가
-  - \<WIN\>+r 입력 후 실챙창이 표시되면 다음 명령 실행
+  - \<WIN\>+r 입력 후 실행창이 표시되면 다음 명령 실행
     ```sh
     sysdm.cpl
     ```
-  - 시스템 속성창이 표되면 "고급 > 한경 변수 > 사용자 변수" 목록에서 Path 더블클릭
-  - 빈 칸을 더불클릭한 후 아래 경로 추가
+  - 시스템 속성창이 표시되면 "고급 > 환경 변수"를 선택한 후 "사용자 변수" 목록에서 "Path" 항목 더블클릭
+  - 빈 칸을 더블클릭한 후 아래 경로 추가
     ```sh
     C:\VSCode\ext\python
     ```
     ```sh
     C:\VSCode\ext\python\Scripts
     ```
-  - 위로 이동 버튼을 이용해 추가한 항목 순서대로 가장 위에 배치
+  - "위로 이동" 버튼으로 추가한 항목을 순으로 가장 앞으로 이동
 - 결과 확인을 위해 C:/VSCode/code.exe를 실행한 후 메뉴에서 "터미널 > 새 터미널" 실행
   ```sh
   python --version
@@ -51,7 +51,7 @@ xnode scan
 ```
 - Auto 제어기에 할당된 자신의 포트 번호는 몇 번인가?
 
-** PC의 마이크로파이썬 스크립트를 Auto 제어기에 차례로 전달하면서 실행**
+** Auto 제어기에서 스크립트 파일 실행**
 ```sh
 xnode -p<포트이름> run <스크립트파일명>
 ```
@@ -60,7 +60,7 @@ xnode -p<포트이름> run <스크립트파일명>
 - 추가 옵션
   - -n: 시리얼 출력을 기다리지 않으므로 PC 쪽에서는 프로그램이 종료한 것처럼 보임 
     - 스크립트는 Auto 제어기에서 계속 실행됨
-  - -i: PC의 키보드 입력을 시리얼을 통해 XNode에서 실행 중인 스크립트에 전달
+  - -i: PC의 키보드 입력을 시리얼을 통해 Auto 제어기에서 실행 중인 스크립트에 전달
     - Auto 제어기에서 실행 중인 스크립트는 시리얼로부터 데이터를 읽는 구문이 구현되어 있어야 함
     - 누른 키를 터미널 창에 표시함 (Echo on)
   - -ni (또는 -n -i): -i와 같으나 누른 키를 터미널 창에 표시하지 않음 (Echo off)
@@ -91,24 +91,31 @@ if __name__ == "__main__":
 **코드 실행**
 ```sh
 xnode scan
+```
+```
 xnode -p<포트번호> run <스크립트파일명>
 ```
 
-- 다음 질문에 답하시오.
-  - from ~ import 문장의 의미는 무엇인가? 
-  - 함수란 무엇인가?
-  - setup() 함수의 역할은 무엇인가?
-  - loop() 함수의 역할은 무엇인가?
-  - setup()과 loop() 함수에서 공유할 객체는 어떻게 사용하는가?
-  - main() 함수에 포함된 while True: 문장의 의미는 무엇인가?
-  - [심화] main() 함수의 while 루프에서 sleep()을 사용하는 이유는 무엇인가?
+**실행 종료**
+- 시리얼 통신 강제로 종료
+  - USB 케이블 분리 후 다시 연결
+- 실행 중인 스크립트 코드 강제 종료
+  - Auto 제어기 전원 분리 후 다시 연결
+
+**다음 질문에 답하시오.**
+- from ~ import 문장의 의미는 무엇인가? 
+- 함수란 무엇인가?
+- setup() 함수의 역할은 무엇인가?
+- loop() 함수의 역할은 무엇인가?
+- setup()과 loop() 함수에서 공유할 객체는 어떻게 사용하는가?
+- main() 함수에 포함된 while True: 문장의 의미는 무엇인가?
+- [심화] main() 함수의 while 루프에서 sleep()을 사용하는 이유는 무엇인가?
 
 ### UART 송수신 처리
-- Uart 객체 생성 후 버퍼에 읽고 쓰기
-  - read() 메소드로 버퍼에서 Auto 제어기가 수신한 데이터 읽기
-  - write() 메소드로 버퍼에 PC에 전송할 데이터 쓰기
+- Uart 객체 생성 후 데이터 송수신
+  - read(): Auto 제어기가 수신한 데이터 읽기
+  - write(): Auto 제어기에서 PC로 데이터 쓰기
     - print() 함수로 대체 가능
-> xnode -p<포트번호> run -i <스크립트파일명>
 
 ```python
 from time import sleep
@@ -133,20 +140,27 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-- 다음 질문에 답하시오.
-  - PC에서 데이터를 전송하지 않으면 어떻게 되는가?
-  - PC에서 전송한 \<TAB\>의 수신 결과는 무엇인가?
-  - PC에서 전송한  \<SPACE\>의 수신 결과는 무엇인가?
-  - PC에서 전송한 \<BACKSPACE\>의 수신 결과는 무엇인가?
-  - PC에서 전송한 \<ENTER\>의 수신 결과는 무엇인가?
-  - 바이트 문자열과 파이썬 문자열의 차이점은 무엇인가?
-    - b'Hello" VS 'Hello'
+
+**실행**
+- PC쪽 키보드 입력을 Auto 제어기로 전달하기 위해 -i 옵션과 함께 실행
+  ```sh
+  xnode -p<포트번호> run -i <스크립트파일명>
+  ```
+
+**다음 질문에 답하시오.**
+- PC에서 데이터를 전송하지 않으면 어떻게 되는가?
+- PC에서 전송한 \<TAB\>의 수신 결과는 무엇인가?
+- PC에서 전송한  \<SPACE\>의 수신 결과는 무엇인가?
+- PC에서 전송한 \<BACKSPACE\>의 수신 결과는 무엇인가?
+- PC에서 전송한 \<ENTER\>의 수신 결과는 무엇인가?
+- 바이트 문자열과 파이썬 문자열의 차이점은 무엇인가?
+  - b'Hello" VS 'Hello'
 
 ### UART 줄 단위 수신 함수(readLine()) 구현
 > 줄 단위 수신은 1바이트씩 <ENTER> 전까지 누적해 읽음
 
 ```python
-EOL_R = b'\r'
+EOL_R = b'\r' #키보드 입력이 아니라면 b'\n'으로 변경 가능
 
 def readLine():
     buffer = ""
@@ -158,14 +172,15 @@ def readLine():
         else:
             buffer += oneByte.decode()
 ```
-- 다음 질문에 답하시오.
-  - readLine() 함수를 정의하는 이유는 무엇인가? 
-  - readLine() 함수는 왜 수신 버퍼에서 데이터를 1바이트씩 읽어 처리하는가?
-  - Uart() 객체의 read() 메소드로 읽은 데이터를 decode()로 변환하는 이유는 무엇인가?
+**다음 질문에 답하시오.**
+- readLine() 함수를 정의하는 이유는 무엇인가? 
+- readLine() 함수는 왜 1바이트씩 읽어 처리하는가?
+- Uart() 객체의 read() 메소드로 읽은 데이터를 decode()로 변환하는 이유는 무엇인가?
 
 ### UART 줄 단위 송신 함수(writeLine()) 구현
-> 송신할 문자열 끝에 <ENTER>를 추가해 write() 메소드에 전달
->> write() 메소드에 문자열을 전달하면 Auto 제어기는 이를 바이트 문자열로 바꿔 송신
+- 송신할 문자열 끝에 <ENTER>를 추가해 write() 메소드에 전달
+  - write() 메소드에 문자열을 전달하면 UART 객체는 내부에서 이를 바이트 문자열로 바꿔 송신
+
 ```python
 EOL_W = '\n'
 
@@ -173,23 +188,25 @@ def writeLine(buffer):
     buffer += EOL_W
     uart.write(buffer)
 ```
-- 다음 질문에 답하시오.
-  - write() 메소드는 왜 전달받은 파이썬 문자열을 바이트 문자열로 바꿔 쓰기 버퍼에 저장하는가?
-  - 문자열 끝에 줄바꿈 문자를 추가해 전송하면 어떤 장점이 있는가? 
+
+**다음 질문에 답하시오.**
+- write() 메소드는 왜 전달받은 파이썬 문자열을 바이트 문자열로 바꿔 송신하는가?
+- 문자열 끝에 줄바꿈 문자를 추가해 전송하면 어떤 장점이 있는가? 
 
 ### UART로 Auto 제어기의 기본 기능을 제어하는 통합 스크립트 작성
-- PC에서 명령을 전송하면 XNode는 Uart로 이를 수신한 후 해당 작업 수행
-  - Led, Battery, AmbientLight, Tphg, Uart 객체 사용  
-- 데이터 형식 정의
+- PC에서 명령을 전송하면 Auto 제어기는 Uart로 이를 수신한 후 해당 작업 수행
+  - Led: 상태 표시용으로 Led 켜고 끄기
+  - AmbientLight: 주변광 밝기 읽기 (Lux 단위)
+  - Tphg: 온도, 기압, 습도 읽기
+- 문자열 데이터 형식 정의
   - <명령> [옵션]
     - led
       - 옵션: on 또는 off 옵션에 따라 LED 켜고 끄기
-    - battery
-      - 배터리 전압 송신. 옵션 없음
     - light
       - 주변광 밝기 송신. 옵션 없음
     - tphg
       - 옵션: temp, humi, all 옵션에 따라 온도 또는 습도 또는 온도, 습도 송신
+- 예외 처리
   - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신  
 
 <details>
@@ -203,7 +220,11 @@ from pop import Led, Battery, AmbientLight, Tphg
 EOF_R = b'\r'
 EOF_W = '\n'
 
-led, battery, light, tpht, uart = None, None, None, None, None
+uart = None
+
+led = None
+light = None
+tpht = None
 
 def readLine():
     buffer = ""
@@ -222,37 +243,46 @@ def writeLine(buffer):
 def setup():
     global led, battery, light, tphg, uart
     
-    led, battery, light, tphg, uart = Led(), Battery(), AmbientLight(), Tphg(), Uart()
+    uart = Uart()
+    led = Led()
+    light = AmbientLight()
+    tphg = Tphg()
    
 def loop():
     cmd = readLine().lower().split(" ")
             
-    if cmd[0] == "led" and len(cmd) == 2:
-        if cmd[1] == "on":
-            led.on()
-        elif cmd[1] == "off":
-            led.off()
+    if cmd[0] == "led":
+        if  len(cmd) == 2:
+            if cmd[1] == "on":
+                led.on()
+            elif cmd[1] == "off":
+                led.off()
+            else:
+                writeLine("Unknown option")
         else:
-            writeLine("Unknown option")
-    elif cmd[0] == "battery" and len(cmd) == 1:
-        ret = "%.1f Volt"%(battery.read())
-        writeLine(ret)
-    elif cmd[0] == "light" and len(cmd) == 1:
-        ret = "%d lux"%(light.read())
-        writeLine(ret)
-    elif cmd[0] == "tphg" and len(cmd) == 2:
-        temp, _, humi, _ = tphg.read()
-        if cmd[1] == "temp":
-            ret = "%.1f C"%(temp)
-            writeLine(ret)
-        elif cmd[1] == "humi":
-            ret = "%.1f %%"%(humi)
-            writeLine(ret)
-        elif cmd[1] == "all":
-            ret = "%.1f C, %.1f %%"%(temp, humi)
+            writeLine("Unknown command")
+    elif cmd[0] == "light":
+        if len(cmd) == 1:
+            ret = "%d lux"%(light.read())
             writeLine(ret)
         else:
-            writeLine("Unknown option")
+            writeLine("Unknown command")
+    elif cmd[0] == "tphg":
+        if len(cmd) == 2:
+            temp, _, humi, _ = tphg.read()
+            if cmd[1] == "temp":
+                ret = "%.1f C"%(temp)
+                writeLine(ret)
+            elif cmd[1] == "humi":
+                ret = "%.1f %%"%(humi)
+                writeLine(ret)
+            elif cmd[1] == "all":
+                ret = "%.1f C, %.1f %%"%(temp, humi)
+                writeLine(ret)
+            else:
+                writeLine("Unknown option")
+        else:
+            writeLine("Unknown command")
     else:
         writeLine("Unknown command")
         
@@ -267,47 +297,71 @@ if __name__ == '__main__':
 ```
 </details>
 
-- 다음 질문에 답하시오.
-  - 다음 코드의 의미는 무엇인가?
+**실행**
+```sh
+xnode -p<포트번호> run -i <스크립트파일명>
+```
+    
+**다음 질문에 답하시오.**
+- setup() 함수에서 다음 코드의 의미는 무엇인가?
+  ```python
+  led = Led()
+  light = AmbientLight()
+  tphg = Tphg()
+  ```
+- loop() 함수에서 다음 코드의 의미는 무엇인가?
+  ```python
+  cmd = readLine().lower().split(" ")
+  ```
+- loop() 함수에 포함된 다음 선택 구조의 의미를 설명하시오.
+  ```python
+  if <조건>:
+     <명령1>
+  else:
+     <명령2>
+  ```
+  ```python
+  if <조건1>:
+      <명령1>
+  elif <조건2>:
+      <명령2>
+  else:
+      <명령3>
+  ```    
+- loop() 함수 구조를 다음 요구에 맞게 수정해 보라. 단, 실행 결과는 기존과 같아야 한다.
+  - 해당 명령을 각각 do_led(), do_light(), do_tpgh() 함수에서 처리되도록 변경했다. 해당 함수를 구현하라.
     ```python
-    led, battery, light, tphg, uart = Led(), Battery(), AmbientLight(), Tphg(), Uart()
-    ```
-  - 다음 코드의 의미는 무엇인가?
-    ```python
-    cmd = readLine().lower().split(" ")
-    ```
-  - loop() 구조를 다음 요구에 맞게 수정해 보라
-    - 해당 명령을 각각 doLed(), doBattery(), doLight(), doTpgh() 함수에서 처리되도록 변경했다. 해당 함수를 구현하라.
-      ```python
-      def loop():
-          cmd = readLine().lower().split(" ")
+    def do_led(cmd):
+        #이곳에 해당 내용 구현1
+
+    def do_light(cmd):
+        #이곳에 해당 내용 구현2
+
+    def do_tphg(cmd):
+        #이곳에 해당 내용 구현3
+      
+    def loop():
+        cmd = readLine().lower().split(" ")
             
-          if cmd[0] == "led":
-              doLed(cmd)
-          elif cmd[0] == "battery":
-              doBattery(cmd)
-          elif cmd[0] == "light":
-              doLight(cmd)
-          elif cmd[0] == "tphg":
-              doTphg(cmd)
-          else:
-              writeLine("Unknown command")
-      ```
-  - [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
+        if cmd[0] == "led":
+            do_led(cmd)
+        elif cmd[0] == "light":
+            do_light(cmd)
+        elif cmd[0] == "tphg":
+            do_tphg(cmd)
+        else:
+            writeLine("Unknown command")
+    ```
+- [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
 
 
 ### PC 프로그래밍
 **Auto 제어기를 위한 PC 시리얼 통신 프로그램 작성**
-- PC에는 pyserial 라이브러리가 설치되어 있어야 함
-  ```sh
-  pip install pyserial
-  ```
-
 ```python
 from serial import Serial
 from time import sleep
 
-PORT = "COM10"
+PORT = "COM10" #자신의 포트 번호로 변경
 
 def main():
     ser = Serial(PORT, 115200, timeout=0)
@@ -324,13 +378,14 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-- 실행 절차
-  - Auto 제어기에서 시리얼 포트를 독점하지 않도록 실행
-    ```sh
-    xnode -p<포트번호> run -n <스크립트파일명>
-    ```
+**실행 절차**
+- Auto 제어기 스크립트를 다음과 같이 실행
+  ```sh
+  xnode -p<포트번호> run -n <스크립트파일명>
+  ```
   
-  - PC 스크립트 실행
-    ```sh
-    python <스크립트파일명>
-    ```
+- PC 스크립트를 다음과 같이 실행
+  ```sh
+  python <스크립트파일명>
+  ```
+
