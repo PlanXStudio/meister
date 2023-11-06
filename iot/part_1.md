@@ -10,8 +10,17 @@
   - C:\에 압축해제
     - 결과: C:\VSCode
   - 사용자 환경 변수 PATH에 실행 파일 경로 추가 (첫 줄로 이동)
-    - C:\VSCode\ext\python
-    - C:\VSCode\ext\python\Scripts
+    ```sh
+    sysdm.cpl
+    ```
+    
+    - 고급 > 한경 변수 > 사용자 변수 > Path
+      ```sh
+      C:\VSCode\ext\python
+      ```
+      ```sh
+      C:\VSCode\ext\python\Scripts
+      ```
 
 ### XNode 제어
 - VSCode의 터미널창에서 진행
