@@ -1,47 +1,67 @@
 # IoT 개발환경 for 마이크로컨트롤러
 ## 실습환경
-- PC와 XNode를 USB 케이블(A to microB)로 연결 (시리얼 통신)
-  - XNode는 고성능 마이크로컨트롤러(Cortex-M4)와 Zigbee 모뎀(저전력 개인무선통신)으로 구성
+- PC와 실습장치(이하 Auto 제어기)를 USB 케이블(A to microB)로 연결 (시리얼 통신)
+  - Auto 제어기에는 고성능 마이크로컨트롤러(Cortex-M4)와 Zigbee 모뎀(저전력 개인무선통신)이 포함되어 있음
   - 마이크로파이썬(마이크로컨트롤러를 위한 파이썬 축소 버전)으로 동작
-- XNode의 전원 ON (실습이 끝나면 반드시 OFF 할 것!) 
-
+- 케이블링 (수행평가 항목임!)
+  - Auto 제어기에 12V DC 전원 어댑터 연결
+  - USB 허브에 5V DC 전원 어댑터 연결(마이크로USB B 커넥터)
+    - 전용 데이터 케이블을 PC에 연결 (전용 포트)
+  - FAN을 릴레이 채널3에 연결 (C, GND)
+  - 전등을 릴레이 채널2에 연결 (C, GND)
+  - 도어락을 릴레이 채널1에 연결 (C, O)
+    
 ### VSCode 통합개발환경 설치
 - [VSCode 다운로드](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EeZDFUrmbqBBsFNwhkXNGdQB0QnclPjdaY_rTfOzJssBNQ?e=mpFaKY)
-  - C:\에 압축해제
-    - 결과: C:\VSCode
-  - 사용자 환경 변수 PATH에 실행 파일 경로 추가 (첫 줄로 이동)
+- C:\에 압축해제 (반디집 권장)
+   - 결과: C:\VSCode
+- 사용자 환경 변수 PATH에 python.exe(파이썬 인터프리터), pip.exe(외부 파이썬 라이브러리 설치 툴) 경로 추가
+  - \<WIN\>+r 입력 후 다음 명령 실행
     ```sh
     sysdm.cpl
     ```
-    
-    - 고급 > 한경 변수 > 사용자 변수 > Path
-      ```sh
-      C:\VSCode\ext\python
-      ```
-      ```sh
-      C:\VSCode\ext\python\Scripts
-      ```
+  - 시스템 속성창이 표되면 "고급 > 한경 변수 > 사용자 변수" 목록에서 Path 더블클릭
+  - 빈 칸을 더불클릭한 후 아래 경로 추가
+    ```sh
+    C:\VSCode\ext\python
+    ```
+    ```sh
+    C:\VSCode\ext\python\Scripts
+    ```
+  - 위로 이동 버튼을 이용해 추가한 항목 순서대로 가장 위에 배치
+- 결과 확인을 위해 C:/VSCode/code.exe를 실행한 후 메뉴에서 "터미널 > 새 터미널" 실행
+  ```sh
+  python --version
+  ```
+  ```sh
+  pip --version
+  ```
 
-### XNode 제어
+### Auto 제어기 제어 명령
 - VSCode의 터미널창에서 진행
 
 **시리얼 포트 찾기**
+- Auto 제어기를 USB 허브에 연결하지 않은 상태에서 실행
 ```sh
 xnode scan
 ```
-
-** PC의 마이크로파이썬 스크립트를 XNode에 차례로 전달하면서 실행**
+- Auto 제어기를 USB 허브에 연결 한 후 실행 
 ```sh
-xnode -p com3 run app.py
+xnode scan
 ```
->  스크립트가 끝날 때까지 시리얼 출력을 기다림
+- Auto 제어기에 할당된 자신의 포트 번호는 몇 번인가?
+
+** PC의 마이크로파이썬 스크립트를 Auto 제어기에 차례로 전달하면서 실행**
+```sh
+xnode -p<포트이름> run <스크립트파일명>
+```
+> 스크립트가 끝날 때까지 시리얼 출력을 기다림
 
 - 추가 옵션
   - -n: 시리얼 출력을 기다리지 않으므로 PC 쪽에서는 프로그램이 종료한 것처럼 보임 
-    - 스크립트는 XNode에서 계속 실행됨
-    - XNode에서 시리얼로 출력하는 데이터를 다른 툴(PuTTY, smon 등)로 확인할 때 사용
+    - 스크립트는 Auto 제어기에서 계속 실행됨
   - -i: PC의 키보드 입력을 시리얼을 통해 XNode에서 실행 중인 스크립트에 전달
-    - XNode에서 실행 중인 스크립트는 시리얼로부터 데이터를 읽는 구문이 구현되어 있어야 함
+    - Auto 제어기에서 실행 중인 스크립트는 시리얼로부터 데이터를 읽는 구문이 구현되어 있어야 함
     - 누른 키를 터미널 창에 표시함 (Echo on)
   - -ni (또는 -n -i): -i와 같으나 누른 키를 터미널 창에 표시하지 않음 (Echo off)
     
@@ -67,10 +87,11 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
 **코드 실행**
 ```sh
 xnode scan
-xnode -p<포트번호> run <MicroPython스크립트>
+xnode -p<포트번호> run <스크립트파일명>
 ```
 
 - 다음 질문에 답하시오.
@@ -84,10 +105,10 @@ xnode -p<포트번호> run <MicroPython스크립트>
 
 ### UART 송수신 처리
 - Uart 객체 생성 후 버퍼에 읽고 쓰기
-  - read() 메소드로 버퍼에서 xnode가 수신한 데이터 읽기
+  - read() 메소드로 버퍼에서 Auto 제어기가 수신한 데이터 읽기
   - write() 메소드로 버퍼에 PC에 전송할 데이터 쓰기
     - print() 함수로 대체 가능
-> xnode -p<포트번호> run -i <MicroPython스크립트>
+> xnode -p<포트번호> run -i <스크립트파일명>
 
 ```python
 from time import sleep
@@ -144,7 +165,7 @@ def readLine():
 
 ### UART 줄 단위 송신 함수(writeLine()) 구현
 > 송신할 문자열 끝에 <ENTER>를 추가해 write() 메소드에 전달
->> write() 메소드에 문자열을 전달하면 xnode는 이를 바이트 문자열로 바꿔 송신
+>> write() 메소드에 문자열을 전달하면 Auto 제어기는 이를 바이트 문자열로 바꿔 송신
 ```python
 EOL_W = '\n'
 
@@ -156,8 +177,7 @@ def writeLine(buffer):
   - write() 메소드는 왜 전달받은 파이썬 문자열을 바이트 문자열로 바꿔 쓰기 버퍼에 저장하는가?
   - 문자열 끝에 줄바꿈 문자를 추가해 전송하면 어떤 장점이 있는가? 
 
-
-### UART로 XNode를 제어하는 통합 스크립트 작성
+### UART로 Auto 제어기의 기본 기능을 제어하는 통합 스크립트 작성
 - PC에서 명령을 전송하면 XNode는 Uart로 이를 수신한 후 해당 작업 수행
   - Led, Battery, AmbientLight, Tphg, Uart 객체 사용  
 - 데이터 형식 정의
@@ -277,9 +297,12 @@ if __name__ == '__main__':
 
 
 ### PC 프로그래밍
-**XNode를 위한 PC 시리얼 통신 프로그램 작성**
-> PC에는 pyserial 라이브러리가 설치되어 있어야 함
->> pip install pyserial
+**Auto 제어기를 위한 PC 시리얼 통신 프로그램 작성**
+- PC에는 pyserial 라이브러리가 설치되어 있어야 함
+  ```sh
+  pip install pyserial
+  ```
+
 ```python
 from serial import Serial
 from time import sleep
@@ -301,11 +324,13 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-- XNode에서 시리얼 포트를 독점하지 않도록 주의
-  ```sh
-  xnode -p<포트번호> run -n <MicroPython스크립트>
-  ```
-- XNode MicorPython 스크립트를 실행한 후 PC Python 스크립트 실행
-  ```sh
-  python <Python스크립트>
-  ```
+- 실행 절차
+  - Auto 제어기에서 시리얼 포트를 독점하지 않도록 실행
+    ```sh
+    xnode -p<포트번호> run -n <스크립트파일명>
+    ```
+  
+  - PC 스크립트 실행
+    ```sh
+    python <스크립트파일명>
+    ```
