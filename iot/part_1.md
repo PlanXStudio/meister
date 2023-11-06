@@ -64,7 +64,9 @@ xnode -p<포트이름> run <스크립트파일명>
     - Auto 제어기에서 실행 중인 스크립트는 시리얼로부터 데이터를 읽는 구문이 구현되어 있어야 함
     - 누른 키를 터미널 창에 표시함 (Echo on)
   - -ni (또는 -n -i): -i와 같으나 누른 키를 터미널 창에 표시하지 않음 (Echo off)
-    
+
+---
+
 ## IoT 프로그래밍
 ### 마이크로컨트롤러를 위한 Processing 프로그래밍 구조
 > 프로세싱은 예술가를 위해 언어로 멀티미디어 프로그래밍에 사용되었으며 Arduino도 이 구조를 채택함
@@ -215,7 +217,9 @@ def writeLine(buffer):
 ```python
 from time import sleep
 from pop import Uart
-from pop import Led, Battery, AmbientLight, Tphg
+from pop import Led
+from pop import AmbientLight
+from pop import Tphg
 
 EOF_R = b'\r'
 EOF_W = '\n'
@@ -241,7 +245,7 @@ def writeLine(buffer):
     uart.write(buffer)
     
 def setup():
-    global led, battery, light, tphg, uart
+    global uart, led, light, tphg
     
     uart = Uart()
     led = Led()
@@ -354,7 +358,6 @@ xnode -p<포트번호> run -i <스크립트파일명>
     ```
 - [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
 
-
 ### PC 프로그래밍
 **Auto 제어기를 위한 PC 시리얼 통신 프로그램 작성**
 ```python
@@ -389,3 +392,129 @@ if __name__ == "__main__":
   python <스크립트파일명>
   ```
 
+---
+
+## Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
+- FAN: 릴레이 채널3에 연결된 환기 팬 켜고 끄기
+  - on() 또는 off() 메소드
+- Light: 릴레이 채널2에 연결된 조명 켜고 끄기
+  - on() 또는 off() 메소드
+- DoorLock: 릴레이 채널1에 연결된 도어락 이벤트(열림 또는 닫힘) 발생
+  - work() 메소드
+
+### PC 스크립트
+- 1초 단위로 환기팬 켜기, 환기팬 끄기, 조명 켜기, 조명 끄기, 도어락 이벤트 발생 후 종료
+<details>
+<summary>전체 코드</summary>
+
+```python
+from serial import Serial
+from time import sleep
+
+PORT = "COM10" #자신의 포트 번호로 변경
+
+def main():
+    ser = Serial(PORT, 115200, timeout=0)
+
+    ser.write("fan on\r".encode())
+    sleep(1)
+    ser.write("fan off\r".encode())
+    sleep(1)
+
+    ser.write("light on\r".encode())
+    sleep(1)
+    ser.write("light off\r".encode())
+    sleep(1)
+    
+    ser.write("doorlock\r".encode())
+    sleep(1)
+    
+if __name__ == "__main__":
+    main()
+```
+</details>
+
+
+### PC 스크립트를 참고해 Auto 제어기 스트립트를 구현하시오.
+- 앞서 구현한 기본 기능 제어를 참고해 do_fan(), do_light(), do_doorlock() 함수 구현.
+<details>
+<summary>전체 코드</summary>
+
+```python
+from time import sleep
+from pop import Uart
+from pop import FAN
+from pop import Light
+from pop import DoorLock
+
+EOF_R = b'\r'
+EOF_W = '\n'
+
+uart = None
+
+fan = None
+light = None
+doorlock = None
+
+def readLine():
+    buffer = ""
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, fan, light, doorlock
+    
+    uart = Uart()
+    fan = FAN() #릴레이 채널3
+    light = Light() #릴레이 채널2
+    doorlock = DoorLock() #릴레이 채널1
+
+def do_fan(cmd):
+    #이곳에 기능 구현1
+
+def do_light(cmd):
+    #이곳에 기능 구현2
+
+def do_doorlock(cmd):
+    #이곳에 기능 구현3
+
+def loop():
+    cmd = readLine().lower().split(" ")
+            
+    if cmd[0] == "fan":
+        if  len(cmd) == 2:
+            do_fan(cmd)
+        else:
+            writeLine("Unknown command")
+    elif cmd[0] == "light":
+        if len(cmd) == 2:
+            do_light(cmd)
+        else:
+            writeLine("Unknown command")
+    elif cmd[0] == "doorlock":
+        if len(cmd) == 1:
+            do_doorlock(cmd)
+        else:
+            writeLine("Unknown command")
+    else:
+        writeLine("Unknown command")
+        
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+</details>
