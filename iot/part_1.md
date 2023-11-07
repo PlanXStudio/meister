@@ -277,8 +277,6 @@ if __name__ == '__main__':
 ```python
 from time import sleep
 from pop import FAN
-from pop import Light
-from pop import DoorLock
 
 EOF_R = b'\r'
 EOF_W = '\n'
@@ -286,8 +284,6 @@ EOF_W = '\n'
 uart = None
 
 fan = None
-light = None
-doorlock = None
 
 def readLine():
     buffer = ""
