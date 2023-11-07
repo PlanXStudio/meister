@@ -268,21 +268,176 @@ if __name__ == '__main__':
 ---
 
 <br>
+## 스마트 홈 구현을 위한 기본 실습
+### 환기팬 제어
+- FAN: 릴레이 채널3에 연결된 환기 팬 켜고 끄기
+  - on() 또는 off() 메소드
 
-## 스마트 홈 프로그래밍
-- Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
+```python
+from time import sleep
+from pop import FAN
+from pop import Light
+from pop import DoorLock
+
+EOF_R = b'\r'
+EOF_W = '\n'
+
+uart = None
+
+fan = None
+light = None
+doorlock = None
+
+def readLine():
+    buffer = ""
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, fan, light, doorlock
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    fan = FAN()
+    
+def loop():
+    fan.on()
+    sleep(2)
+    fan.off()
+    sleep(2)
+    
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+
+### 조명 제어
+- Light: 릴레이 채널2에 연결된 조명 켜고 끄기
+  - on() 또는 off() 메소드
+
+```python
+from time import sleep
+from pop import Light
+
+EOF_R = b'\r'
+EOF_W = '\n'
+
+uart = None
+
+light = None
+
+def readLine():
+    buffer = ""
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, light
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    light = Light()
+    
+def loop():
+    light.on()
+    sleep(2)
+    light.off()
+    sleep(2)
+    
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+
+### 도어락 제어
+- DoorLock: 릴레이 채널1에 연결된 도어락 이벤트(열림 또는 닫힘) 발생
+  - work() 메소드
+
+```python
+from time import sleep
+from pop import DoorLock
+
+EOF_R = b'\r'
+EOF_W = '\n'
+
+uart = None
+
+doorlock = None
+
+def readLine():
+    buffer = ""
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, doorlock
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    doorlock = DoorLock()
+    
+def loop():
+    doorlock.work()
+    sleep(3)
+    
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+
+
+## 스마트 홈 구현
+- Auto 제어기의 릴레이에 연결된 환기팬, 조명, 도어락 제어
 - PC 시리얼 스크립트를 작성해 Auto 제어기 제어
 
 ### Auto 제어기 스크립트
 - PC에서 줄 단위 문자열 명령을 전송하면 Auto 제어기는 Uart로 이를 수신한 후 해당 작업 수행
-- FAN, Light, DoorLock 클래스를 이용해 Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
-  - FAN: 릴레이 채널3에 연결된 환기 팬 켜고 끄기
-    - on() 또는 off() 메소드
-  - Light: 릴레이 채널2에 연결된 조명 켜고 끄기
-    - on() 또는 off() 메소드
-  - DoorLock: 릴레이 채널1에 연결된 도어락 이벤트(열림 또는 닫힘) 발생
-    - work() 메소드
-
+  - FAN, Light, DoorLock 클래스를 이용해 Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
 - 문자열 데이터 형식 정의
   - <명령> [옵션]
     - fan 명령 
@@ -380,9 +535,10 @@ if __name__ == '__main__':
 </details>
 
 **실행**
-```sh
-xnode -p<포트번호> run -ni <스크립트파일명>
-```
+- PC에서 줄 단위 문자열 명령을 전하면 Auto 제어기는 해당 제어 수행
+  ```sh
+  xnode -p<포트번호> run -i <스크립트파일명>
+  ```
     
 **다음 질문에 답하시오.**
 - setup() 함수에서 다음 코드의 의미는 무엇인가?
