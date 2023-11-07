@@ -104,9 +104,11 @@ xnode -p<포트번호> run <스크립트파일명>
 ```
 
 **실행 종료**
-- 시리얼 통신 강제로 종료
+- [방법1] 키보드 인터럽트로 통신 종료
+  - \<CTRL\> + c
+- [방법2] 시리얼 통신 강제로 종료
   - USB 케이블 분리 후 다시 연결
-- 실행 중인 스크립트 코드 강제 종료
+- [방법3] 실행 중인 스크립트 코드 강제 종료
   - Auto 제어기 전원 분리 후 다시 연결
 
 **다음 질문에 답하시오.**
@@ -119,7 +121,7 @@ xnode -p<포트번호> run <스크립트파일명>
 - [심화] main() 함수의 while 루프에서 sleep()을 사용하는 이유는 무엇인가?
 
 ### UART 송수신 처리
-- Uart 객체 생성 후 데이터 송수신
+- Uart 클래스의 객체를 만든 후 데이터 송수신
   - read(): Auto 제어기가 수신한 데이터 읽기
   - write(): Auto 제어기에서 PC로 데이터 쓰기
     - print() 함수로 대체 가능
@@ -133,6 +135,7 @@ uart = None
 def setup():
     global uart
     uart = Uart()
+    uart.write("Starting...\n")
 
 def loop():
     oneByte = uart.read(1)
