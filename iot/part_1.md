@@ -381,15 +381,15 @@ if __name__ == '__main__':
 
 **실행**
 ```sh
-xnode -p<포트번호> run -i <스크립트파일명>
+xnode -p<포트번호> run -ni <스크립트파일명>
 ```
     
 **다음 질문에 답하시오.**
 - setup() 함수에서 다음 코드의 의미는 무엇인가?
   ```python
-  led = Led()
-  light = AmbientLight()
-  tphg = Tphg()
+  fan = FAN()
+  light = Light()
+  doorlock = DoorLock()
   ```
 - loop() 함수에서 다음 코드의 의미는 무엇인가?
   ```python
@@ -410,67 +410,6 @@ xnode -p<포트번호> run -i <스크립트파일명>
   else:
       <명령3>
   ```    
-- loop() 함수 구조를 다음 요구에 맞게 수정해 보라. 단, 실행 결과는 기존과 같아야 한다.
-  - 해당 명령을 각각 do_led(), do_light(), do_tpgh() 함수에서 처리되도록 변경했다. 해당 함수를 구현하라.
-    ```python
-    def do_led(cmd):
-        #이곳에 해당 내용 구현1
-
-    def do_light(cmd):
-        #이곳에 해당 내용 구현2
-
-    def do_tphg(cmd):
-        #이곳에 해당 내용 구현3
-      
-    def loop():
-        cmd = readLine().lower().split(" ")
-            
-        if cmd[0] == "led":
-            do_led(cmd)
-        elif cmd[0] == "light":
-            do_light(cmd)
-        elif cmd[0] == "tphg":
-            do_tphg(cmd)
-        else:
-            writeLine("Unknown command")
-    ```
-- [심화] if문 대신 딕셔너리로 해당 함수를 한 번에 호출하도록 수정해 보라.
-
-### PC 스크립트
-```python
-from serial import Serial
-from time import sleep
-
-PORT = "COM10" #자신의 포트 번호로 변경
-
-def main():
-    ser = Serial(PORT, 115200, timeout=0)
-
-    ser.write("led on\r".encode())
-    sleep(1)
-    ser.write("led off\r".encode())
-    sleep(1)
-    
-    ser.write("tphg all\r".encode())
-    sleep(0.5)
-    print(ser.readline().decode())
-    
-if __name__ == "__main__":
-    main()
-```
-**실행 절차**
-- Auto 제어기 스크립트를 다음과 같이 실행
-  ```sh
-  xnode -p<포트번호> run -n <스크립트파일명>
-  ```
-  
-- PC 스크립트를 다음과 같이 실행
-  ```sh
-  python <스크립트파일명>
-  ```
-
----
-
 
 ### PC 스크립트
 - 1초 단위로 환기팬 켜기, 환기팬 끄기, 조명 켜기, 조명 끄기, 도어락 이벤트 발생 후 종료
@@ -504,11 +443,27 @@ if __name__ == "__main__":
 ```
 </details>
 
+**실행**
+- PC 스크립트에서 시리얼 포트에 접근할 수 있도록 Auto 제어기 스크립트를 다음과 같이 실행
+  ```sh
+  xnode -p<포트번호> run -n <스크립트파일명>
+  ```
+  
+- PC 스크립트를 다음과 같이 실행
+  ```sh
+  python <스크립트파일명>
+  ```
 
-### PC 스크립트를 참고해 Auto 제어기 스트립트를 구현하시오.
-- 앞서 구현한 기본 기능 제어를 참고해 do_fan(), do_light(), do_doorlock() 함수 구현.
+<br>
+
+---
+
+<br>
+
+## [수행평가] Auto 제어기를 이용해 스마트 홈 스크립트를 구현하시오.
+- Auto 제어기의 환기팬, 조명, 도어락 제어 문장을 do_fan(), do_light(), do_doorlock() 함수로 구현.
 <details>
-<summary>전체 코드</summary>
+<summary>수행 평가 코드</summary>
 
 ```python
 from time import sleep
@@ -544,8 +499,10 @@ def setup():
     global uart, fan, light, doorlock
     
     uart = Uart()
-    fan = FAN() #릴레이 채널3
-    light = Light() #릴레이 채널2
+    writeLine("Starting...")
+
+    fan = FAN()           #릴레이 채널3
+    light = Light()       #릴레이 채널2
     doorlock = DoorLock() #릴레이 채널1
 
 def do_fan(cmd):
@@ -561,20 +518,11 @@ def loop():
     cmd = readLine().lower().split(" ")
             
     if cmd[0] == "fan":
-        if  len(cmd) == 2:
-            do_fan(cmd)
-        else:
-            writeLine("Unknown command")
+        do_fan(cmd)
     elif cmd[0] == "light":
-        if len(cmd) == 2:
-            do_light(cmd)
-        else:
-            writeLine("Unknown command")
+        do_light(cmd)
     elif cmd[0] == "doorlock":
-        if len(cmd) == 1:
-            do_doorlock(cmd)
-        else:
-            writeLine("Unknown command")
+        do_doorlock(cmd)
     else:
         writeLine("Unknown command")
         
