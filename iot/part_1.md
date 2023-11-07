@@ -73,12 +73,17 @@ xnode -p<포트이름> run <스크립트파일명>
 
 ```python
 from time import sleep
+from pop import Uart
+
+uart = None
 
 def setup():
-    pass
+    uart = Uart()
+    uart.write("Starting...\n")
 
 def loop():
-    pass
+    uart.write("Loop...\n")
+    sleep(1)
 
 def main():
     setup()
