@@ -276,6 +276,7 @@ if __name__ == '__main__':
 
 ```python
 from time import sleep
+from pop import Uart
 from pop import FAN
 
 EOF_R = b'\r'
@@ -300,7 +301,7 @@ def writeLine(buffer):
     uart.write(buffer)
     
 def setup():
-    global uart, fan, light, doorlock
+    global uart, fan
     
     uart = Uart()
     writeLine("Starting...")
@@ -329,6 +330,7 @@ if __name__ == '__main__':
 
 ```python
 from time import sleep
+from pop import Uart
 from pop import Light
 
 EOF_R = b'\r'
@@ -382,6 +384,7 @@ if __name__ == '__main__':
 
 ```python
 from time import sleep
+from pop import Uart
 from pop import DoorLock
 
 EOF_R = b'\r'
