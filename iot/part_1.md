@@ -65,7 +65,12 @@ xnode -p<포트이름> run <스크립트파일명>
     - 누른 키를 터미널 창에 표시함 (Echo on)
   - -ni (또는 -n -i): -i와 같으나 누른 키를 터미널 창에 표시하지 않음 (Echo off)
 
+<br>
+
 ---
+
+<br>
+
 
 ## IoT 프로그래밍
 ### 마이크로컨트롤러를 위한 Processing 프로그래밍 구조
@@ -206,54 +211,17 @@ def writeLine(buffer):
 - write() 메소드는 왜 전달받은 파이썬 문자열을 바이트 문자열로 바꿔 송신하는가?
 - 문자열 끝에 줄바꿈 문자를 추가해 전송하면 어떤 장점이 있는가? 
 
----
-
-## 스마트 홈 프로그래밍
-- Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
-- PC 시리얼 스크립트를 작성해 Auto 제어기 제어
-
-### Auto 제어기 스크립트
-- FAN, Light, DoorLock 클래스를 이용해 Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
-  - FAN: 릴레이 채널3에 연결된 환기 팬 켜고 끄기
-    - on() 또는 off() 메소드
-  - Light: 릴레이 채널2에 연결된 조명 켜고 끄기
-    - on() 또는 off() 메소드
-  - DoorLock: 릴레이 채널1에 연결된 도어락 이벤트(열림 또는 닫힘) 발생
-    - work() 메소드
-
-- PC에서 명령을 전송하면 Auto 제어기는 Uart로 이를 수신한 후 해당 작업 수행
-  - Led: 상태 표시용으로 Led 켜고 끄기
-  - AmbientLight: 주변광 밝기 읽기 (Lux 단위)
-  - Tphg: 온도, 기압, 습도 읽기
-- 문자열 데이터 형식 정의
-  - <명령> [옵션]
-    - led
-      - 옵션: on 또는 off 옵션에 따라 LED 켜고 끄기
-    - light
-      - 주변광 밝기 송신. 옵션 없음
-    - tphg
-      - 옵션: temp, humi, all 옵션에 따라 온도 또는 습도 또는 온도, 습도 송신
-- 예외 처리
-  - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신  
-
-<details>
-<summary>전체 코드</summary>
+### 시리얼 통신 루프백(loopback) 테스트 스크립트
+- PC에서 줄 단위로 전달한 문자열(\<ENTER\>로 종료)을 Auto 제어가 PC에 다시 전송함
 
 ```python
 from time import sleep
 from pop import Uart
-from pop import Led
-from pop import AmbientLight
-from pop import Tphg
 
 EOF_R = b'\r'
 EOF_W = '\n'
 
 uart = None
-
-led = None
-light = None
-tpht = None
 
 def readLine():
     buffer = ""
@@ -270,48 +238,133 @@ def writeLine(buffer):
     uart.write(buffer)
     
 def setup():
-    global uart, led, light, tphg
+    global uart
     
     uart = Uart()
-    led = Led()
-    light = AmbientLight()
-    tphg = Tphg()
-   
+    writeLine("Starting...")
+
+def loop():
+    cmd = readLine()
+    writeLine(cmd)
+        
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+
+**실행**
+- PC에는 입력한 문자열이 표시되지 않도록 -ni 옵션과 함께 실행
+  ```sh
+  xnode -p<포트번호> run -ni <스크립트파일명>
+  ```
+
+<br> 
+
+---
+
+<br>
+
+## 스마트 홈 프로그래밍
+- Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
+- PC 시리얼 스크립트를 작성해 Auto 제어기 제어
+
+### Auto 제어기 스크립트
+- PC에서 줄 단위 문자열 명령을 전송하면 Auto 제어기는 Uart로 이를 수신한 후 해당 작업 수행
+- FAN, Light, DoorLock 클래스를 이용해 Auto 제어기에 연결된 환기 팬, 조명, 도어락 제어
+  - FAN: 릴레이 채널3에 연결된 환기 팬 켜고 끄기
+    - on() 또는 off() 메소드
+  - Light: 릴레이 채널2에 연결된 조명 켜고 끄기
+    - on() 또는 off() 메소드
+  - DoorLock: 릴레이 채널1에 연결된 도어락 이벤트(열림 또는 닫힘) 발생
+    - work() 메소드
+
+- 문자열 데이터 형식 정의
+  - <명령> [옵션]
+    - fan 명령 
+      - on 또는 off 옵션에 따라 환기팬 켜고 끄기
+    - light 명령
+      - on 또는 off 옵션에 따라 조명 켜고 끄기
+    - doorlock 명령
+      - 옵션은 없으며, 도어락 이벤트 생성 
+- 예외 처리
+  - 명령 또는 옵션이 형식에 벗어나면 오류 메시지 송신  
+
+<details>
+<summary>전체 코드</summary>
+
+```python
+from time import sleep
+from pop import Uart
+from pop import FAN
+from pop import Light
+from pop import DoorLock
+
+EOF_R = b'\r'
+EOF_W = '\n'
+
+uart = None
+
+fan = None
+light = None
+doorlock = None
+
+def readLine():
+    buffer = ""
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, fan, light, doorlock
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    fan = FAN() #릴레이 채널3 ('D5')
+    light = Light() #릴레이 채널2 ('D6')
+    doorlock = DoorLock() #릴레이 채널1 ('D0')
+
 def loop():
     cmd = readLine().lower().split(" ")
             
-    if cmd[0] == "led":
+    if cmd[0] == "fan":
         if  len(cmd) == 2:
             if cmd[1] == "on":
-                led.on()
+                fan.on()
             elif cmd[1] == "off":
-                led.off()
+                fan.off()
             else:
                 writeLine("Unknown option")
         else:
             writeLine("Unknown command")
     elif cmd[0] == "light":
-        if len(cmd) == 1:
-            ret = "%d lux"%(light.read())
-            writeLine(ret)
-        else:
-            writeLine("Unknown command")
-    elif cmd[0] == "tphg":
         if len(cmd) == 2:
-            temp, _, humi, _ = tphg.read()
-            if cmd[1] == "temp":
-                ret = "%.1f C"%(temp)
-                writeLine(ret)
-            elif cmd[1] == "humi":
-                ret = "%.1f %%"%(humi)
-                writeLine(ret)
-            elif cmd[1] == "all":
-                ret = "%.1f C, %.1f %%"%(temp, humi)
-                writeLine(ret)
+            if cmd[1] == "on":
+                light.on()
+            elif cmd[1] == "off":
+                light.off()
             else:
                 writeLine("Unknown option")
         else:
             writeLine("Unknown command")
+    elif cmd[0] == "doorlock":
+        if len(cmd) == 1:
+            doorlock.work()
+        else:
+            writeLine("Unknown option")
     else:
         writeLine("Unknown command")
         
