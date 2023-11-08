@@ -399,7 +399,38 @@ def readLine():
     while True:
         oneByte = uart.read(1)
         
-        if oneByte == EOF_R:행평가] 조명을 이용해 모스부호 송출
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    buffer += EOF_W
+    uart.write(buffer)
+    
+def setup():
+    global uart, light
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    doorlock = DoorLock()
+    
+def loop():
+    doorlock.work()
+    sleep(2)
+    
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+
+### [수행평가] 조명을 이용해 모스부호 송출
 - 조명을 이용해 주어진 단어를 모스부호로 송출하는 Auto 제어기 스크립트를 작성하시오.
 
 <details>
