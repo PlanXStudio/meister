@@ -488,8 +488,8 @@ def setup():
     uart = Uart()
     writeLine("Starting...")
     
-    fan = FAN() #릴레이 채널3 ('D5')
-    light = Light() #릴레이 채널2 ('D6')
+    fan = FAN()           #릴레이 채널3 ('D5')
+    light = Light()       #릴레이 채널2 ('D6')
     doorlock = DoorLock() #릴레이 채널1 ('D0')
 
 def loop():
