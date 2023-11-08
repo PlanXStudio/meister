@@ -697,8 +697,27 @@ if __name__ == "__main__":
 ### 기능 추가
 - all off와 all on 명령으로 환기팬과 조명을 모두 켜고 끄는 기능을 추가해 보시오.
   - Auto 제어기 스트립트에 all on, all off 조건 추가
+    ```python
+    elif cmd[0] == "all":
+        if len(cmd) == 2:
+            if cmd[1] == "on":
+                fan.on()
+                light.on()
+            elif cmd[1] == "off":
+                fan.off()
+                light.off()
+            else:
+                writeLine("Unknown option")
+        else:
+            writeLine("Unknown command")       
+    ```
   - PC 스크립트에 all on, all off 테스트 코드 추가  
-
+    ```python
+    ser.write("all on\r".encode())
+    sleep(1)
+    ser.write("all off\r".encode())
+    sleep(1)
+    ```
 <br>
 
 ---
