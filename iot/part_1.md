@@ -453,23 +453,17 @@ if __name__ == '__main__':
 <summary>전체 코드</summary>
 
 ```python
-from time import sleep
+#--------------------------------------------------------
+# UART 
+#--------------------------------------------------------
 from pop import Uart
-from pop import FAN
-from pop import Light
-from pop import DoorLock
 
-EOF_R = b'\r'
-EOF_W = '\n'
-
-uart = None
-
-fan = None
-light = None
-doorlock = None
+uart = Uart()
 
 def readLine():
+    EOF_R = b'\r'
     buffer = ""
+    
     while True:
         oneByte = uart.read(1)
         
@@ -479,11 +473,22 @@ def readLine():
             buffer += oneByte.decode()
 
 def writeLine(buffer):
-    buffer += EOF_W
-    uart.write(buffer)
-    
+    uart.write(buffer + '\n')
+
+#--------------------------------------------------------
+# USER CODE 
+#--------------------------------------------------------
+from time import sleep
+from pop import FAN
+from pop import Light
+from pop import DoorLock
+
+fan = None
+light = None
+doorlock = None
+
 def setup():
-    global uart, fan, light, doorlock
+    global fan, light, doorlock
     
     uart = Uart()
     writeLine("Starting...")
@@ -522,7 +527,10 @@ def loop():
             writeLine("Unknown option")
     else:
         writeLine("Unknown command")
-        
+
+#--------------------------------------------------------
+# MAIN 
+#--------------------------------------------------------        
 def main():
     setup()
     while True:
@@ -541,6 +549,12 @@ if __name__ == '__main__':
   ```
     
 **다음 질문에 답하시오.**
+- PC에서 \<ENTER\>로 끝나는 문자열을 Auto 제어기에 전송할 때 다음 동작에 대해 답하시오.
+  - fan on 문자열 전송 결과는?
+  - light on 문자열 전송 결과는?
+  - doorlock 문자열 전송 결과는?
+  - 환기팬을 끄려면 어떤 명령을 전송해야 하는가?
+  - 조명을 끄려면 어떤 명령을 전송해야 하는가?
 - setup() 함수에서 다음 코드의 의미는 무엇인가?
   ```python
   fan = FAN()
@@ -568,7 +582,7 @@ if __name__ == '__main__':
   ```    
 
 ### PC 스크립트
-- 1초 단위로 환기팬 켜기, 환기팬 끄기, 조명 켜기, 조명 끄기, 도어락 이벤트 발생 후 종료
+- 1초 마다 차례로 환기팬 켜기, 환기팬 끄기, 조명 켜기, 조명 끄기, 도어락 이벤트 발생 후 종료
 <details>
 <summary>전체 코드</summary>
 
@@ -580,6 +594,8 @@ PORT = "COM10" #자신의 포트 번호로 변경
 
 def main():
     ser = Serial(PORT, 115200, timeout=0)
+    print("PC Starting...")
+    sleep(1)
 
     ser.write("fan on\r".encode())
     sleep(1)
@@ -600,15 +616,20 @@ if __name__ == "__main__":
 </details>
 
 **실행**
-- PC 스크립트에서 시리얼 포트에 접근할 수 있도록 Auto 제어기 스크립트를 다음과 같이 실행
+1. Auto 제어기 스크립트를 다음과 같이 실행
   ```sh
   xnode -p<포트번호> run -n <스크립트파일명>
   ```
   
-- PC 스크립트를 다음과 같이 실행
+2. PC 스크립트를 다음과 같이 실행
   ```sh
   python <스크립트파일명>
   ```
+
+### 기능 추가
+- all off와 all on 명령으로 환기팬과 조명을 모두 켜고 끄는 기능을 추가해 보시오.
+  - Auto 제어기 스트립트에 all on, all off 조건 추가
+  - PC 스크립트에 all on, all off 테스트 코드 추가  
 
 <br>
 
@@ -617,28 +638,22 @@ if __name__ == "__main__":
 <br>
 
 ## [수행평가] Auto 제어기를 이용해 스마트 홈 스크립트를 구현하시오.
-- Auto 제어기의 환기팬, 조명, 도어락 제어 문장을 do_fan(), do_light(), do_doorlock() 함수로 구현.
+- Auto 제어기의 환기팬, 조명, 도어락 제어 구문을 do_fan(), do_light(), do_doorlock(), do_all(), do_off() 함수로 정의할 것.
 <details>
 <summary>수행 평가 코드</summary>
 
 ```python
-from time import sleep
+#--------------------------------------------------------
+# UART 
+#--------------------------------------------------------
 from pop import Uart
-from pop import FAN
-from pop import Light
-from pop import DoorLock
 
-EOF_R = b'\r'
-EOF_W = '\n'
-
-uart = None
-
-fan = None
-light = None
-doorlock = None
+uart = Uart()
 
 def readLine():
+    EOF_R = b'\r'
     buffer = ""
+    
     while True:
         oneByte = uart.read(1)
         
@@ -648,27 +663,41 @@ def readLine():
             buffer += oneByte.decode()
 
 def writeLine(buffer):
-    buffer += EOF_W
-    uart.write(buffer)
-    
+    uart.write(buffer + '\n')
+
+#--------------------------------------------------------
+# USER CODE 
+#--------------------------------------------------------
+from time import sleep
+from pop import FAN
+from pop import Light
+from pop import DoorLock
+
+fan = None
+light = None
+doorlock = None
+
 def setup():
-    global uart, fan, light, doorlock
+    global fan, light, doorlock
     
     uart = Uart()
     writeLine("Starting...")
-
-    fan = FAN()           #릴레이 채널3
-    light = Light()       #릴레이 채널2
-    doorlock = DoorLock() #릴레이 채널1
+    
+    fan = FAN()           #릴레이 채널3 ('D5')
+    light = Light()       #릴레이 채널2 ('D6')
+    doorlock = DoorLock() #릴레이 채널1 ('D0')
 
 def do_fan(cmd):
-    #이곳에 기능 구현1
+    pass #이곳에 기능 구현1
 
 def do_light(cmd):
-    #이곳에 기능 구현2
+    pass #이곳에 기능 구현2
 
 def do_doorlock(cmd):
-    #이곳에 기능 구현3
+    pass #이곳에 기능 구현3
+
+def do_all(cmd):
+    pass #이곳에 기능 구현4
 
 def loop():
     cmd = readLine().lower().split(" ")
@@ -679,9 +708,14 @@ def loop():
         do_light(cmd)
     elif cmd[0] == "doorlock":
         do_doorlock(cmd)
+    elif cmd[0] == "all":
+        do_all(cmd)
     else:
         writeLine("Unknown command")
-        
+
+#--------------------------------------------------------
+# MAIN 
+#--------------------------------------------------------        
 def main():
     setup()
     while True:
