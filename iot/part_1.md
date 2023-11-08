@@ -430,6 +430,74 @@ if __name__ == '__main__':
     main()
 ```
 
+### [수헹평가] 조명을 이용해 모스부호 송출
+- 조명을 이용해 주어진 단어를 모스부호로 송출하는 Auto 제어기 스크립트를 작성하시오.
+
+<details>
+<summary>수행평가 기본 코드</summary>
+
+```python
+#--------------------------------------------------------
+# UART 
+#--------------------------------------------------------
+from pop import Uart
+
+uart = Uart()
+
+def readLine():
+    EOF_R = b'\r'
+    buffer = ""
+    
+    while True:
+        oneByte = uart.read(1)
+        
+        if oneByte == EOF_R:
+            return buffer
+        else:
+            buffer += oneByte.decode()
+
+def writeLine(buffer):
+    uart.write(buffer + '\n')
+
+#--------------------------------------------------------
+# USER CODE 
+#--------------------------------------------------------
+from time import sleep
+from pop import Light
+
+light = None
+
+def setup():
+    global light
+    
+    uart = Uart()
+    writeLine("Starting...")
+    
+    light = Light()       #릴레이 채널2 ('D6')
+
+def loop():
+    pass # 이곳에서 light 변수를 이용해 모스 부호 송출 구현
+
+#--------------------------------------------------------
+# MAIN 
+#--------------------------------------------------------        
+def main():
+    setup()
+    while True:
+        loop()
+        sleep(0.01)
+    
+if __name__ == '__main__':
+    main()
+```
+</details>
+
+<br>
+
+---
+
+<br>
+
 
 ## 스마트 홈 구현
 - Auto 제어기의 릴레이에 연결된 환기팬, 조명, 도어락 제어
