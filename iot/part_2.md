@@ -1,15 +1,34 @@
 # MQTT로 Auto 제어기 원격 제어
 
 ## MQTT
-- MQTT는 IoT 표준 중 하나로 인터넷을 통해 토픽과 메시지로 해당 기기 원격 제어 
-  - 토픽은 계층으로 구분되는 문자열 형식으로 메시지 종류 구분
-    - 예: "iot/home/1101", "iot/home/2101"
-  - 메시지는 문자열 형식으로 제어 동작 또는 데이터
+- MQTT는 IoT 표준 중 하나로 원격 제어를 위해 **인터넷을 통해 토픽과 메시지 발생하고 구독** 
+  - 토픽: 메시지 종류를 구분하는 문자열
+    - 영문자, 숫자, '_', '-'로 구성되며 '/'로 계층(레벨) 구분
+    - #: 현재 및 하위 모든 계층 대체  
+    - +: 현재 계층 대체  
+    - 예
+      - "iot/home/1101"
+      - "iot/home/2101"
+      - "iot/home/+"
+      - "iot/#"
+  - 메시지: 문자열(Plantext) 형식으로 제어 동작 또는 데이터
     - 예: "light on"  
 - 브로커와 클라이언트로 구성
-  - 브로커는 일종의 서버(TCP 1883 포트)로 공개 서버 활용 가능
-    - 공개 브로커: broker.hivemq.com
+  - 브로커는 일종의 서버(TCP 1883 포트)로 공개 브로커 활용 가능
   - 클라이언트는 응용 프로그램(MQTTX 등) 또는 라이브러리(paho-mqtt 등) 사용
+- 공개 브로커
+
+|Name |	Broker Address | TCP Port	| TLS Port | WebSocket Port| Message Retention|
+|---|---|---|---|---|---|
+Eclipse	| mqtt.eclipse.org	| 1883	| N/A	| 80, 443 |	YES  
+Mosquitto	| test.mosquitto.org	| 1883	| 8883, 8884	| 80	| YES  
+HiveMQ | broker.hivemq.com	| 1883	| N/A	| 8000	| YES  
+Flespi | mqtt.flespi.io | 1883 | 8883 | 80, 443 | YES
+Dioty	| mqtt.dioty.co |	1883 | 8883 |	8080, 8880 |	YES
+Fluux	| mqtt.fluux.io |	1883 | 8883 |	N/A |	N/A
+EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
+
+<br>
 
 ## MQTT 클라이언트 툴
 ### MQTTX 설치
@@ -33,19 +52,31 @@
   - Topic: iot/home/1000
   - 메시지: 문자열 입력
   - 전송 버튼 선택
-- 특수 토픽 문자
-  - \\ 계층 구분 
-  - + 현재 계층 치환
-  - \# 하위 모든 계층 치환  
-    
+
+**다음과 같이 실습을 진행하시오.**
+- 다음과 같이 4개 계층으로 토픽을 정의하라.
+  - 첫 번째 계층: "iot"
+  - 두 번째 계층: "home", "factory"
+  - 세 번째 계층(그룹 구분): "1000", "2000", "3000", "4000", "5000"
+  - 네 번째 계층(자신 구분): "01", "02", "03", "04" 
+- 정의한 토픽으로 메시지를 발행할 때 다음과 같이 구독해 보라.
+  - 네 번째 계층이 같은(자신의) 토픽 구독  
+  - 세 번째 계층이 같은 그룹 토픽 구독
+  - 두 번째 계층이 같은 모든 하위 그룹 토픽 구독 
+  - 첫 번째 계층이 같은 모든 하위 그룹 토픽 구독
+
+<br>
+
 ## 게이트웨이 구현
-- Auto 제어기와 인터넷에 위치한 MQTT 브로커 연결
+- 전체 구조는 다음과 같음
+  - Auto 제어기 <---시리얼--- PC (게이트웨이) ---인터넷---> MQTT 브로커
+- 게이트웨이는 Auto 제어기와 인터넷에 위치한 MQTT 브로커 연결
   - MQTTX에서 전송한 토픽과 메시지(제어 명령)는 MQTT 브로커에 저장됨
   - MQTT 브로커는 저장한 토픽과 제어 명령을 게이트웨이에 전송한 후 삭제
   - 게이트웨이는 수신한 명령을 Auto 제어기에 전달
   - Auto 제어기는 게이트웨이가 전달한 명령 실행
 
-### PC 게이트웨이
+### PC 게이트웨이 구현
 ```python
 from paho.mqtt.client import Client
 from serial import Serial
@@ -54,9 +85,10 @@ from time import sleep
 MQTT_SERVER = "broker.hivemq.com"
 
 SERIAL_PORT = "COM5"    #자신의 포트 번호
-TOPIC_ID = "1000"       #자신의 학번
+TOPIC_GROUP = "5000/"   #자신의 고유 그룹
+TOPIC_ID    = "01"      #자신의 고유 번호
 
-TOPIC_IOT_HOME = "iot/home/" + TOPIC_ID
+TOPIC_IOT_HOME = "iot/home/" + TOPIC_GROUP + TOPIC_ID
 
 def on_connect(client, ser, flags, rc):
     if rc == 0:
