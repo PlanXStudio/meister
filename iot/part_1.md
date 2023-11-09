@@ -725,7 +725,7 @@ if __name__ == "__main__":
 <br>
 
 ## [수행평가] Auto 제어기를 이용해 스마트 홈 스크립트를 구현하시오.
-- Auto 제어기의 환기팬, 조명, 도어락 제어 구문을 do_fan(), do_light(), do_doorlock(), do_all(), do_off() 함수로 정의할 것.
+- Auto 제어기의 환기팬, 조명, 도어락 제어 구문을 do_fan(), do_light(), do_doorlock(), do_all() 함수로 정의할 것.
 <details>
 <summary>수행 평가 코드</summary>
 
