@@ -136,10 +136,10 @@
   - PWM 컨트롤러의 채널3, 채널2의 배타적인 ON(100%), OFF(0%) 신호로 열고 닫기
   - GasBreaker 객체의 open(), close() 메소드로 제어
   ```python
-  bs = BasBreaker()
-  bs.open() #시계방향  
+  gb = GasBreaker()
+  gb.open() #시계방향  
   #현재 동작 완료는 약 6초
-  bs.close() #반시계방향
+  gb.close() #반시계방향
   ```
 
 ### 디지털 입출력
@@ -154,6 +154,6 @@
   - 가스가 감지되면 경보가 울리며 흰선(P18)이 높은 상태(HIGH)가 됨
   - GasDetect 객체의 read() 메소드로 상태 읽기
   ```python
-  gd = BasDetect()
+  gd = GasDetect()
   ret = gd.read() #ret가 1이면 가수 누출, 0이면 정상
   ```
