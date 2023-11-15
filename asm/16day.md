@@ -1,6 +1,115 @@
-# MQTT로 Auto 제어기 원격 제어
+# 원격 제어 응용
 
-## MQTT
+## 카메라로 Auto 제어기 원격 제어
+### 카메라에서 영상 데이터 얻기
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        _, frame = cap.read()
+        cv2.imshow("Camera", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 사직찍기
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+    cnt = 0
+
+    while True:
+        _, frame = cap.read()
+        cv2.imshow("Camera", frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord('c'):
+            cv2.imwrite("./my%d.jpg"%(cnt), frame)
+            cnt = cnt + 1
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 얼굴인식
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+    while True:
+        _, frame = cap.read()
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
+        for x, y, w, h in faces:
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        
+        cv2.imshow("Face Detection", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 방문자 인식 및 도어락 제어
+```python
+import cv2
+from serial import Serial
+
+SERIAL_PORT = "COM5" #자신의 포트 번호
+
+def main():
+    cap = cv2.VideoCapture(0)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    ser = Serial(SERIAL_PORT, 115200, timeout=0)
+    cnt = 0
+
+    while True:
+        _, frame = cap.read()
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
+        if len(faces) >= 1:
+            ser.write("doorlock\r".encode())
+            cv2.imwrite("./visitant%d.jpg"%(cnt), frame)
+            cnt += 1
+
+        cv2.imshow("Visitant", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+
+## MQTT로 Auto 제어기 원격 제어
+### MQTT
 - MQTT는 IoT 표준 중 하나로 원격 제어를 위해 **인터넷을 통해 토픽과 메시지 발생하고 구독** 
   - 토픽: 메시지 종류를 구분하는 문자열
     - 영문자, 숫자, '_', '-'로 구성되며 '/'로 계층(레벨) 구분
@@ -30,19 +139,19 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 
 <br>
 
-## MQTT 클라이언트 툴
-### MQTTX 설치
+### MQTT 클라이언트 툴
+**MQTTX 설치**
 - [설치 파일 다운로드](https://www.emqx.com/en/downloads/MQTTX/v1.9.6/MQTTX-Setup-1.9.6-x64.exe)
 - 다운 받은 파일 실행
 - 윈도우 메뉴에서 새로 설치한 MQTTX 실행
 
-### 공개 브로커 연결
+**공개 브로커 연결**
 - Connections에서 New Connection 버튼 클릭
   - Name: HiveMQ
   - Host: broker.hivemq.com
   - Connect 버튼 선택
 
-### MQTT 테스트
+**MQTT 테스트**
 - 구독 등록
   - New Subscription 클릭
   - Topic: iot/home/1000
@@ -67,7 +176,7 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 
 <br>
 
-## 게이트웨이 구현
+### 게이트웨이 구현
 - 전체 구조는 다음과 같음
   - Auto 제어기 <---시리얼--- PC (게이트웨이) ---인터넷---> MQTT 브로커
 - 게이트웨이는 Auto 제어기와 인터넷에 위치한 MQTT 브로커 연결
@@ -76,7 +185,7 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
   - 게이트웨이는 수신한 명령을 Auto 제어기에 전달
   - Auto 제어기는 게이트웨이가 전달한 명령 실행
 
-### PC 게이트웨이 구현
+**PC 게이트웨이 구현**
 ```python
 from paho.mqtt.client import Client
 from serial import Serial
