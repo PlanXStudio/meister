@@ -1,113 +1,4 @@
 # 원격 제어 응용
-
-## 카메라로 Auto 제어기 원격 제어
-### 카메라에서 영상 데이터 얻기
-```python
-import cv2
-
-def main():
-    cap = cv2.VideoCapture(0)
-
-    while True:
-        _, frame = cap.read()
-        cv2.imshow("Camera", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
-```
-
-### 사직찍기
-```python
-import cv2
-
-def main():
-    cap = cv2.VideoCapture(0)
-    cnt = 0
-
-    while True:
-        _, frame = cap.read()
-        cv2.imshow("Camera", frame)
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'):
-            break
-        elif key == ord('c'):
-            cv2.imwrite("./my%d.jpg"%(cnt), frame)
-            cnt = cnt + 1
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
-```
-
-### 얼굴인식
-```python
-import cv2
-
-def main():
-    cap = cv2.VideoCapture(0)
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-
-    while True:
-        _, frame = cap.read()
-
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
-        for x, y, w, h in faces:
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        
-        cv2.imshow("Face Detection", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
-```
-
-### 방문자 인식 및 도어락 제어
-```python
-import cv2
-from serial import Serial
-
-SERIAL_PORT = "COM5" #자신의 포트 번호
-
-def main():
-    cap = cv2.VideoCapture(0)
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-    ser = Serial(SERIAL_PORT, 115200, timeout=0)
-    cnt = 0
-
-    while True:
-        _, frame = cap.read()
-
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
-        if len(faces) >= 1:
-            ser.write("doorlock\r".encode())
-            cv2.imwrite("./visitant%d.jpg"%(cnt), frame)
-            cnt += 1
-
-        cv2.imshow("Visitant", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
-```
-
-
 ## MQTT로 Auto 제어기 원격 제어
 ### MQTT
 - MQTT는 IoT 표준 중 하나로 원격 제어를 위해 **인터넷을 통해 토픽과 메시지 발생하고 구독** 
@@ -244,3 +135,115 @@ if __name__ == "__main__":
   ```sh
   python <스크립트파일명>
   ```
+
+
+## 카메라로 Auto 제어기 원격 제어
+### 카메라에서 영상 데이터 얻기
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        _, frame = cap.read()
+        cv2.imshow("Camera", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 사직찍기
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+    cnt = 0
+
+    while True:
+        _, frame = cap.read()
+        cv2.imshow("Camera", frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord('c'):
+            cv2.imwrite("./my%d.jpg"%(cnt), frame)
+            cnt = cnt + 1
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 얼굴인식
+```python
+import cv2
+
+def main():
+    cap = cv2.VideoCapture(0)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+    while True:
+        _, frame = cap.read()
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
+        for x, y, w, h in faces:
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        
+        cv2.imshow("Face Detection", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 방문자 인식 및 도어락 제어
+- 얼굴이 인식되면 사진을 찍은 후 도어락 이벤트 발생
+- 다음 문제점을 해결할 것!
+  - 실시간으로 얼굴을 인식하므로 1초에 수십회 이벤트 발생
+    
+```python
+import cv2
+from serial import Serial
+
+SERIAL_PORT = "COM5" #자신의 포트 번호
+
+def main():
+    cap = cv2.VideoCapture(0)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    ser = Serial(SERIAL_PORT, 115200, timeout=0)
+    cnt = 0
+
+    while True:
+        _, frame = cap.read()
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30,30))
+        if len(faces) >= 1:
+            ser.write("doorlock\r".encode())
+            cv2.imwrite("./visitant%d.jpg"%(cnt), frame)
+            cnt += 1
+
+        cv2.imshow("Visitant", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
