@@ -33,6 +33,7 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 ### MQTT 클라이언트 툴
 **MQTTX 설치**
 - [설치 파일 다운로드](https://www.emqx.com/en/downloads/MQTTX/v1.9.6/MQTTX-Setup-1.9.6-x64.exe)
+  - 로컬 공유(https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EWtxHHp_2KNFmTx7qVjebrwBAtWmtRtfu4h_BaoQjGAVRg?e=duNZeu)
 - 다운 받은 파일 실행
 - 윈도우 메뉴에서 새로 설치한 MQTTX 실행
 
