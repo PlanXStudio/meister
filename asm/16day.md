@@ -1,4 +1,19 @@
 # 원격 제어 응용
+## 실습환경
+### 케이블링
+- Auto 제어기에 12V DC 전원 어댑터 연결
+- USB 허브에 5V DC 전원 어댑터 연결(마이크로USB B 커넥터)
+  - 전용 데이터 케이블을 PC에 연결 (전용 포트)
+- FAN을 릴레이 채널1에 연결 (O, GND)
+  - 점퍼 선으로 12V 출력을 채널 1의 C에 연결
+- 전등1을 릴레이 채널2에 연결 (O, GND)
+- 전등2를 릴레이 채널3에 연결 (O, GND)
+
+### Auto 제어기 스크립트
+- 14_15day.md 내용을 케이블링에 맞게 수정(수행 평가!!!!)
+  - 변수 이름 변경
+  - 제어 문자열 변경
+    
 ## MQTT로 Auto 제어기 원격 제어
 ### MQTT
 - MQTT는 IoT 표준 중 하나로 원격 제어를 위해 **인터넷을 통해 토픽과 메시지 발생하고 구독** 
@@ -7,8 +22,8 @@
     - #: 현재 및 하위 모든 계층 대체  
     - +: 현재 계층 대체  
     - 예
-      - "iot/home/1101"
-      - "iot/home/2101"
+      - "iot/home/1000/01"
+      - "iot/home/2000/01"
       - "iot/home/+"
       - "iot/#"
   - 메시지: 문자열(Plantext) 형식으로 제어 동작 또는 데이터
@@ -33,7 +48,7 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 ### MQTT 클라이언트 툴
 **MQTTX 설치**
 - [설치 파일 다운로드](https://www.emqx.com/en/downloads/MQTTX/v1.9.6/MQTTX-Setup-1.9.6-x64.exe)
-  - 로컬 공유(https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EWtxHHp_2KNFmTx7qVjebrwBAtWmtRtfu4h_BaoQjGAVRg?e=duNZeu)
+  - [이 설치 파일 다운로드가 안될 때!!!](https://koreaoffice-my.sharepoint.com/:u:/g/personal/devcamp_korea_ac_kr/EWtxHHp_2KNFmTx7qVjebrwBAtWmtRtfu4h_BaoQjGAVRg?e=duNZeu)
 - 다운 받은 파일 실행
 - 윈도우 메뉴에서 새로 설치한 MQTTX 실행
 
@@ -46,11 +61,11 @@ EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 **MQTT 테스트**
 - 구독 등록
   - New Subscription 클릭
-  - Topic: iot/home/1000
+  - Topic: iot/home/1000/+
   - Confirm 선택
 - 메시지 발행
   - Plantext 선택
-  - Topic: iot/home/1000
+  - Topic: iot/home/1000/01
   - 메시지: 문자열 입력
   - 전송 버튼 선택
 
