@@ -62,81 +62,14 @@ tracert www.google.co.kr
 
 # 소켓 인터페이스
 
-## RAW 소켓
-> 관리되지 않은(raw) 소켓으로 데이터 링크 서비스 구현
->> 먼저 대상의 MAC 주소를 파악해야 합니다. 코드 상의 dst와 src 변수가 가리키는 값은 MAC 주소를 문자열로 표현한 것입니다.
->> 자신의 MAC 주소를 dst와 src에 대입해도 관계없습니다.
-
-### sender.py
-```python
-from socket import socket, AF_PACKET, SOCK_RAW, htons
-
-def send_link(dst, src, payload, type = "0800", interface="eth0"):
-    s = socket(AF_PACKET, SOCK_RAW, htons(3)
-    s.bind((interface, 3))
-
-    frame = bytearray.fromhex(dst + src + type) + payload.encode()
-
-    return s.send(frame)
-
-def main():
-    dst = "00155d11c9ca"
-    src = "00155d11c9ca"
-    payload = input("payload: ")
-    
-    send_link(dst, src, payload)
-
-if __name__ == "__main__":
-    main()
-```
-
-*반드시 관리자 권한으로 실행*
-```sh
-sudo python3 sender.py
-```
-
-### receiver.py
-```python
-from socket import socket, AF_PACKET, SOCK_RAW, htons
-
-def ba2hs(ar, fmt=''):
-    return fmt.join(f"{b:02x}" for b in ar)
-
-def recv_link(interface="eth0"):
-    s =socket(AF_PACKET, SOCK_RAW, htons(3))
-    s.bind((interface, 0))
-    
-    frame = s.recv(1516)
-
-    dst = ba2hs(frame[:6], ':')
-    src = ba2hs(frame[6:12], ':')
-    type = ba2hs(frame[12:14]) 
-
-    try:
-        payload = frame[14:].decode()
-    except UnicodeDecodeError:
-        return
-
-    print(f"{dst = }")
-    print(f"{src = }")
-    print(f"{type = }")        
-    print(f"{payload = }")
-
-def main():
-    while True:
-        try:
-            recv_link()
-        except KeyboardInterrupt:
-            break
-        
-if __name__ == "__main__":
-    main()
-```
-
 ## TCP 소켓
-> raw 소켓이 아니라면 관리자 권한으로 실행할 필요가 없습니다.
+- 클라이언트-서버 구조로 가장 보편적인 인터넷 통신
+- IP 주소와 포트 번호를 이용해 장치 및 응용 구분
 
 ### tcp_server.py
+- bind를 통해 운영체제에 연결 요청을 수락할 IP 주소와 포트 번호 등록
+- 클라이언트로부터 연결 요청이 수신되면 accept로 허용 후 데이터 교환을 위한 새로운 소켓 생성
+- 새로운 소켓으로 클라이언트와 데이터 교환(send/recv)  
 
 ```python
 from socket import socket, AF_INET, SOCK_STREAM,  SOL_SOCKET, SO_REUSEADDR
@@ -172,7 +105,9 @@ if __name__ == "__main__":
 ```
 
 ### tcp_client.py
-
+- 서버 IP 주소와 포트 번호를 이용해 connect로 서버에 연결
+- 연결이 성공하면 소켓으로 서버와 통신(send/recv)
+  
 ```python
 from socket import socket, AF_INET, SOCK_STREAM
 import struct
@@ -203,6 +138,7 @@ if __name__ == "__main__":
 ```
 
 ### tcp_echo_server.py
+- 여러 클라이언트와 동시에 데이터를 교환하려면 쓰레드 필요
 
 ```python
 from socket import socket, AF_INET, SOCK_STREAM,  SOL_SOCKET, SO_REUSEADDR
@@ -306,8 +242,9 @@ if __name__ == "__main__":
 <br/><br/>
 
 ## UDP 소켓 
-> 원래 TCP 프로토콜은 매우 복잡합니다. TCP에서 최소 기능만 남겨 둔 것이 UDP이므로 TCP 소켓보다 UDP 소켓이 좀 더 쉽습니다.
-
+- TCP 소켓에 빌해 간결함
+- 클라이언트-서버 구조보다는 Peer-to-Peer 구조에 가까움.
+  
 ### udp_echo_server.py
 
 ```python
@@ -357,7 +294,7 @@ if __name__ == "__main__":
 
 <br/>
 
-> 범용 UDP 소켓 클래스 정의와 상속을 통해 재사용성을 높이는 방법에 대해 알아봅니다.
+## 범용 UDP 소켓 클래스 정의와 상속을 통해 재사용성 향상
 
 ### simple_udp.py
 ```python
@@ -476,159 +413,4 @@ if __name__ == "__main__":
   * send(), recv()와 sendto(), recvfrom()의 차이는 무엇입니까?
 
 <br/><br/>
-
-## UDP 소켓과 멀티캐스트 통신
-
-> 멀티캐스트 통신은 UDP 소켓으로 구현하며, 멀티캐스트 그룹에 가입해야 합니다.
-
-### multicast_receiver.py
-```python
-from socket import socket, inet_aton, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, INADDR_ANY, IPPROTO_IP, IP_ADD_MEMBERSHIP
-import struct
-
-MCAST_GROUP = '224.1.1.1'
-SERVER_ADDR = ('', 49003)
-
-def main():
-    sock = socket(AF_INET, SOCK_DGRAM)
-
-    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(SERVER_ADDR)
-
-    mreq = struct.pack("4sL", inet_aton(MCAST_GROUP), INADDR_ANY)
-    sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, mreq)
-
-    while True:
-        data, addr = sock.recvfrom(10240)
-        print(f"{addr =}, {data = }")
-
-        sock.sendto("ack".encode(), addr)
-        
-if __name__ == "__main__":
-    main()
-```
-
-### multicast_sender.py
-```python
-from socket import socket, timeout, AF_INET, SOCK_DGRAM, IP_MULTICAST_TTL, IPPROTO_IP
-import struct
-
-MCAST_GROUP = ('224.1.1.1', 49003)
-
-def main():
-    sock = socket(AF_INET, SOCK_DGRAM)
-    sock.settimeout(0.2)
-    
-    ttl = struct.pack('b', 2)
-    sock.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, ttl)
-
-    data = "echo data".encode()
-    sock.sendto(data, MCAST_GROUP)
-
-    while True:
-        try:
-            data, addr = sock.recvfrom(32)
-        except timeout:
-            break
-        else:
-            print(f"{addr =}, {data = }")
-    
-    sock.close()
-
-if __name__ == "__main__":
-    main()
-```
-
-<br/>
-
-> 클래스 상속을 통해 좀 더 범용적이며, 확장성이 뛰어난 멀티캐스트 클래스를 정의합니다.
-
-### simple_multicast.py
-
-```python
-from socket import socket, inet_aton, timeout
-from socket import AF_INET, SOCK_DGRAM
-from socket import SOL_SOCKET, SO_REUSEADDR, INADDR_ANY
-from socket import IPPROTO_IP, IP_ADD_MEMBERSHIP, IP_MULTICAST_TTL
-import struct
-
-class SimpleMulticast:
-    def __init__(self, mcast_group, timeout=0.2):
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        self.sock.settimeout(timeout)
-
-        self._mcast_group = mcast_group
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.sock.close()
-
-    def send(self, data, addr=()):
-        self.sock.sendto(data, addr if addr else self._mcast_group)
-
-    def recv(self, buf_size=1500):
-        try:
-            return self.sock.recvfrom(buf_size)
-        except timeout:
-            return (None, None)
-
-class SimpleMulticastReceiver(SimpleMulticast):
-    def __init__(self, mcast_group=('224.1.1.1', 49003), timeout=0.2):
-        super(SimpleMulticastReceiver, self).__init__(mcast_group, timeout)
-
-        self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self.sock.bind(('', mcast_group[1]))
-        mreq = struct.pack("4sL", inet_aton(mcast_group[0]), INADDR_ANY)
-        self.sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, mreq)
-
-class SimpleMulticastSender(SimpleMulticast):
-    def __init__(self, mcast_group=('224.1.1.1', 49003), timeout=0.2, ttl=2):
-        super(SimpleMulticastSender, self).__init__(mcast_group, timeout)
-
-        ttl = struct.pack('b', ttl)
-        self.sock.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, ttl)
-```
-
-### multicast_echo_server.py
-
-```python
-from simple_multicast import SimpleMulticastReceiver
-
-def main():
-    with SimpleMulticastReceiver() as mrecv:
-        while True:
-            try:
-                data, addr = mrecv.recv()
-                if data:
-                    print(f"{addr =}, {data = }")
-                    mrecv.send("ack".encode(), addr)
-            except KeyboardInterrupt:
-                break
-
-if __name__ == "__main__":
-    main()
-```
-
-### multicast_echo_client.py
-
-```python
-"""ex03_08_2.py"""
-from simple_multicast import SimpleMulticastSender
-
-def main():   
-    with SimpleMulticastSender() as msnd:
-        msnd.send("echo data".encode())
-
-        while True:
-            try:
-                data, addr = msnd.recv()
-                if data:
-                    print(f"{addr =}, {data = }")
-            except KeyboardInterrupt:
-                break
-            
-if __name__ == "__main__":
-    main()
 ```
