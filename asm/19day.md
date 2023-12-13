@@ -81,7 +81,8 @@ def main():
     sock.listen(5)
     
     client_sock, addr_info = sock.accept()
-    
+    print(client_sock)
+
     while True:
         data = client_sock.recv(1024).decode()
         print(data)
@@ -100,7 +101,7 @@ if __name__ == '__main__':
 - 연결이 성공하면 소켓으로 서버와 통신(send/recv)
 
 ```python
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+from socket import socket, AF_INET, SOCK_STREAM
 import struct
 
 def main():
