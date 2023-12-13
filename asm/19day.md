@@ -61,405 +61,292 @@ tracert www.google.co.kr
 <br/>
 
 # 소켓 인터페이스
+- 인터넷 통신을 위한 운영체제에서 지원하는 표준 API
+- IP 주소와 포트 번호를 이용해 장치 및 응용 구분
 
 ## TCP 소켓
 - 클라이언트-서버 구조로 가장 보편적인 인터넷 통신
-- IP 주소와 포트 번호를 이용해 장치 및 응용 구분
+- 스트림 소켓으로 불리며, 연결된 상태에서 데이터 송수신
+- 전송한 데이터는 수신을 보장함
 
-### tcp_server.py
-- bind를 통해 운영체제에 연결 요청을 수락할 IP 주소와 포트 번호 등록
-- 클라이언트로부터 연결 요청이 수신되면 accept로 허용 후 데이터 교환을 위한 새로운 소켓 생성
-- 새로운 소켓으로 클라이언트와 데이터 교환(send/recv)  
+### 1st 
+**tcp_server.py**
+- socket 클래스에 AF_INET과 SOCK_STREAM 인자를 전달해 TCP 소켓 객체 생성
+- setsockopt로 소켓 주소쌍(IP 주소와 TCP 포트 번호)을 재사용하도록 설정
+- bind를 통해 운영체제에 연결 요청을 수락할 소켓 주소쌍 등록
+  - IP 주소가 '0.0.0.0'이면 모든 네트워크 어댑터로 수신되는 연결 요청 허용
+  - 포트 번호는 인터넷 할당 번호 관리기관(IANA)에서 관리
+    - 0번 ~ 1023번: 잘 알려진 포트 (well-known port). 인터넷 공식 서버에서 사용하며, 관리자 권한 필요
+    - 1024번 ~ 49151번: 등록된 포트 (registered port). 일반 서버에서 사용
+    - 49152번 ~ 65535번: 동적 포트 (dynamic port). 클라이언트에서 사용
+- 클라이언트로부터 연결 요청이 수신되면 accept로 연결 허용
+  - 클라이언트 연결 소켓과 주소쌍이 반환됨
+  - 클라이언트 연결 소켓은 해당 클라이언트와 데이터를 주소 받을 때 사용
 
 ```python
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+from socket import SOL_SOCKET, SO_REUSEADDR
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('0.0.0.0', 5001))
+    sock.listen(5)
+
+    conn_sock, addr_pair = sock.accept()
+    print(addr_pair)
+
+if __name__ == '__main__':
+    main()
+```
+
+**tcp_client.py**
+- socket 클래스에 AF_INET과 SOCK_STREAM 인자를 전달해 TCP 소켓 객체 생성
+- 서버 소켓 주소쌍을 이용해 connect로 서버에 연결 요청
+  - 서버 IP 주소는 서버 프로그램이 실행 중인 컴퓨터 IP
+- 연결이 성공하면 데이터를 주소 받을 수 있음
+  - 네트워크 장애, 서버 프로그램이 실행 중이 아님, 서버 주소 또는 포트 번호가 틀림 등으로 연결이 실패하면 예외 발생
+
+```python
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+
+    try:
+        sock.connect(('192.168.1.5', 49001))
+    except:
+        print("Fail connection")
+        return
+
+    print("Ok connection")
+    sock.close()
+    
+if __name__ == '__main__':
+    main()
+```
+
+### 2nd
+**tcp_server.py**
+- 클라이언트 연결 소켓을 이용해 데이터 송수신(send/recv)
+
+```python
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+from socket import SOL_SOCKET, SO_REUSEADDR
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('0.0.0.0', 5001))
+    sock.listen(5)
+
+    conn_sock, addr_pair = sock.accept()
+    print(addr_pair)
+
+    data = conn_sock.recv(1024)
+    conn_sock.send(data)
+    print(data.decode())
+    conn_sock.close()
+
+if __name__ == '__main__':
+    main()
+```
+
+**tcp_client.py**
+- 연결이 성공하면 소켓을 이용해 데이터 송수신(send/recv)
+
+```python
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+
+    try:
+        sock.connect(('192.168.68.120', 5001))
+    except:
+        print("Fail connection")
+        return
+
+    print("Ok connection")
+
+    send_data = input("data: ")
+    sock.send(send_data.encode())
+    recv_data = sock.recv(1024).decode()
+    if send_data == recv_data:
+        print("Ok ECHO")
+    else:
+        print("Fail ECHO")
+
+    sock.close()
+    
+if __name__ == '__main__':
+    main()
+```
+
+### 3th
+**tcp_server.py**
+- 새로운 클라이언트가 연결될 때마다 해당 클라이언트 연결 소켓이 반환되므로 리스트나 딕셔너리로 이를 관리해야 함.
+
+```python
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+from socket import SOL_SOCKET, SO_REUSEADDR
 
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     sock.bind(('0.0.0.0', 49001))
     sock.listen(5)
-    
-    client_sock, addr_info = sock.accept()
-    print(client_sock)
 
-    while True:
-        data = client_sock.recv(1024).decode()
-        print(data)
-        if data == '종료':
-            break
-    
-    client_sock.close()
-    sock.close()
+    conn_sock_mng = {}
+    while True:    
+        conn_sock_t, addr_pair = sock.accept()
+        conn_sock_mng[addr_info] = conn_sock_t        
+        print(f"Total connection: {len(conn_sock_mng)}, New connection: {addr_pair}")
 
 if __name__ == '__main__':
     main()
 ```
 
-### tcp_client.py
-- 서버 IP 주소와 포트 번호를 이용해 connect로 서버에 연결
-- 연결이 성공하면 소켓으로 서버와 통신(send/recv)
+### 4th
+**tcp_server.py**
+- 모든 클라이언트 연결 소켓에 대한 데이터 송수신 처리를 위해 스레드 사용
 
 ```python
-from socket import socket, AF_INET, SOCK_STREAM
-import struct
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
+from socket import SOL_SOCKET, SO_REUSEADDR
+from threading import Thread
 
+ADAPTER = "0.0.0.0"
+SERVER_PORT = 5001
+
+conn_sock_mng = {}
+
+def do_communication(conn_sock, addr_pair):
+    print("do_communication")
+    while True:
+        try:
+            data = conn_sock.recv(1024)
+            print(f"{addr_pair}: {data.decode()}")
+            for a, s in conn_sock_mng.items():
+                if s != conn_sock:
+                    s.send(f"{a}: {data.decode()}".encode())
+        except:
+            del conn_sock_mng[addr_pair]
+            break
+        
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect(('192.168.1.5', 49001))
-        
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind((ADAPTER, SERVER_PORT))
+    sock.listen(5)
+    
     while True:
-        data = input()
-        sock.send(data.encode())
-        if data == '종료':
+        try:
+            conn_sock_t, addr_pair = sock.accept()
+        except KeyboardInterrupt:
             break
-    
-    sock.close()
-    
-if __name__ == '__main__':
-    main()
-```
-
-### 클래스 캡슐화
-**tcp_server2.py**
-```python
-from socket import socket, AF_INET, SOCK_STREAM,  SOL_SOCKET, SO_REUSEADDR
-import struct
-
-class SimpleTCPServer:
-    def __init__(self, adapter="0.0.0.0", server_port=49001):       
-        self._sock = socket(AF_INET, SOCK_STREAM)
-        self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self._sock.bind((adapter, server_port))
-        self._sock.listen(5)
-
-    def __del__(self):
-        self._sock.close()
-
-    def receive(self, buf_size=1500):
-        conn_sock, addr = self._sock.accept()
-
-        fmt = conn_sock.recv(buf_size)
-        data = conn_sock.recv(buf_size)
-        conn_sock.close()
-
-        return addr, struct.unpack(fmt, data)
-
-def main():
-    srv = SimpleTCPServer()
-    data = srv.receive()    
-    print(f"{data[0]}, {data[1][0].decode()}, {data[1][1]}, {data[1][2]:.3}")
-
+        conn_sock_mng[addr_pair] = conn_sock_t
+        print(f"Total connection: {len(conn_sock_mng)}, New connection: {addr_pair}")
+        th = Thread(target=do_communication, args=(conn_sock_t,addr_pair))
+        th.daemon = True
+        th.start()
+        
 if __name__ == "__main__":
     main()
-
 ```
 
 **tcp_client.py**
-  
+- 송신과 수신을 동시에 처리하기 위해 스레드 사용
 ```python
-from socket import socket, AF_INET, SOCK_STREAM
-import struct
-import time
-
-class SimpleTCPClient:
-    def __init__(self, server_ip="127.0.0.1", server_port=49001):
-        self._conn_sock = socket(AF_INET, SOCK_STREAM)
-        self._conn_sock.connect((server_ip, server_port))
-
-    def send(self, fmt, *data):
-        self._conn_sock.send(fmt.encode())
-        time.sleep(0.1)
-        self._conn_sock.send(struct.pack(fmt, *data))
-        self._conn_sock.close()
-
-def main():
-    fmt = "11sIf"
-    msg = ["hi, Python!", 1024, 3.14]
-    
-    client = SimpleTCPClient()
-
-    msg[0] = msg[0].encode()
-    client.send(fmt, *msg)
-
-if __name__ == "__main__":
-    main()
-```
-
-### tcp_echo_server.py
-- 여러 클라이언트와 동시에 데이터를 교환하려면 쓰레드 필요
-
-```python
-from socket import socket, AF_INET, SOCK_STREAM,  SOL_SOCKET, SO_REUSEADDR
+from socket import socket
+from socket import AF_INET, SOCK_STREAM
 from threading import Thread
-import struct
-import time
 
-class SimpleEchoServer(Thread):
-    def __init__(self, ip="0.0.0.0", port=49001):
-        super(SimpleEchoServer, self).__init__()
+SERVER_IP = '192.168.68.120'
+SERVER_PORT = 5001
 
-        self._sock = socket(AF_INET, SOCK_STREAM)
-        
-        self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self._sock.bind((ip, port))
-        self._sock.listen(5)
-        self._sock.setblocking(False)
-
-        self.start()
-    
-    def terminate(self):
-        self._sock.close()
-
-    def __work_thread(self, sock):
-        data = sock.recv(1500)
-        t = time.time()
-        data = struct.pack("d", t) + data
-        print(t, data[8:].decode())
-        sock.send(data)
-        sock.close()
-
-    def run(self):
-        while True:
-            try:
-                conn_sock, addr = self._sock.accept()
-                print(f"Client IP: {addr[0]}, Port: {addr[1]}")
-            except BlockingIOError:
-                continue
-            except OSError:
-                break
-
-            Thread(target=self.__work_thread, args=(conn_sock,)).start()
+def do_recv(sock):
+    while True:
+        data = sock.recv(1024).decode()
+        print(data)
 
 def main():
-    echo_srv = SimpleEchoServer()
-    input("Press the Enter key to exit.\n")
-    echo_srv.terminate()
+    sock = socket(AF_INET, SOCK_STREAM)
+
+    try:
+        sock.connect((SERVER_IP, SERVER_PORT))
+    except:
+        print("Fail connection")
+        return
+
+    print("Ok connection")
+    th = Thread(target=do_recv, args=(sock,))
+    th.daemon = True
+    th.start()
     
-if __name__ == "__main__":
-    main()
-
-```
-
-### tcp_echo_client.py
-```python
-from socket import socket, AF_INET, SOCK_STREAM
-import struct
-import time
-
-class SimpleEchoClient:
-    ECHO_DATA = "0123456789"
-
-    def __init__(self, server_ip="127.0.0.1", server_port=49001):
-        conn_sock = socket(AF_INET, SOCK_STREAM)
-        
-        conn_sock.connect((server_ip, server_port))
-
-        conn_sock.send(self.ECHO_DATA.encode())
-        data = conn_sock.recv(1500)
-
-        t = struct.unpack("d", data[:8])[0]
-        data = data[8:].decode()
-
-        if (self.ECHO_DATA == data):
-            print(f"{time.ctime(t)}: ECHO OK")
-        else:
-            print("ECHO FAIL")
-
-        conn_sock.close()
-
-def main():
-    SimpleEchoClient()
-
-if __name__ == "__main__":
+    while True:
+        data = input()
+        sock.send(data.encode())
+    
+if __name__ == '__main__':
     main()
 ```
-
-<br/>
-
-### Work1
-* 파이썬 공식 매뉴얼을 통해 struct 모듈의 pack()와 unpack()에 대해 좀 더 학습하세요.
-  * https://docs.python.org/ko/3/library/struct.html
-* 네트워크는 바이트 단위로 데이터를 보내고 받습니다. 파이썬에서 네트워크로 데이터를 보내고 받으려면 꼭 pack(), unpack()이 필요합니다.
-
-### Work2
-* tcp_echo_server와 tcp_echo_client를 클래스 대신 함수 중심으로 변환해 보세요.
-  * 속성을 전역 변수로 바뀝니다.
-  * 메서드는 함수로 바뀌며 첫 번째 인자가 사라집니다.
-  * __init__() 메서드는 전역 변수를 초기화하는 다른 함수로 바꿔야 합니다.
-
-<br/><br/>
 
 ## UDP 소켓 
-- TCP 소켓에 빌해 간결함
 - 클라이언트-서버 구조보다는 Peer-to-Peer 구조에 가까움.
+- 데이터그림 소켓으로 불리며, 연결없이 데이터 송수신
+- 전송한 데이터는 수신을 보장하지 않음
   
-### udp_echo_server.py
-
+### udp_receiver.py
+- 수신 처리를 위해 bind 동작으로 운영체제에 주소쌍 저장
+- sendto와 recvfrom으로 데이터 송수신
+- 수신한 데이터보다 더 작게 읽으면 나머지 데이터는 버려짐
+  
 ```python
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket
+from socket import AF_INET, SOCK_DGRAM
 
 ADAPTER = "0.0.0.0"
-ECHO_SERVER_PORT = 49002
+RECV_PORT = 5001
 
 def main():
     sock = socket(AF_INET, SOCK_DGRAM)
-    sock.bind((ADAPTER, ECHO_SERVER_PORT))
+    sock.bind((ADAPTER, RECV_PORT))
 
-    data, addr = sock.recvfrom(1500)
-    sock.sendto(data, addr)
-    
-    print(f"{addr = }, data = {data.decode()}")
-
-    sock.close()
+    while True:
+        data, addr_pair = sock.recvfrom(1500)
+        sock.sendto(data, addr_pair)    
+        print(f"{addr_pair}: {data.decode()}")
 
 if __name__ == "__main__":
     main()
-
 ```
 
-### udp_echo_client.py
+### udp_sender.py
 
 ```python
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket
+from socket import AF_INET, SOCK_DGRAM
 
-ECHO_SERVER_IP = "127.0.0.1"
-ECHO_SERVER_PORT = 49002
+RECV_IP = "192.168.68.120"
+RECV_PORT = 5001
 
 def main():
     sock = socket(AF_INET, SOCK_DGRAM)
 
-    data = input("payload: ").encode()
-    sock.sendto(data, (ECHO_SERVER_IP, ECHO_SERVER_PORT))
+    data = input("data: ").encode()
+    sock.sendto(data, (RECV_IP, RECV_PORT))
     recv_data = sock.recv(1500).decode()
-    print(f"{recv_data = }")
+    print(f"{recv_data}")
 
     sock.close()
 
 if __name__ == "__main__":
     main()
-
-```
-
-<br/>
-
-## 범용 UDP 소켓 클래스 정의와 상속을 통해 재사용성 향상
-
-### simple_udp.py
-```python
-"""simple_udp.py"""
-from threading import Thread
-from socket import socket, AF_INET, SOCK_DGRAM
-
-class SimpleUDP(Thread):
-    def __init__(self, recv_adapter="0.0.0.0", port=0):
-        super(SimpleUDP, self).__init__()
-        self._stop = False
-
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        if port:
-            self.sock.bind((recv_adapter, port))
-            self.sock.setblocking(False)
-
-        self.sendto = self.sock.sendto
-        self.recvfrom = self.sock.recvfrom
-
-    def terminate(self):
-        self._stop = True
-        self.sock.close()
-
-    def callback(self, func, *args, **kwargs):
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
-
-        self.start()
-
-    def run(self):
-        while not self._stop:
-            try:
-                self._func(*self._args, **self._kwargs)
-            except BlockingIOError:
-                continue
-            except OSError:
-                break
-```
-
-### udp_echo_server2.py
-
-```python
-from simple_udp import SimpleUDP
-
-class UDPEchoServer(SimpleUDP):
-    def __init__(self):
-        super(UDPEchoServer, self).__init__(port=49002)
-        self.callback(self.echo, 1500)
-
-    def echo(self, buf_size):
-        data, addr = self.recvfrom(buf_size)
-        self.sendto(data, addr)
-        print(f"{addr = }, data = {data.decode()}")
-
-def main():
-    echo = UDPEchoServer()
-    input("Press the Enter key to exit.\n")
-    echo.terminate()
-
-if __name__ == "__main__":
-    main()
-
-```
-
-### udp_echo_client2.py
-
-```python
-from simple_udp import SimpleUDP
-
-class UDPEchoClient(SimpleUDP):
-    def __init__(self, server_ip="127.0.0.1", server_port=49002):
-        super(UDPEchoClient, self).__init__()
-        self.callback(self.echo, server_ip, server_port, 1500)
-
-    def echo(self, server_ip, server_port, buf_size):
-        data = input("data: ").encode()
-        self.sendto(data, (server_ip, server_port))
-        recv_data, addr = self.recvfrom(buf_size)
-        print(f"recv data: {recv_data.decode()}")
-
-        self.terminate()
-
-def main():
-    echo = UDPEchoClient()
-
-if __name__ == "__main__":
-    main()
-
-```
-
-<br/>
-
-### Work1
-* SimpleUDP의 상속에 대해 다음 질문에 답해 보세요.
-  * 부모 메서드와 속성을 자식 쪽에서 호출할 수 있습니까?
-  * 자식 쪽에 부모와 이름이 같은 메서드나 속성이 있다면 어떻게 됩니까?
-  * SimpleUDP처럼 부모 클래스와 이를 상속한 자식 클래스의 장점은 무엇입니까?
-
-### Work2
-  * 클래스 속성과 클래스 메서드에 대해 조사해 보세요.
-    * 인스턴스 속성과 클래스 속성의 차이점은 무엇입니까? 
-    * 인스턴스 메서드와 클래스 메서드의 차이점을 무엇입니까?
-
-### Work3
-* 윈도와 WSL 리눅스에서 UDP 소켓 프로그램을 테스트해 보세요.
-  * WSL 리눅스에서 서버를 실행한 후 윈도우에서 클라이언트를 실행합니다.
-    * 클라이언트에서 사용하는 서버 IP는 WSL 리눅스 IP로 변경해야 합니다.
-  * 역할을 바꿔서 실행해 보세요.
-
-### Work4
-* TCP와 UDP 소켓의 차이점에 대해 답해 보세요.
-  * TCP 서버에서 accept의 역할은 무엇입니까?
-  * TCP 클라이언트에서 connect의 역할은 무엇입니까?
-  * send(), recv()와 sendto(), recvfrom()의 차이는 무엇입니까?
-
-<br/><br/>
 ```
