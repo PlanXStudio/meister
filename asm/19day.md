@@ -72,6 +72,55 @@ tracert www.google.co.kr
 - 새로운 소켓으로 클라이언트와 데이터 교환(send/recv)  
 
 ```python
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('0.0.0.0', 49001))
+    sock.listen(5)
+    
+    client_sock, addr_info = sock.accept()
+    
+    while True:
+        data = client_sock.recv(1024).decode()
+        print(data)
+        if data == '종료':
+            break
+    
+    client_sock.close()
+    
+if __name__ == '__main__':
+    main()
+```
+
+### tcp_client.py
+- 서버 IP 주소와 포트 번호를 이용해 connect로 서버에 연결
+- 연결이 성공하면 소켓으로 서버와 통신(send/recv)
+
+```python
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+import struct
+
+def main():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.connect(('192.168.1.5', 49001))
+        
+    while True:
+        data = input()
+        sock.send(data.encode())
+        if data == '종료':
+            break
+    
+    sock.close()
+    
+if __name__ == '__main__':
+    main()
+```
+
+### 클래스 캡슐화
+**tcp_server2.py**
+```python
 from socket import socket, AF_INET, SOCK_STREAM,  SOL_SOCKET, SO_REUSEADDR
 import struct
 
@@ -104,9 +153,7 @@ if __name__ == "__main__":
 
 ```
 
-### tcp_client.py
-- 서버 IP 주소와 포트 번호를 이용해 connect로 서버에 연결
-- 연결이 성공하면 소켓으로 서버와 통신(send/recv)
+**tcp_client.py**
   
 ```python
 from socket import socket, AF_INET, SOCK_STREAM
