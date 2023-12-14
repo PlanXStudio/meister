@@ -64,6 +64,119 @@ tracert www.google.co.kr
 - 인터넷 통신을 위한 운영체제에서 지원하는 표준 API
 - IP 주소와 포트 번호를 이용해 장치 및 응용 구분
 
+## UDP 소켓 
+- 클라이언트-서버 구조보다는 Peer-to-Peer 구조에 가까움.
+- 데이터그림 소켓으로 불리며, 연결없이 데이터 송수신
+- 전송한 데이터는 수신을 보장하지 않음
+  
+### 1st
+**udp_server.py**
+- socket 클래스에 AF_INET과 SOCK_DGRAM 인자를 전달해 UDP 소켓 객체 생성
+- bind를 통해 운영체제에 데이터를 수신할 소켓 주소쌍 등록
+  - IP 주소가 '0.0.0.0'이면 모든 네트워크 어댑터로 수신되는 연결 요청 허용
+  - 포트 번호는 인터넷 할당 번호 관리기관(IANA)에서 관리
+    - 0번 ~ 1023번: 잘 알려진 포트 (well-known port). 인터넷 공식 서버에서 사용하며, 관리자 권한 필요
+    - 1024번 ~ 49151번: 등록된 포트 (registered port). 일반 서버에서 사용
+    - 49152번 ~ 65535번: 동적 포트 (dynamic port). 클라이언트에서 사용
+- sendto와 recvfrom으로 데이터 송수신
+- 수신한 데이터보다 더 작게 읽으면 나머지 데이터는 버려짐
+  
+```python
+from socket import socket
+from socket import AF_INET, SOCK_DGRAM
+
+IP = "0.0.0.0"
+PORT = 5001
+
+def main():
+    sock = socket(AF_INET, SOCK_DGRAM)
+    sock.bind((IP, PORT))
+
+    while True:
+        data, addr_pair = sock.recvfrom(1500)
+        sock.sendto(data, addr_pair)    
+        print(f"{addr_pair}: {data.decode()}")
+
+if __name__ == "__main__":
+    main()
+```
+
+**udp_client.py**
+- socket 클래스에 AF_INET과 SOCK_DGRAM 인자를 전달해 UDP 소켓 객체 생성
+- sendto와 recvfrom으로 데이터 송수신
+
+```python
+from socket import socket
+from socket import AF_INET, SOCK_DGRAM
+
+IP = '192.168.1.0' #서버 IP로 수정
+PORT = 5001
+
+def main():
+    sock = socket(AF_INET, SOCK_DGRAM)
+
+    data = input("data: ").encode()
+    sock.sendto(data, (IP, PORT))
+    recv_data = sock.recv(1500).decode()
+    print(f"{recv_data}")
+
+    sock.close()
+
+if __name__ == "__main__":
+    main()
+```
+### 2nd
+**udp_server.py**
+- 클라이언트가 전달한 명령을 popen()으로 실행
+
+```python
+from socket import socket 
+from socket import AF_INET, SOCK_DGRAM 
+from os import popen 
+
+IP = "0.0.0.0"
+PORT = 5001 
+
+def main():
+    sock = socket(AF_INET, SOCK_DGRAM)
+    sock.bind((IP, PORT))
+    
+    while True:
+        data, addr_pair = sock.recvfrom(1500)
+        data = data.decode()
+        print(addr_pair, data)
+        popen(data)
+        
+if __name__ == "__main__":
+    main()
+```
+
+**udp_client.py**
+- 서버 주소와 함께 실행할 명령을 입력하면 이를 해당 서버에 전달
+- 예
+  - notepad: 메노장 실행
+  - explorer: 탐색기 실행
+  - ncpa.cpl: 제어판의 네트워크 설정 실행
+  - start chrome https://naver.com: 네이버 실행
+    
+```python
+from socket import socket 
+from socket import AF_INET, SOCK_DGRAM 
+
+PORT = 5001 
+
+def main():
+    sock = socket(AF_INET, SOCK_DGRAM)
+    
+    while True:
+        IP = input("IP: ")
+        cmd = input("CMD: ")
+        sock.sendto(cmd.encode(), (IP, PORT))
+
+if __name__ == "__main__":
+    main()
+```
+
 ## TCP 소켓
 - 클라이언트-서버 구조로 가장 보편적인 인터넷 통신
 - 스트림 소켓으로 불리며, 연결된 상태에서 데이터 송수신
@@ -74,11 +187,6 @@ tracert www.google.co.kr
 - socket 클래스에 AF_INET과 SOCK_STREAM 인자를 전달해 TCP 소켓 객체 생성
 - setsockopt로 소켓 주소쌍(IP 주소와 TCP 포트 번호)을 재사용하도록 설정
 - bind를 통해 운영체제에 연결 요청을 수락할 소켓 주소쌍 등록
-  - IP 주소가 '0.0.0.0'이면 모든 네트워크 어댑터로 수신되는 연결 요청 허용
-  - 포트 번호는 인터넷 할당 번호 관리기관(IANA)에서 관리
-    - 0번 ~ 1023번: 잘 알려진 포트 (well-known port). 인터넷 공식 서버에서 사용하며, 관리자 권한 필요
-    - 1024번 ~ 49151번: 등록된 포트 (registered port). 일반 서버에서 사용
-    - 49152번 ~ 65535번: 동적 포트 (dynamic port). 클라이언트에서 사용
 - 클라이언트로부터 연결 요청이 수신되면 accept로 연결 허용
   - 클라이언트 연결 소켓과 주소쌍이 반환됨
   - 클라이언트 연결 소켓은 해당 클라이언트와 데이터를 주소 받을 때 사용
@@ -88,10 +196,13 @@ from socket import socket
 from socket import AF_INET, SOCK_STREAM
 from socket import SOL_SOCKET, SO_REUSEADDR
 
+IP = "0.0.0.0"
+PORT = 5001
+
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(('0.0.0.0', 5001))
+    sock.bind((IP, PORT))
     sock.listen(5)
 
     conn_sock, addr_pair = sock.accept()
@@ -112,11 +223,14 @@ if __name__ == '__main__':
 from socket import socket
 from socket import AF_INET, SOCK_STREAM
 
+IP = '192.168.1.0' #서버 IP로 수정
+PORT = 5001
+
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
 
     try:
-        sock.connect(('192.168.1.5', 49001))
+        sock.connect((IP, PORT))
     except:
         print("Fail connection")
         return
@@ -137,10 +251,13 @@ from socket import socket
 from socket import AF_INET, SOCK_STREAM
 from socket import SOL_SOCKET, SO_REUSEADDR
 
+IP = "0.0.0.0"
+PORT = 5001
+
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(('0.0.0.0', 5001))
+    sock.bind((IP, PORT))
     sock.listen(5)
 
     conn_sock, addr_pair = sock.accept()
@@ -162,11 +279,14 @@ if __name__ == '__main__':
 from socket import socket
 from socket import AF_INET, SOCK_STREAM
 
+IP = '192.168.1.0' #서버 IP로 수정
+PORT = 5001
+
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
 
     try:
-        sock.connect(('192.168.68.120', 5001))
+        sock.connect((IP, PORT))
     except:
         print("Fail connection")
         return
@@ -196,10 +316,13 @@ from socket import socket
 from socket import AF_INET, SOCK_STREAM
 from socket import SOL_SOCKET, SO_REUSEADDR
 
+IP = "0.0.0.0"
+PORT = 5001
+
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(('0.0.0.0', 49001))
+    sock.bind((IP, PORT))
     sock.listen(5)
 
     conn_sock_mng = {}
@@ -222,8 +345,8 @@ from socket import AF_INET, SOCK_STREAM
 from socket import SOL_SOCKET, SO_REUSEADDR
 from threading import Thread
 
-ADAPTER = "0.0.0.0"
-SERVER_PORT = 5001
+IP = "0.0.0.0"
+PORT = 5001
 
 conn_sock_mng = {}
 
@@ -243,7 +366,7 @@ def do_communication(conn_sock, addr_pair):
 def main():
     sock = socket(AF_INET, SOCK_STREAM)
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind((ADAPTER, SERVER_PORT))
+    sock.bind((IP, PORT))
     sock.listen(5)
     
     while True:
@@ -268,8 +391,8 @@ from socket import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 
-SERVER_IP = '192.168.68.120'
-SERVER_PORT = 5001
+IP = '192.168.1.0' #서버 IP로 수정
+PORT = 5001
 
 def do_recv(sock):
     while True:
@@ -280,7 +403,7 @@ def main():
     sock = socket(AF_INET, SOCK_STREAM)
 
     try:
-        sock.connect((SERVER_IP, SERVER_PORT))
+        sock.connect((IP, PORT))
     except:
         print("Fail connection")
         return
@@ -295,58 +418,5 @@ def main():
         sock.send(data.encode())
     
 if __name__ == '__main__':
-    main()
-```
-
-## UDP 소켓 
-- 클라이언트-서버 구조보다는 Peer-to-Peer 구조에 가까움.
-- 데이터그림 소켓으로 불리며, 연결없이 데이터 송수신
-- 전송한 데이터는 수신을 보장하지 않음
-  
-### udp_receiver.py
-- 수신 처리를 위해 bind 동작으로 운영체제에 주소쌍 저장
-- sendto와 recvfrom으로 데이터 송수신
-- 수신한 데이터보다 더 작게 읽으면 나머지 데이터는 버려짐
-  
-```python
-from socket import socket
-from socket import AF_INET, SOCK_DGRAM
-
-ADAPTER = "0.0.0.0"
-RECV_PORT = 5001
-
-def main():
-    sock = socket(AF_INET, SOCK_DGRAM)
-    sock.bind((ADAPTER, RECV_PORT))
-
-    while True:
-        data, addr_pair = sock.recvfrom(1500)
-        sock.sendto(data, addr_pair)    
-        print(f"{addr_pair}: {data.decode()}")
-
-if __name__ == "__main__":
-    main()
-```
-
-### udp_sender.py
-
-```python
-from socket import socket
-from socket import AF_INET, SOCK_DGRAM
-
-RECV_IP = "192.168.68.120"
-RECV_PORT = 5001
-
-def main():
-    sock = socket(AF_INET, SOCK_DGRAM)
-
-    data = input("data: ").encode()
-    sock.sendto(data, (RECV_IP, RECV_PORT))
-    recv_data = sock.recv(1500).decode()
-    print(f"{recv_data}")
-
-    sock.close()
-
-if __name__ == "__main__":
     main()
 ```
