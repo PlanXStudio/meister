@@ -27,23 +27,6 @@
   - Zigbee 모듈 및 제어기의 USB를 USB 허브의 확장 USB 포트에 연결
     - 각 장치의 COM 포트 확인
 
-##  소프트웨어 개발환경 구성
-- VSCode의 압축 파일을 C:/에 압축해제 후 그 아래 data 및 ext 폴더 생성
-  - https://www.python.org/downloads/windows/   Windows embeddable package (64-bit)
-- Python SDK의 압축 파일을 C:/VSCode/ext에 압축해제
-  - Windows embeddable package (64-bit)
-  - 메모장으로 C:/VSCode/ext/python/python<버전>._pth 파일을 열고 확장 라이브러리 경로 추가
-    - Lib/site-packages
-- Pip 설치 파일을 C:/VSCode/ext/python 경로에 저장
-  - https://bootstrap.pypa.io/get-pip.py
-  - 명령 프롬프트에서 저장 경로로 이동한 후 파이썬 인터프리터로 설치 파일 실행
-    - cd c:/VSCode/ext/python
-    - python get-pip.py
-- 계정 환경 변수 Path에 python 및 pip 경로 추가 (목록 가장 위에 배치)
-  - C:/VSCode/ext/python 및 C:/VSCode/ext/python/Scripts
-- 새 명령 프롬프트에서 xnode 라이브러리 설치
-  - pip install xnode
-
 ## 작업공간
 - 홈 폴더(C:/Users/<계정>)에 iot 폴더 생성
   - 하위 폴더에 pc 및 xnode 폴더 생성
