@@ -2,7 +2,7 @@
 - 기존 VSCode (특히 Setup으로 설치한)는 삭제할 것
 
 ## VSCode는 포터블 모드 설치
-최신 버전(https://code.visualstudio.com/)
+최신 버전(https://code.visualstudio.com/docs/?dv=winzip)
 > .zip x64
 - unzip to C:\VSCode
 - make to C:\VSCode\data
