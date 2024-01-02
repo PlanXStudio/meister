@@ -2,6 +2,8 @@
 > 윈도우 운영체제 기준으로 시스템 의존성과 저장소 낭비를 최소화해 설치.
 >> IoT 뿐만 아니라 인공지능과 같은 다른 파이썬 개발환경에서도 사용.
 
+[참고] [VSCode.zip 사전 설치 다운로드(2024.01.02)](https://1drv.ms/u/s!AtTAtBZJQ9JFlI8GyI66XPOQfrE2kA?e=L8fXtS)
+
 ## VSCode 포터블 설치
 1. 윈도우용 최신 버전 다운로드:  https://code.visualstudio.com/docs/?dv=winzip
    - VSCode-win32-x64-x.y.z.zip (x, y, z는 버전 번호)
