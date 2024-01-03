@@ -9,7 +9,7 @@
   Install-Module -Name Terminal-Icons -Repository PSGallery
   install-module posh-git
   Install-Module -Name modern-unix-win
-  Install-Module -Name PSFzf -AllowPrerelease
+  Install-Module -Name PSFzf
 
   Install-Module -Name PSWindowsUpdate
   ```
