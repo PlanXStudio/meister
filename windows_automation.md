@@ -2,7 +2,7 @@
 - Cmd with Administrator
   ```sh
   winget install Microsoft.WindowsTerminal.Preview
-  winget install Microsoft.PowerShell.Preview =s winget
+  winget install Microsoft.PowerShell.Preview -s winget
   winget install JanDeDobbeleer.OhMyPosh -s winget
   winget install Git.Bit -s winget
   
