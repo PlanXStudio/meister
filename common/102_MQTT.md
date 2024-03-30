@@ -1,6 +1,6 @@
-# ISO 표준 발행-구독 기반의 메시징 프로토콜: MQTT(Message Queuing Telemetry transport) 
+# ISO 표준 발행-구독 기반의 메시징 프로토콜(MQTT) 
 
-**MQTT**는 앤디 스텐포드-클락*andy stanford-clark*(IBM)과 알렌 니퍼*arlen nipper*가 인공위성을 통해 오일 파이프라인 원격 검침 시스템을 연결하기 위해 1999년부터 설계한 것으로 2010년 로열티 없는 상태로 출시되어 2014년 OASIS*advancing open standards for the information society* 표준이 되었습니다. 이후 MQTT V3.1을 중심으로 IoT Internet of Thing 장치 사이 낮은 대역폭 통신을 제공하는 가벼운 메시징 프로토콜 중 하나로 자리매김하고 있으며 2018년 1월 최신 버전인 MQTT V5가 승인된 상태입니다.
+**MQTT***Message Queue Telemetry Transport*는 앤디 스텐포드-클락*andy stanford-clark*(IBM)과 알렌 니퍼*arlen nipper*가 인공위성을 통해 오일 파이프라인 원격 검침 시스템을 연결하기 위해 1999년부터 설계한 것으로 2010년 로열티 없는 상태로 출시되어 2014년 OASIS*advancing open standards for the information society* 표준이 되었습니다. 이후 MQTT V3.1 및 V3.1.1을 중심으로 IoT *Internet of Thing* 장치 사이 낮은 대역폭 통신을 제공하는 가벼운 메시징 프로토콜 중 하나로 자리매김하고 있으며 2018년 1월 최신 버전인 MQTT V5가 승인된 상태입니다.
 
 MQTT 시스템은 중계 서버 역할의 브로커*broker*와 브로커에 토픽을 기반으로 메시지를 보내고 받는 클라이언트로 구성되는데, 클라이언트는 브로커로부터 토픽 메시지를 구독하는 구독자*subscriber*와 토픽에 메시지를 발행하는 발행자*publisher*로 나누어집니다.
 
@@ -8,39 +8,18 @@ MQTT 시스템은 중계 서버 역할의 브로커*broker*와 브로커에 토�
 [그림 1 MQTT 구성]
 
 ## MQTT 개요
-MQTT는 TCP/IP를 기반으로 한 메시지 버스 시스템으로 클라이언트(발행자, 구독자)와 서버(브로커), 세션, 서브스크립션, 토픽으로 구성됩니다. 브로커의 디폴트 포트 번호는 1883입니다.
+MQTT는 TCP/IP를 기반으로 한 메시지 버스 시스템으로 클라이언트(발행자, 구독자)와 서버(브로커), 세션, 서브스크립션, 토픽으로 구성되며, 게시/구독 모델을 사용하여 메시징을 수행하는 간단한 방법을 제공합니다. 따라서 저전력 센서나 전화기, 내장형 컴퓨터 또는 마이크로 컨트롤러와 같은 모바일 장치를 사용하는 사물 인터넷 메시징에 적합합니다.
  
 ![](./mqtt_res/2.png)\
 [그림 2 MQTT 시스템 아키텍처]
 
-### MQTT 클라이언트
-현재 기기가 발행자면 토픽에 대한 메시지를 발행해 브로커에 게시할 수 있고 구독자면 브로커의 특정 토픽에 가입해 메시지를 구독할 수 있습니다. 하나의 클라이언트는 구독자 또는 발행자이거나 모두일 수 있으며 브로커에 연결할 때 사용자 ID와 비밀번호 또는 인증서를 이용해 인증합니다.
- 
-![](./mqtt_res/3.png)\
-[그림 3 발생과 구독]
-
-클라이언트는 일반적으로 공개된 클라이언트 라이브러리를 이용해 구현하지만 크롬 브라우저의 확장 플러그인 MQTTlens나 리눅스 쉘 또는 윈도우 명령행에서 동작하는 mosquitto-clients처럼 미리 범용으로 구현된 제품들도 있습니다. tos OS(이하 tos)에는 mosquitto-client가 다음 명령으로 미리 설치되어 있습니다.
-
-*linux*
-```sh
-sudo apt install mosquitto-clients
-```
-*macOS*
-```sh
-brew install mosquitto-clients
-```
-*windows*
-```sh
-winget install emqx.mqttx
-```
-
-mosquitto-client를 설치하면 범용 발행자인 mosquitto_pub과 범용 구독자인 mosquitto_sub를 사용할 수 있습니다.
-
 ### MQTT 브로커
 
-브로커는 일종의 서버 프로그램으로 발행자와 구독자 사이 중계자 역할만 하므로 서버 대신 브로커란 용어를 사용합니다. 브로커가 발행자로부터 메시지를 수신하면 토픽을 기반으로 이를 게시한 후 토픽에 가입한 모든 구독자에게 배포합니다. 일반적으로 게시된 메시지 중 가입자가 없는 메시지나 배포된 메시지는 제거되지만 보존 속성을 가진 메시지나 영구 세션에서 발행한 메시지는 최소한 다음 배포까지 유지됩니다. 
+브로커는 TCP 포트 1883을 사용하는 일종의 서버 프로그램으로 발행자와 구독자 사이 중계자 역할만 하므로 서버 대신 브로커란 용어를 사용합니다. 브로커가 발행자로부터 메시지를 수신하면 토픽을 기반으로 이를 게시한 후 토픽에 가입한 모든 구독자에게 배포합니다. 기본적으로 게시된 메시지 중 가입자가 없는 메시지나 배포된 메시지는 제거되지만 보존 속성을 가진 메시지나 영구 세션에서 발행한 메시지는 최소한 다음 배포까지 유지됩니다. 
 
-브로커는 IBM MQ와 같은 상용 제품부터 EMQ, mosquitto와 같은 오픈소스에 이르기까지 다양한 제품들이 출시되어 있는데, Sdoa에는 mosquitto가 미리 설치되어 시스템이 부팅할 때마다 자동으로 실행됩니다. 또한 초기 설정은 익명을 허용하므로 클라이언트는 사용자 ID나 비밀번호 없이 브로커에 연결할 수 있습니다.
+브로커는 IBM MQ와 같은 상용 제품부터 EMQ, mosquitto와 같은 오픈소스에 이르기까지 다양한 제품들이 있는데, 이 중 이클립스 재단에서 배포하는 mosquitto는 MQTT V5.0 프로토콜까지 지원하며, 가볍고 빨라 라즈베리파이와 같은 저전력 단일 보드 컴퓨터부터 서버에 이르기까지 모든 장치에 사용하기 적합니다.  
+
+다음은 운영체제 별로 mosquitto 브로커를 설치하는 방법입니다. 
 
 *linux*
 ```sh
@@ -54,9 +33,14 @@ brew install mosquitto
 ```sh
 winget install EclipseFoundation.Mosquitto
 ```
-참고로 /etc/mosquitto/conf.d/mosquitto.conf에는 브로커의 보안을 높여 익명을 허용하지 않을 때를 대비한 설정이 들어 있으나 자동 실행되는 mosquittor 브로커에는 간편한 사용을 위해 적용하지 않고 있습니다. 이 파일을 이용해 mosquitto를 실행하면 클라이언트는 브로커에 연결할 때마다 반드시 /etc/mosquitto/passwd에 추가된 사용자 ID와 비밀번호를 사용해야 합니다.
+설치가 완료되면 mosquitto는  백그라운드 서비스로 동작하는데, 윈도우에서는 사용자가 작업 관리자의 서비스 탭 또는 서비스 관리자를 실행한 후 mosquitto 항목을 찾아 컨텍스트 메뉴(마우스 우클릭)에서 시작을 선택해야 합니다.  
+또한 설정 파일인 mosquitto.conf를 편집해 외부 접속 허용, 익명 허용, 보안 로그인과 같은 각종 설정을 변경할 수 있습니다.
+
+- 리눅스: /etc/mosquitto/conf.d/ 
+- 윈도우: mosquitto 설치 폴더
 
 **공개용 브로커*
+간단한 테스트가 목적이라면 브로커를 자신의 컴퓨터에 설치하지 않고 인터넷 클라우드를 통해 무료로 사용할 수 있는 공개용 브로커를 사용해도 됩니다. 특히 공개용 브로커는 인터넷을 통해 언제 어디서든 접속이 가능하므로 사설 주소를 사용하는 환경에서는 매우 유용한 선택입니다. 
 
 |Name |	Broker Address | TCP Port	| TLS Port | WebSocket Port| Message Retention|
 |---|---|---|---|---|---|
@@ -68,6 +52,20 @@ Dioty	| mqtt.dioty.co |	1883 | 8883 |	8080, 8880 |	YES
 Fluux	| mqtt.fluux.io |	1883 | 8883 |	N/A |	N/A
 EMQX | broker.emqx.io |	1883 | 8883| 8083 |	YES
 
+### MQTT 클라이언트
+해당 장치가 발행자면 토픽에 대한 메시지를 발행해 브로커에 게시할 수 있고 구독자면 브로커의 특정 토픽에 가입해 메시지를 구독할 수 있습니다. 하나의 클라이언트는 구독자 또는 발행자이거나 모두일 수 있습니다. 선택적으로 보안 기능을 활성화면 브로커에 연결할 때 사용자 ID와 비밀번호 또는 인증서를 이용해 인증합니다.
+ 
+![](./mqtt_res/3.png)\
+[그림 3 발생과 구독]
+
+클라이언트는 일반적으로 공개된 MQTT 클라이언트 라이브러리를 이용해 구현하지만 이클랩스 재단에서 mosquitto와 함께 제공하는 mosquitto-clients(CLI 기반의 mosquitto_pub(발행자), mosquitto_sub(구독자))나 EMQX의 MQTTX(https://mqttx.app) 처럼 범용으로 구현된 프로그램들도 있습니다. 특히 MQTTX는 운영체제 별로 GUI 및 CLI을 지원하며, 웹 환경까지 지원해 상황에 맞게 선택할 수 있습니다. 
+
+설치 방버은 MQTTX 다운로드 링크(https://mqttx.app/downloads)를 참고하며, 윈도우는 다음과 같이 winget으로 간단하게 GUI 버전을 설치할수 있습니다.  
+
+*windows*
+```sh
+winget install emqx.mqttx
+```
 
 ### 토픽
 토픽은 메시지에 대한 발생/구독 패턴의 기준으로 클라이언트 사이 미리 정의한 의미대로 정보를 교환할 수 있게 합니다. 대소 문자를 구분하는 계층 구조의 UTF-8 문자열로 파일 시스템의 경로와 같이 슬래시(/)로 구분되며 발행자와 브로커, 브로커와 구독자 사이 토픽에 따른 메시지 흐름을 구분합니다. 
@@ -96,6 +94,7 @@ $SYS 토픽을 제외하고 기본 또는 표준화된 토픽 구조는 없습�
   * $SYS/#: 브로커의 모든 토픽에 가입
 
 앞의 예에서 발행자가 tos 또는 tos/pir이나 tos/pir/value 토픽 등으로 메시지를 발행하면 구독자는 일치하는 토픽 구독 대신 다음과 같이 구독 필터를 적용할 수 있습니다.
+
 * tos/+/value: 2개의 토픽 구독
   *	tos/pir/value
   *	tos/cds/value
@@ -141,6 +140,9 @@ $SYS 토픽을 제외하고 기본 또는 표준화된 토픽 구조는 없습�
 클라이언트 ID는 브로커가 세션 안에서 각각의 클라이언트를 구분하는 유일한 식별자로 숫자와 영문자 대소문자 및 '_' 문자를 조합해 만듭니다. CleanSession = True일 때는 브로커가 동적으로 만들지만 CleanSession = False에서는 클라이언트가 반드시 유효한 문자열로 클라이언트 ID를 부여해야 하는데, 물리적으로 다른 장치에서 동일한 클라이언트 ID를 사용하면 보류 중인 게시 및 활성 구독이 자동으로 새 장치로 전송되므로 장애가 발행한 장치의 이전이 쉽습니다.
 
 브로커가 동적으로 만드는 클라이언트 ID는 고유성이 보장되지만 클라이언트에서 명시적으로 만들 때는 브로커에 이미 등록된 클라이언트 ID인지 알 수 없으므로 128bit 고유 문자열을 생성하는 uuid 툴이나 네트워크 인터페이스의 MAC 주소 등을 사용하는 것과 같이 스스로 특별한 규칙을 적용할 필요가 있습니다.
+
+<details>
+<summary>[심화] MQTT 프로토콜 요약</summary>
 
 ## MQTT 제어 패킷
 MQTT는 TCP/IP를 사용하므로 MQTT 제어 패킷은 TCP의 사용자 데이터인 페이로드에 대응합니다. MQTT 제어 패킷은 브로커와 클라이언트 사이 데이터 교환 단위로 제어 헤더(1byte)와 패킷 길이(1 ~ 4byte), 가변 길이 헤더(0 ~ xbyte), 페이로드(0 ~ xbyte)로 구성되는데, 제어 헤더와 패킷 길이는 항상 고정되고 가변 길이 헤더와 페이로드는 패킷 유형에 따라 달라집니다. 패킷의 최소 크기는 고정 헤더로만 구성된 2바이트이고, 최대 크기는 256MB입니다.
@@ -385,18 +387,29 @@ SUBACK 패킷은 SUBSCRIBE 패킷과 동일한 패킷 ID를 가지며 반환 코
 ![](./mqtt_res/28.png)\
 [그림 28 DISCONNECT 패킷]
 
+</details>
+
+----
+
 ## MQTT 클라이언트 라이브러리
 대부분의 브로커는 MQTT 클라이언트 라이브러리를 함께 제공하므로 MQTT 클라이언트 라이브러리의 종류는 브로커만큼 다양합니다. 그중 IBM으로부터 시작된 Paho API는 Java부터 C, 파이썬에 이르기까지 다양한 언어를 지원하는 오픈소스 MQTT 클라이언트 라이브러리로, 동기/블로킹 및 비동기 API를 지원합니다. 동기/블로킹 기능을 사용하면 MQTT 로직을 쉽고 간결하게 구현할 수 있고, 비동기 기능은 고성능 MQTT 클라이언트를 작성할 수 있도록 높은 처리량을 제공합니다. 
 
-Paho API는 콜백 기반이며 사용자 정의 비즈니스 로직을 다른 이벤트(예: 메시지 수신시 또는 브로커 연결이 끊어진 경우)에 연결합니다.  또한 TLStransport layer security 기반 보안 통신을 비롯해 표준 MQTT v3.1 기능을 모두 지원합니다. tos에는 다음 명령으로 파이썬용 Paho 라이브러리가 미리 설치되어 있습니다.
+Paho API는 콜백 기반이며 사용자 정의 비즈니스 로직을 다른 이벤트(예: 메시지 수신시 또는 브로커 연결이 끊어진 경우)에 연결합니다. 또한 TLS*transport layer security* 기반 보안 통신을 비롯해 최신 MQTT V5.0와 V3.1.1, v3.1을 모두 지원합니다.   
+파이썬용 Paho API 설치는 다음과 같습니다.
 
-> sudo pip3 install paho-mqtt
+```sh
+sudo pip3 install paho-mqtt
+```
 
 파이션용 Paho API는 MQTT 클라이언트 구현을 지원하는 client 모듈 외에 구독자와 발행자를 좀 더 쉽게 구현할 수 있도록 publish 모듈과 subscribe 모듈을 함께 제공합니다. 일반적으로 사용자는 다음과 같은 방법으로 client 모듈을 로드합니다. 
 
 ```python
 01:	import paho.mqtt.client as mqtt
 ```
+
+<details>
+<summary>[심화] Paho API 요약</summary>
+
 
 ### client 모듈
 client 모듈의 Client 클래스는 MQTT 클라이언트의 모든 기능을 지원하는데, 클라이언트 객체가 만들어지면 `connect*()` 중 하나를 사용해 브로커에 연결한 다음 `loop*()` 중 하나로 브로커와의 연결을 유지합니다. `subscribe()`는 토픽을 구독하고 `publish()`는 토픽에 메시지를 발행하며 `disconnect()`는 브로커와의 연결을 끊습니다.
@@ -816,6 +829,9 @@ MQTTMessage 객체의 topic과 payload 속성에는 수신된 토픽과 바이�
 08:	except KeyboardInterrupt:
 09:	    pass
 ```
+
+</details>
+
 ---------
 ## MQTT 응용
 
@@ -827,7 +843,6 @@ MQTT 응용 구현에 사용하는 MQTT API는 내부 소켓 인터페이스로 
 #### **센서값 발행자**
 Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 발행하는 발행자 구현은 다음과 같습니다. 참고로 모든 콜백 함수의 첫 번째 매개변수는 항상 Client 객체입니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	from pop import Cds
@@ -863,7 +878,7 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 32:	if __name__ == "__main__":
 33:	    main()
 ```
-
+---
 ##### 02: pop의 Cds 클래스 로드
 ##### 04: signal 모듈 로드
 ##### 06: MQTT Client 객체를 만들어 client에 대입
@@ -896,7 +911,6 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 ### 센서값 구독자
 다음은 브로커에서 "tos/sensors/cds" 토픽 구독하는 구독자 구현입니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	import signal
@@ -924,7 +938,7 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 24:	if __name__ == "__main__":
 25:	    main()
 ```
-
+---
 ##### 10 ~ 11: 연결에 성공하면 "tos/sensors/cds" 구독
 ##### 13 ~ 14: _on_message()는 on_message() 콜백
 ##### 14: MQTTMessage 객체에서 페이로드를 int 타입으로 변환해 토픽과 함께 출력
@@ -947,7 +961,6 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 ### 센서값 발행, 인터벌 구독 클라이언트
 다음은 센서값 발행자를 수정해 "tos/sensors/interval" 토픽 구독을 추가한 것입니다. `__cds_publish()`에서 센서값을 발행한 후 전역 변수 interval만큼 대기하도록 수정하고, 메시지가 수신되면 이를 실수 타입으로 바꿔 전역 변수 interval에 대입하므로 수신된 값에 따라 대기하는 시간을 바꿀 수 있습니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	from pop import Cds
@@ -991,7 +1004,7 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 40:	if __name__ == "__main__":
 41:	    main()
 ```
-
+---
 ##### 06: 인터벌 기본값인 1초를 interval에 대입
 ##### 13: on_message() 콜백을 함께 사용하므로 반드시 QoS > 0으로 메시지 발행
 ##### 14: 전역 변수 interval만큼 대기
@@ -1003,7 +1016,6 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 ### 인터벌 발행, 센서값 구독 클라이언트
 인터벌을 발행하고 센서값을 구현하는 클라이언트 구현은 다음과 같습니다. 참고로 쉘 환경에서 `input()`으로 발행할 인터벌 값을 입력 받으면 수신한 센서 값의 출력과 사용자 입력이 뒤섞이므로 별도의 처리가 필요합니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	import signal
@@ -1036,7 +1048,7 @@ Cds 객체로 엣지에서 수집한 조도 값을 "tos/sensors/cds" 토픽에 �
 29:	if __name__ == "__main__":
 30:	    main()
 ```
-
+---
 ##### 03: sys 모듈 로드
 ##### 08: 키보드 인터럽트 시그널이 발생하면 프로그램 종료
 ##### 25 ~ 27: while 루프를 돌며 input()으로 읽어온 interval을 "tos/sensors/interval" 토픽에 발행
@@ -1069,7 +1081,6 @@ LED 제어를 발행자로 구독자로 나눠 구현해 보겠습니다. 먼저
 
 제어 명령은 LED1을 켤 때는 “1 1”, 끌 때는 “1 0”이고 LED2는 각각 “2, 1”, “2, 0”으로 정의합니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	import signal
@@ -1107,7 +1118,7 @@ LED 제어를 발행자로 구독자로 나눠 구현해 보겠습니다. 먼저
 34:	if __name__ == "__main__":
 35:	    main()
 ```
-
+---
 ##### 07 ~ 09: __publish_led_cmd()는 표준 입력에서 읽은 LED 제어 명령 발행
 ##### 08: input()으로 읽은 LED 제어 문자열을 led_cmd에 대입
 ##### 09: “tos/actions/leds”에 led_cmd 발행
@@ -1118,7 +1129,7 @@ LED 제어를 발행자로 구독자로 나눠 구현해 보겠습니다. 먼저
 
 구독자는 Leds 객체를 만든 후 수신한 메시지를 분석해 LED1 또는 LED2를 켜거나 끕니다. 이때 수신한 메시지가 올바른 제어 명령이면 “led<1|2> <on>|<off>” 메시지를 발행하고 아니면 “unknown command”를 발행합니다. 
 
----
+
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	from pop import Leds
@@ -1166,7 +1177,7 @@ LED 제어를 발행자로 구독자로 나눠 구현해 보겠습니다. 먼저
 44:	if __name__ == "__main__":
 45:	    main()
 ```
-
+---
 ##### 13 ~ 17: _on_connect()는 브로커에 연결되면 "tos/actions/leds" 구독
 ##### 19 ~ 34: 토픽에 수신되면 LED를 껴거나 끈 후 응답 게시
 ##### 20: LED 위치와 명령을 분리해 led와 cmd에 대입
@@ -1271,7 +1282,7 @@ Client 객체는 항상 콜백으로 내부 상태를 응용프로그램에 전�
 38:	if __name__ == "__main__":
 39:	    main()
 ```
-
+---
 ##### 10 ~ 12: 브로커에 연결되면 "tos/sensors/sound" 구독
 ##### 19: 응용프로그램이 브로커와의 연결을 끊으면 reconnect()를 호출해 다시 연결
 ##### 30: 다시 연결할 때 최소 지연을 5초로 설정
@@ -1283,7 +1294,6 @@ Client 객체는 항상 콜백으로 내부 상태를 응용프로그램에 전�
 #### **QoS와 disconnect() 부효과**
 QoS에 따른 `disconnect()`의 부효과를 알아보기 위해 Sound 발행자는 `on_connect()` 콜백에서 for 루프로 각각 10회씩 QoS를 바꿔가며 토픽을 게시한 후 `disconnect()`로 브로커와의 연결을 끊어 봅니다.
 
----
 ```python
 01:	import paho.mqtt.client as mqtt
 02:	from pop import Sound
@@ -1326,7 +1336,7 @@ QoS에 따른 `disconnect()`의 부효과를 알아보기 위해 Sound 발행자
 39:	if __name__ == "__main__":
 40:	    main()
 ```
-
+---
 ##### 06: Sound 객체를 만들어 sound에 대입
 ##### 08 ~ 11: __publish_sound()는 Sound 객체로 주변 소음 수준을 측정해 발행
 ##### 09: 측정하나 주변 소음 평균 수준을 sound_val에 대입
@@ -1336,6 +1346,7 @@ QoS에 따른 `disconnect()`의 부효과를 알아보기 위해 Sound 발행자
 ##### 17 ~ 18: 0 ~ 9까지 차례로 i에 대입하면서 for 루프 실행
 ##### 18: client와 i, qos를 인자로 __publish_sound() 호출
 ##### 21: for 루프가 완료되면 disconnect()로 연결 끊기
+---
 
 `publish()`는 비동기 함수이므로 for 루프가 종료해도 Clinet 객체는 여전히 브로커에 메시지 전달을 처리하고 있을 수 있습니다. QoS = 0은 응답 패킷을 요구하지 않으므로 바로 다음 단계로 넘어가지만 QoS > 0은 1개 이상의 응답 패킷을 요구하므로 QoS = 0 보다는 전달 시간이 더 걸립니다. 이 상태에서 `disconnect()`를 호출하면, 모든 작업이 중단되므로 남은 패킷이 있다면 이 역시 더 이상 브로커로 전송되지 않습니다.
 
@@ -1402,7 +1413,7 @@ Sound 발행자를 다음과 같이 `on_publish()` 콜백을 통해 메시지가
 52:	if __name__ == "__main__":
 53:	    main()
 ```
-
+---
 ##### 08: 전역 변수 qos에 0 대입
 ##### 09: 전역 변수 index에 0 대입
 ##### 19: 브로커에 연결되면 _on_publish() 호출
@@ -1411,6 +1422,7 @@ Sound 발행자를 다음과 같이 `on_publish()` 콜백을 통해 메시지가
 ##### 31 ~ 33: index > 9이면 qos와 index를 각각 1씩 증가
 ##### 35 ~ 37: qos > 2이면 disconnect() 호출
 ##### 38 ~ 40: soq <= 2이면 __publish_sound() 호출한 후 index를 1 증가
+---
 
 ### userdata
 Clinet 객체는 사용자 데이터를 콜백 함수에서 공유할 수 있도록 `Clinet()`의 userdata 인자 또는 `user_data_set()`로 설정하는 userdata 필드를 제공합니다.
