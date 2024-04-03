@@ -185,7 +185,7 @@ Device | Main Topic
 MQTTX와 같은 범용 툴로 먼저 AIoT TestBed에 토픽과 메시지를 발생(액추에이터)하고 센서값을 구독(센서)해 본 후 파이썬으로 자동화 합니다.
 
 ### Template
-아래 코드를 기반으로 AIoT TestBed에 publish(<토픽>, <데이터>)로 액추에이터 제어 토픽을 발행하고, subscribe(<토픽>)으로 센서 토픽을 구독하도록 구현해 봅니다.
+아래 코드를 기반으로 AIoT TestBed에 publish(<토픽>, <데이터>)로 액추에이터 제어 토픽을 발행하고, subscribe(<토픽>)로 센서 토픽을 구독해 봅니다.
 
 ```python
 import paho.mqtt.client as mqtt
@@ -210,18 +210,12 @@ def main():
     client.on_message = on_message
     
     client.connect("192.168.5.201")
-    client.loop_forever()
-
-    """
-    loop_forever() 대신 loop_start()를 사용할 수 있습니다. 
     client.loop_start()
 
-    이후 사용자는 프로그램을 종료하지 않고 지속적으로 토픽을 발행하거나 대기해야 합니다.
+    #이곳에서 프로그램이 종료되지 않도록 새로운 토픽을 발행하거나, 구독하거나 대기해야 합니다.
 
-    끝으로 종료전 연결을 끊고 라이브러리 루프를 종료해야 합니다.
     client.disconnect()
     client.loop_stop()
-    """
 
 if __name__ == "__main__":
     main()
