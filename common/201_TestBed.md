@@ -180,3 +180,49 @@ Device | Main Topic
 **PIR 데이터**
 - Data: 0(미감지) or 1(감지)
 - Topic: <고유 코드>/sensor/pir
+
+## 파이썬 스크립트
+MQTTX와 같은 범용 툴로 먼저 AIoT TestBed에 토픽과 메시지를 발생(액추에이터)하고 센서값을 구독(센서)해 본 후 파이썬으로 자동화 합니다.
+
+### Template
+아래 코드를 기반으로 AIoT TestBed에 publish(<토픽>, <데이터>)로 액추에이터 제어 토픽을 발행하고, subscribe(<토픽>)으로 센서 토픽을 구독하도록 구현해 봅니다.
+
+```python
+import paho.mqtt.client as mqtt
+import time
+
+def on_connect(client, userdata, flags,  reason_code, properties):
+    if reason_code == 0:
+        print("Ok Connection")
+        #이곳에서 새로운 토픽을 발행하거나, 구독할 수 있습니다.
+        
+def on_publish(client, userdata, mid, reason_code, properties):
+    print(mid)
+    #이곳에서 새로운 토픽을 발생할 수 있읍니다.
+
+def on_message(client, userdata, message):
+    print(f"{message.topic}, {message.payload}")
+
+def main():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
+    client.on_publish = on_publish
+    client.on_message = on_message
+    
+    client.connect("192.168.5.201")
+    client.loop_forever()
+
+    """
+    loop_forever() 대신 loop_start()를 사용할 수 있습니다. 
+    client.loop_start()
+
+    이후 사용자는 프로그램을 종료하지 않고 지속적으로 토픽을 발행하거나 대기해야 합니다.
+
+    끝으로 종료전 연결을 끊고 라이브러리 루프를 종료해야 합니다.
+    client.disconnect()
+    client.loop_stop()
+    """
+
+if __name__ == "__main__":
+    main()
+```
