@@ -220,3 +220,75 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+### 참고 예제
+```python
+import paho.mqtt.client as mqtt
+import time
+
+def on_connect(client, userdata, flags,  reason_code, properties):
+    if reason_code == 0:
+        print("Ok Connection")
+        #이곳에서 새로운 토픽을 발행하거나, 구독할 수 있습니다.
+        
+def on_publish(client, userdata, mid, reason_code, properties):
+    print(mid)
+    #이곳에서 새로운 토픽을 발생할 수 있읍니다.
+
+def on_message(client, userdata, message):
+    print(f"{message.topic}, {message.payload}")
+
+def main():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
+    client.on_publish = on_publish
+    client.on_message = on_message
+    
+    client.connect("192.168.5.201")
+    client.loop_start()
+
+    top = "ASM05/"
+    postion = ["kitchen", "living", "door"]
+    actuator = "actuator/"
+    pixels = "display/"
+    pixels_opt = ["bgc/", "tc/", "shifting_dir/","shifting_delay/", "blink"]
+    sensor = "sensor/"
+    sendor_type = ["humi/", "temp/", "light/", "gasdata/", "dust/", "pir/"]
+    
+    #모든 센서값 구독
+    client.subscribe(top + sensor + "#")
+    
+    #조명 테스트
+    for pos in postion:
+        client.publish(top + actuator + "light/" + pos, "1")
+    time.sleep(1)
+    for pos in postion:
+        client.publish(top + actuator + "light/" + pos, "0")
+    
+    # 팬 테스트
+    for pos in postion[:2]:
+        client.publish(top + actuator + "fan/" + pos, "1")
+    time.sleep(1)      
+    for pos in postion[:2]:
+        client.publish(top + actuator + "fan/" + pos, "0")
+
+    #커튼 테스트(초기 상태는 잠김 상태일 것!)
+    client.publish(top + actuator + "curtain", 1)
+    time.sleep(5)
+    client.publish(top + actuator + "curtain", 0)
+    
+    #가스브레이트 테스트 (초기 상태는 잠김일 것!)
+    client.publish(top + actuator + "gasbreaker", 1)
+    time.sleep(8)
+    client.publish(top + actuator + "gasbreaker", 0)
+    time.sleep(8)
+
+    print("테스트가 완료되었습니다.")    
+    input()
+
+    client.disconnect()
+    client.loop_stop()
+
+if __name__ == "__main__":
+    main()
+```
