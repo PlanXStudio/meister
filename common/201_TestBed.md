@@ -221,7 +221,8 @@ if __name__ == "__main__":
     main()
 ```
 
-### 참고 예제
+### 구현 사례 연구
+
 ```python
 import paho.mqtt.client as mqtt
 import time
@@ -229,11 +230,9 @@ import time
 def on_connect(client, userdata, flags,  reason_code, properties):
     if reason_code == 0:
         print("Ok Connection")
-        #이곳에서 새로운 토픽을 발행하거나, 구독할 수 있습니다.
         
 def on_publish(client, userdata, mid, reason_code, properties):
     print(mid)
-    #이곳에서 새로운 토픽을 발생할 수 있읍니다.
 
 def on_message(client, userdata, message):
     print(f"{message.topic}, {message.payload}")
@@ -265,7 +264,7 @@ def main():
     for pos in postion:
         client.publish(top + actuator + "light/" + pos, "0")
     
-    # 팬 테스트
+    #팬 테스트
     for pos in postion[:2]:
         client.publish(top + actuator + "fan/" + pos, "1")
     time.sleep(1)      
@@ -282,6 +281,14 @@ def main():
     time.sleep(8)
     client.publish(top + actuator + "gasbreaker", 0)
     time.sleep(8)
+
+    #픽셀 디스플레이 테스트
+    msg = "즐거운 IoT 세상..."
+    client.publish(top + pixels, msg)
+    client.publish(top + pixels + pixels_opt[1], "FF00FF")
+    client.publish(top + pixels + pixels_opt[2], "left")
+    client.publish(top + pixels + pixels_opt[3], "1")
+    time.sleep(5)
 
     print("테스트가 완료되었습니다.")    
     input()
