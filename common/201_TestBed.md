@@ -249,10 +249,11 @@ def main():
     top = "ASM05/"
     postion = ["kitchen", "living", "door"]
     actuator = "actuator/"
-    pixels = "display/"
+    pixels = "display"
     pixels_opt = ["bgc/", "tc/", "shifting_dir/","shifting_delay/", "blink"]
     sensor = "sensor/"
     sendor_type = ["humi/", "temp/", "light/", "gasdata/", "dust/", "pir/"]
+    
     
     #모든 센서값 구독
     client.subscribe(top + sensor + "#")
@@ -260,31 +261,32 @@ def main():
     #조명 테스트
     for pos in postion:
         client.publish(top + actuator + "light/" + pos, "1")
-    time.sleep(1)
+    time.sleep(5)
     for pos in postion:
         client.publish(top + actuator + "light/" + pos, "0")
     
     #팬 테스트
     for pos in postion[:2]:
         client.publish(top + actuator + "fan/" + pos, "1")
-    time.sleep(1)      
+    time.sleep(5)      
     for pos in postion[:2]:
         client.publish(top + actuator + "fan/" + pos, "0")
 
     #커튼 테스트(초기 상태는 잠김 상태일 것!)
     client.publish(top + actuator + "curtain", 1)
-    time.sleep(5)
+    time.sleep(8)
     client.publish(top + actuator + "curtain", 0)
     
     #가스브레이트 테스트 (초기 상태는 잠김일 것!)
     client.publish(top + actuator + "gasbreaker", 1)
-    time.sleep(8)
+    time.sleep(10)
     client.publish(top + actuator + "gasbreaker", 0)
-    time.sleep(8)
-
+    time.sleep(10)
+    
     #픽셀 디스플레이 테스트
     msg = "즐거운 IoT 세상..."
     client.publish(top + pixels, msg)
+    time.sleep(0.5)
     client.publish(top + pixels + pixels_opt[1], "FF00FF")
     client.publish(top + pixels + pixels_opt[2], "left")
     client.publish(top + pixels + pixels_opt[3], "1")
