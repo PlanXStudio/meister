@@ -107,7 +107,7 @@ Device | Main Topic
   -	/living: 거실 팬 제어
 
 **커튼 제어**
-- Data: 0(올리기) or 1(내리기)
+- Data: 1(올리기) or 0(내리기)
 - Topic: <고유 코드>/actuator/curtain
 
 **도어락 제어**
