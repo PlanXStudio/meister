@@ -290,20 +290,6 @@ TabNine 확장을 설치한 후 인증 창이 표시되면 **Sign In**  버튼 �
  
 <br>  
 
-### VSCode 설정
-VSCode는 다양한 기능을 제공하는 강력한 코드 편집기입니다. 하지만 기본 설정은 모든 사용자에게 적합하지 않을 수 있습니다. 따라서 자신의 작업 방식에 맞게 VSCode를 설정할 필요가 있습니다.  
-다음은 추천 설정으로 **Activity Bar > Manage > Settings**를 통해 진행합니다.
-> VSCode/data/user-data/User/setting.json에 자동 저장되며, 설정을 다른 사람과 공유하려면 동일 경로에 이 파일 복사
-
-- Commonly Used
-  - **Auto Save**를 **onFocusChange**로 변경하면 창의 포커스가 바뀔 때마다 편집 중인 파일이 자동 저장됩니다.
-  - **Font Family**의 입력 상자를 통해 폰트를 변경하며, 한글/영문 폰트 이름을 쉼표(,)로 구분하면 함께 사용할 수 있습니다.
-    - 영문은 https://www.nerdfonts.com/font-downloads 에서 배포하는 'JetBrainsMono Nerd Font'를 추천합니다.
-    - 한글은 https://dalseo.daegu.kr/index.do?menu_id=00003453 에서 배포하는 DalseoHealing을 추천합니다.
-- Text Editor
-  - **Mouse Wheel Zoom**을 체크한 후 편집창에서 \<Ctrl\>을 누른 채 마우스 휠을 위/아래로 조작하면 폰트 크기가 커지거나 작아집니다.
-    - 상단의 Search settings 상자에 **Mouse Wheel Zoom**를 입력하면 항목을 쉽게 찾을 수 있습니다.
-
 ## 새 프로젝트
 원격 접속한 VSCode와 SerBot에 설치한 확장을 이용해 SerBot 제어용 프로젝트를 만든 후 실행해 봅니다.
 
