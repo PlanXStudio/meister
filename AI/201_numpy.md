@@ -2,8 +2,8 @@
 ## numpy란?
 NumPy는 배열 개념을 사용하여 대규모 과학 계산에서 Python의 속도를 향상시키는 과학 컴퓨팅을 위한 기본 패키지입니다. 다차원 배열 객체, 다양한 파생 객체(예: 마스크 배열 및 행렬), 그리고 수학적, 논리적, 모양 조작, 정렬, 선택, I/O를 포함하여 배열에 대한 빠른 작업을 위한 일련의 이산 푸리에 변환, 기본 선형 대수학, 기본 통계 연산, 무작위 시뮬레이션 루틴을 제공하는 Python 라이브러리입니다.
 
-
-## 100 numpy exercises
+<details>
+<summary>100 numpy exercises</summary>
 
 #### 1. Import the numpy package under the name `np` (★☆☆)
 
@@ -240,3 +240,5 @@ np.sqrt(-1) == np.emath.sqrt(-1)
 #### 99. Given an integer n and a 2D array X, select from X the rows which can be interpreted as draws from a multinomial distribution with n degrees, i.e., the rows which only contain integers and which sum to n. (★★★)
 
 #### 100. Compute bootstrapped 95% confidence intervals for the mean of a 1D array X (i.e., resample the elements of an array with replacement N times, compute the mean of each sample, and then compute percentiles over the means). (★★★)
+
+</details>
