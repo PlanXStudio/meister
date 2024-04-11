@@ -80,25 +80,6 @@ itemsize: 8
 3D array
 ```
 
-## 실습 환경
-
-#### ▪ WSL 리눅스에서실습
-
-- 윈도우C 드라이버에VSCode를포터블모드로설치해야함
-    - C:\VSCode
-- WSL우분투리눅스실행
-    - 윈도우터미널의시작메뉴에서우분투를선택하거나명령창에서wsl 실행
-    - Numpy라이브러리설치
-       - sudo pip3 install numpy
-    - 작업공간생성
-       - mkdir -p ~/Project/Python/ws
-       - cd~/Project/Python/ws
-    - WSL리눅스에서VSCode 실행및테스트
-       - /mnt/c/VSCode/bin/codenp_test.py
-       - 만약환경변수PATH에/mnt/c/VSCode/bin이등록되어있다면 (export PATH=/mnt/c/VSCode/bin:$PATH)
-          - code np_test.py
-
-
 ## 배열 생성
 
 #### ▪ 파이썬객체(리스트, 튜플)
