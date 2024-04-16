@@ -48,30 +48,33 @@ import time
 import sys
 import threading
 from pop.Pilot import SerBot
+from pop.LiDAR import Rplidar
 
 DIST = 300 # unit: cm
 current_dist = None
 current_detect = None
+
 bot = None
+lidar = None
 
 def work():
-    lidar = Lidar()
     lidar.connect()
     lidar.startMotor()
     
     while True:
-        v = lidar.getVectors()
-        #Todo
+        vs = lidar.getVectors()
+        for v in vs:
+            print(v[0], v[1]*10) #TODO_1 v[0]:angle (unit degree), v[1]:distance (unit cm)
 
 def loop():
     global current_dist
     
     for _ in range(10):
         time.sleep(1)
-        if current_detect < 50:
-            pass #bot.stop()
+        if False: #TODO_2
+            bot.stop()
         else:
-            pass #bot.forward()
+            bot.forward()
         
     current_dist += 10
     if current_dist >= DIST:
@@ -79,18 +82,27 @@ def loop():
 
 def setup():
     global current_dist
-    global bot
+    global bot, lidar
 
     bot = SerBot()
+    lidar = Rplidar()
+
     threading.Thread(target=work, daemon=True).start()
     
     bot.forward()
     current_dist = 0
 
+def clean():
+    lidar.stopMotor()
+    bot.stop()
+    
 def main():
     setup()   
-    while True:
-        loop()
+    try:
+        while True:
+            loop()
+    except KeyboardInterrupt:
+        clean()
 
 if __name__ == '__main__':
     main()
