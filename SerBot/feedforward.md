@@ -64,14 +64,14 @@ def work():
     while True:
         vs = lidar.getVectors()
         for v in vs:
-            print(v[0], v[1]*10) #TODO_1 v[0]:angle (unit degree), v[1]:distance (unit cm)
+            print(v[0], v[1]*10) #Todo v[0]:angle (unit degree), v[1]:distance (unit cm)
 
 def loop():
     global current_dist
     
     for _ in range(10):
         time.sleep(1)
-        if False: #TODO_2
+        if False: #Todo
             bot.stop()
         else:
             bot.forward()
