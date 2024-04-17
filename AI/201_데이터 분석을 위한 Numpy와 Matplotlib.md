@@ -1,9 +1,11 @@
-# 영상 강의
+# 데이터 분석을 위한 Numpy와 Matplotlib 이해
+
+## 영상 강의
 - [201_Numpy와 Matplotlib 라이브러리](https://1drv.ms/v/s!AtTAtBZJQ9JFlcBvyxTP0Dh0sQYGGg?e=pGScjG)
 
 ## 강의 노트
-- [201_Numpy.pdf](https://github.com/PlanXStudio/meister/files/15015370/201_Numpy.pdf)  
-- [201_Matplotlib.pdf](https://github.com/PlanXStudio/meister/files/15015368/201_Matplotlib.pdf)
+- [201_Numpy](https://github.com/PlanXStudio/meister/files/15016141/201_Numpy.pdf)
+- [201_Matplotlib](https://github.com/PlanXStudio/meister/files/15016142/201_Matplotlib.pdf)
 
 ## 실습
 ### 삼각함수 시각화
