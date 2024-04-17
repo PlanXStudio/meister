@@ -115,3 +115,52 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+### 이미지 데이터 시각화
+**픽셀 접근**
+```python
+import cv2
+import numpy as np
+
+gray = np.linspace(0, 255, num=90000, endpoint=True, retstep=False, dtype=np.uint8).reshape(300, 300, 1)
+color = np.zeros((300, 300, 3), np.uint8)
+color[0:150, :, 0] = gray[0:150, :, 0]
+color[:, 150:300, 2] = gray[:, 150:300, 0]
+
+cv2.imshow("gray", gray)
+cv2.imshow("color", color)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+
+**채널 변경**
+```python
+import cv2
+import matplotlib.pyplot as plt
+
+cam = cv2.VideoCapture(1)
+
+frame = []
+
+for _ in range(3):
+    input("press enter to frame capture")    
+    _, f = cam.read()
+    frame.append(f)
+
+plt.xticks([])
+plt.yticks([])
+
+plt.subplot(1,3,1)
+plt.imshow(frame[0][:,:,::-1])
+plt.xticks([]); plt.yticks([])
+
+plt.subplot(1,3,2)
+plt.imshow(frame[1][:,:,(2,1,0)])
+plt.xticks([]); plt.yticks([])
+
+plt.subplot(1,3,3)
+plt.imshow(frame[2][:,:,(2,1,0)])
+plt.xticks([]); plt.yticks([])
+
+plt.show()
+```
