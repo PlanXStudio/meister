@@ -54,3 +54,62 @@ plt.grid(True, linestyle='-.')
 plt.legend()
 plt.show()
 ```
+
+### 날씨 분석
+> OpenWeatherMap 이용
+>> API_KEY = 82d9ba39c9ea064bcc0432f5b9aff602
+```sh
+pip3 install pyowm
+```
+
+**서울 포함해 광역시의 현재 온도 시각화**
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from pyowm import OWM
+
+API_KEY = '82d9ba39c9ea064bcc0432f5b9aff602'
+
+def make_weather(citys):
+    owm = OWM(API_KEY)
+    mgr = owm.weather_manager()
+    
+    for city in citys.keys():
+        o = mgr.weather_at_place(city + ',kr')
+        citys[city] = o.weather.temperature('celsius')['temp']
+    x = np.array(list(citys.keys()))
+    y = np.array(list(citys.values()))
+    return x, y
+
+
+def init_plot():
+    plt.title("Weather")
+    plt.xlabel("citys")
+    plt.ylabel("temperature")
+
+def weather_ploting(citys):
+    x, y = make_weather(citys)
+    bar = plt.bar(x, y, color=['C0', 'C1', 'C2', 'C3', 'C4'])
+
+    ylim = plt.ylim() 	# y에 음수가 있으면 텍스트를 바 플롯에 추가할 때 여유가 있도록 눈금 범위 확장
+    if (ylim[0] < 0):
+        plt.ylim((ylim[0] - 0.5, ylim[1] + 0.5))
+
+    for rect in bar:		# 바 플롯 위(양수) 또는 아래(음수) 텍스트 추가
+        height = rect.get_height()
+        if height < 0: 
+            height -= 0.4
+        plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 12)
+
+def show_plot():
+    plt.show()
+
+def main():
+    citys = {'seoul':0, 'incheon':0, 'daejeon':0, 'pusan':0, 'gwangju':0}
+    init_plot()
+    weather_ploting(citys)
+    show_plot()
+
+if __name__ == '__main__':
+    main()
+```
