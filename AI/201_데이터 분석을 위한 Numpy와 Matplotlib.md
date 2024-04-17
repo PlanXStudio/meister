@@ -117,7 +117,12 @@ if __name__ == '__main__':
 ```
 
 ### 이미지 데이터 시각화
+- opencv 이미지 데이터는 numpy.
+  - 이미지[행 시작:행 끝, 열 시작: 열 끝, 차원 시작:차원 끝]
+
 **픽셀 접근**
+- 행(y), 열(x), 차원(B, G, R)  
+
 ```python
 import cv2
 import numpy as np
@@ -134,6 +139,8 @@ cv2.destroyAllWindows()
 ```
 
 **채널 변경**
+- matplotlib 등 다른 라이브리로 출력할 때는 (B, G, R)을 (R, G, B) 변환 필요
+
 ```python
 import cv2
 import matplotlib.pyplot as plt
