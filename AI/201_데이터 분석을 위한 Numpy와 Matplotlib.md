@@ -32,7 +32,7 @@ plt.tick_params('y', direction='inout', width=5)
 plt.show()
 ```
 
-### 주식 데이터 분석
+### 주식 데이터 시각화
 > pandas-datareader 대신 finance-datareader 사용
 ```sh
 pip install finance-datareader
@@ -55,7 +55,7 @@ plt.legend()
 plt.show()
 ```
 
-### 날씨 분석
+### 날씨 시각화
 > OpenWeatherMap 이용
 >> API_KEY = 82d9ba39c9ea064bcc0432f5b9aff602
 ```sh
