@@ -38,7 +38,8 @@ plt.show()
 > pandas-datareader 대신 finance-datareader 사용
 ```sh
 pip install finance-datareader
-pip install plotly 
+pip install plotly
+pip install bs4
 ```
 
 **LG전자, 삼성전자** 
