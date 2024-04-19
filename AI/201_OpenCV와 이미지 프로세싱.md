@@ -8,7 +8,7 @@ pip install mediapipe
 pip install cvzone
 ```
 
-설치 결과 확인
+=**결과 확인**
 ```python
 python -c 'import cv2; print(cv2.__version__)'
 ```
