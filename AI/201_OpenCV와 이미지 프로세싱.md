@@ -1,7 +1,6 @@
-# 영상 처리 응용
+# OpenCV와 이미지 프로세싱
 
 ## 라이브러리 설치
-- cvzone(opencv 포함), mediapipe
 ```python
 pip install opencv-python
 pip install mediapipe
