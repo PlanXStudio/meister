@@ -13,10 +13,10 @@ pip install cvzone
 python -c 'import cv2; print(cv2.__version__)'
 ```
 
-[OpenCV 강좌1](https://opencv-python.readthedocs.io/en/latest/)
-[OpenCV 강좌2](https://076923.github.io/posts/Python-opencv-2/)
-[MediaPipe 예제](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker)
-[cvzone 예제](https://github.com/cvzone/cvzone/tree/master/Examples)
+[OpenCV 강좌1](https://opencv-python.readthedocs.io/en/latest/)  
+[OpenCV 강좌2](https://076923.github.io/posts/Python-opencv-2/)  
+[MediaPipe 예제](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker)  
+[cvzone 예제](https://github.com/cvzone/cvzone/tree/master/Examples)  
 
 ## 이미지 데이터
 OpenCV의 이미지 데이터는 [y, x, [b, g, r]] 형태의 Numpy 배열입니다.
