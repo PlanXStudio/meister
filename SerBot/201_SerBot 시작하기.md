@@ -413,7 +413,6 @@ bot.stop()
   - VSCode 버전이 바뀔 때마다 자동으로 VSCode Server가 설치됩니다.
 
 <br>
----
 
 ## SerBot API
 
@@ -445,12 +444,130 @@ bot.stop()
 bot.setSpeed(0)
 ```
 
-**IMU 센서값 읽기**
+### IMU 센서 
+**라이브러리 수정**
+- Position: `/usr/loca/lib/python3.6/dist-packages/pop/Pilot.py`
 ```python
-print(bot.getAccel(['x'|'y'|'z'])) # 옵션으로 읽을 축 선택
+cd /usr/local/lib/python3.6/dist-packages/pop
+sudo vi Pilot.py
+:380
+80dd
 ```
+
 ```python
-print(bot.getGyro(['x'|'y'|'z'])) # 옵션으로 읽을 축 선택
+class axis6: 
+    STANDARD_GRAVITY = 9.80665
+    
+    # MPU-6050 Registers
+    SMPLRT_DIV   = 0x19 #Sample rate divisor register
+    CONFIG       = 0x1A #General configuration register
+    GYRO_CONFIG  = 0x1B
+    ACCEL_XOUT_H = 0x3B #Accel X_H register
+    ACCEL_YOUT_H = 0x3D #Accel Y_H register
+    ACCEL_ZOUT_H = 0x3F #Accel Z_H register
+    TEMP_OUT_H   = 0x41 
+    GYRO_XOUT_H  = 0x43 #Gyro X_H register
+    GYRO_YOUT_H  = 0x45 #Gyro Y_H register
+    GYRO_ZOUT_H  = 0x47 #Gyro Z_H register   
+    PW_MGMT_1    = 0x6B #Primary power/sleep control register
+
+    def __init__(self, bus=1, address=0x68):
+        self.address = address
+        
+        if _cat==0 or _cat==1 or _cat==3:
+            self.bus = smbus.SMBus(bus)
+        elif _cat==4 or _cat==5:
+            self.bus = smbus.SMBus(8)
+        else:
+            del self
+        
+        self.bus.write_byte_data(self.address, self.PW_MGMT_1, 1) 
+        self.bus.write_byte_data(self.address, self.CONFIG, 0)
+        self.bus.write_byte_data(self.address, self.GYRO_CONFIG, 24) 
+    
+    def __del__(self):
+        self.bus.close()
+
+    def __read_reg_data(self, reg):
+        high = self.bus.read_byte_data(self.address, reg)
+        low = self.bus.read_byte_data(self.address, reg + 1)
+    
+        value = ((high << 8) | low)
+        
+        #to get signed value
+        if(value > 32768):
+            value = value - 65536
+
+        return value
+
+    def getTemp(self):
+        raw = self.__read_reg_data(self.TEMP_OUT_H)
+        return (raw / 340) + 36.53
+    
+    def getGyro(self, axis=None): #-90.0 ~ 90.0 degree/s
+        x = self.__read_reg_data(self.GYRO_XOUT_H) / 131.0
+        y = self.__read_reg_data(self.GYRO_YOUT_H) / 131.0
+        z = self.__read_reg_data(self.GYRO_ZOUT_H) / 131.0
+
+        ret = {'x':x, 'y':y, 'z':z} 
+
+        try:
+            return ret[axis.lower()]
+        except (KeyError, AttributeError):
+            return ret
+
+    def getAccel(self, axis=None):  #-9.8 ~ 9.8 m/s^2
+        x = self.__read_reg_data(self.ACCEL_XOUT_H) / 16384.0
+        y = self.__read_reg_data(self.ACCEL_YOUT_H) / 16384.0
+        z = self.__read_reg_data(self.ACCEL_ZOUT_H) / 16384.0
+
+        ret = {'x':x * self.STANDARD_GRAVITY, 'y':y * self.STANDARD_GRAVITY, 'z':z * self.STANDARD_GRAVITY} 
+
+        try:
+            return ret[axis.lower()]
+        except (KeyError, AttributeError):
+            return ret
+
+IMU = axis6
+```
+
+**Jupyter에서 센서값 읽기 테스트**
+---
+```python
+import time
+import ipywidgets as widgets
+from threading import Thread
+```
+---
+```python
+delay = widgets.IntSlider(max=1000, value=1, description='delay')
+gyro = [widgets.FloatSlider(min=-90, max=90, description='gyro_'+s) for s in ('x', 'y', 'z')] #degree/s
+accel = [widgets.FloatSlider(min=-12, max=12, step=0.01, description='accel_'+s) for s in ('x', 'y', 'z')] #m/s^2
+display(delay)
+for i in range(3):
+    display(gyro[i])
+for i in range(3):   
+    display(accel[i])
+```
+---
+```python
+is_imu_thread = True
+
+from pop.Pilot import IMU
+imu = IMU()
+
+def onReadIMU():
+    while is_imu_thread:
+        gyro[0].value, gyro[1].value, gyro[2].value = imu.getGyro().values()
+        accel[0].value, accel[1].value, accel[2].value = imu.getAccel().values()
+
+        time.sleep(delay.value/1000)
+
+Thread(target=onReadIMU).start()
+```
+---
+```python
+is_imu_thread = False
 ```
 
 ### 라이다
@@ -484,4 +601,45 @@ for c in coords:
 **종료**
 ```
 lidar.stopMotor()
+```
+
+**시각화**
+- 윈도우용 X-Server 설치
+  - [Vcxsrv](https://sourceforge.net/projects/vcxsrv/files/latest/download)
+  - 설정
+    - `Extra settings > Disable access control (Check)`
+- 원격 실행
+  -  DISPLAY=192.168.101.120:0 ***GUI_Program***  
+
+```python
+from pop.LiDAR import Rplidar
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+
+lidar = Rplidar()
+lidar.connect()
+lidar.startMotor()
+
+fig = plt.figure(figsize=(12.8, 7.2), dpi=100)
+ax = fig.add_subplot(111, projection='polar')
+fig.tight_layout()
+
+dist = 5000 #5m
+
+while True:
+    V = np.array(lidar.getVectors(True))
+    V = np.where(V <= dist, V, 0)
+    ax.plot(np.deg2rad(V[:,0]), V[:,1])
+    fig.canvas.draw()
+
+    cv2.imshow("lidar", np.array(fig.canvas.renderer._renderer))
+    plt.cla()
+    ax.set_theta_zero_location("N")
+
+    if cv2.waitKey(10) == 27:
+        break
+
+lidar.stopMotor()
+cv2.destroyAllWindows()
 ```
