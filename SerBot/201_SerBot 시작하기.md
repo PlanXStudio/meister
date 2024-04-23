@@ -2,6 +2,9 @@
 Serbot은 한백전자에서 개발한 머신러닝 기반 서비스로봇 실습 장비입니다.  
 사용자가 머신러닝을 접목한 자율주행 기술 습득에 집중할 수 있도록 한백전자에서 개발한 Pop을 비롯해 다양한 머신러닝 모델 및 라이브러리가 내장되어 있습니다.  
 
+<details>
+<summary>개요</summary>
+
 ## SerBot 구조
 SerBot에는 옴니췰이나 DC모터, 프레임 같은 기구물 외에 많은 전자장치가 포함되어 있습니다.  
 - 전원부: 동작에 필요한 전원을 안정적으로 공급
@@ -63,6 +66,10 @@ SerBot이 방전 종지 전압에 도달하면 SerBot의 사용을 멈추고 외
 
 - 전원 스위치를 OFF 시키고, 전원 어댑터를 SerBot에 연결한 후 2시간 이상 충전할 것  
 - 완충까지는 5시간 이상 소요 (외부 온도에 따라 다름)
+</details>
+
+<details>
+<summary>네크워크</summary>
 
 ## PC 네트워크 설정
 이더넷 케이블로 연결된 PC와 SerBot이 서로 통신하려면 PC의 이더넷 어댑터에 대한 TCP/IPv4 네트워크 설정이 필요합니다.  
@@ -173,8 +180,10 @@ SerBot 접속은 사이드바의 **Remote Explorer**에서 다음과 같이 진�
   - user-data 폴더에는 VSCode의 실행 상태(빠른 실행을 위한 캐시 데이터) 및 사용자 환경 설정이 저장되어 있습니다.
 - 홈 폴더의 .ssh 폴더 안에 들어있는 **known_hosts**, **known_hosts.old** 파일을 삭제합니다.
   - 앞서 진행한 접속 절차에 따라 해당 파일이 없을 수도 있습니다.
-
-<br>  
+</details>
+  
+<details>
+<summary>SerBot 프로젝트 생성</summary>
   
 ## SerBot 설정
 SerBot의 메인 모듈은 우분투 리눅스로 운영되며 미리 기본적인 설정이 되어 있습니다.  
@@ -412,7 +421,7 @@ bot.stop()
 - 처음 SerBot에 원격 접속하면 자동으로 VSCode 버전에 맞는 VSCode Server를 인터넷에서 PC로 다운로드해 SerBot에 설치합니다.
   - VSCode 버전이 바뀔 때마다 자동으로 VSCode Server가 설치됩니다.
 
-<br>
+</details>
 
 ## SerBot API
 
