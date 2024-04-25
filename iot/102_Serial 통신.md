@@ -11,7 +11,7 @@ XNode에서 시리얼로 전송한 센서 데이터를 PC에서 수신
 from xnode.pop.ext import IMU
 from time import sleep
 
-imu = IMU()
+imu = IMU() # IMU 객체 생성
 imu.init()
 
 while True:
@@ -49,10 +49,10 @@ xnode --sport <your_port> run -n imu.py
 from serial import Serial
 from time import sleep
 
-serial = Serial("com10", 115200) # com10 is <your_port>
+serial = Serial("com10", 115200) # Serial 객체 생성. com10은 <your_port>
 
 while True:
-    ret = serial.readline().decode()
+    ret = serial.readline().decode() 
     x = abs(float(ret.split(' ')[0]))
 
     #TODO: if x < n ... elif x < m ... else
