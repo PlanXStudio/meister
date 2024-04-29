@@ -1,11 +1,15 @@
 # Pilot 라이브러리 설계
-- I2C Device (PCA9685, MPU6050)
+
+## I2C Device (PCA9685, MPU6050)
 ```sh
 sudo i2cdetect -y -r 0
 sudo i2cdetect -y -r 1
 ```
 
-- Jetson Nano
+- (PCA9686)[https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf]
+- (MPU6050)[https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf]
+
+## Jetson Nano
 ```sh
 sudo apt-cache show nvidia-jetpack | grep Version
 ```
