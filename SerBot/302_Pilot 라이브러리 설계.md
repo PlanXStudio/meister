@@ -6,8 +6,8 @@ sudo i2cdetect -y -r 0
 sudo i2cdetect -y -r 1
 ```
 
-- (PCA9686)[https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf]
-- (MPU6050)[https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf]
+- [PCA9686 Datasheet](https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf)
+- [MPU6050 Datasheet](https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf)
 
 ## Jetson Nano
 ```sh
