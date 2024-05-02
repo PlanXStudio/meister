@@ -41,7 +41,7 @@ NVIDIA Orin NX 16G + STM43F4 기반 서비스 로봇 개발장비
 - <user_id> 계정으로 접속
   - ssh <user_id>@<serbot2_ip>
   - passwd: <user_pw>
-  - sudo chsh
+  - chsh
     - /bin/zsh
   - exit
      
