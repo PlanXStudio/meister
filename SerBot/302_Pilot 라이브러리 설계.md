@@ -1,7 +1,14 @@
 # Pilot 라이브러리 설계
 Serbot 이동체 제어 라이브러리
 
-## Jetson Nano
+## Jetson Nano 업데이트
+- NVIDIA에서 Jetsno Nano는 공식적으로 Ubuntu 18.04까지만 지원  
+  - [Ubuntu 20.04 이미지 다운로드](https://1drv.ms/u/s!AtTAtBZJQ9JFoJMDv4ifS7yu8Wc1rQ?e=5nfOVP)
+  - 약 9GB 이며, 다운로드가 완료되면 반디집으로압축 해제 
+- Serbot의 Jetson Nano에 설치된 SD card를 분리한 후 win32diskimager로 압축 해제한 .img 설치
+  - USB 3.0 기준 약 32분 이상 소요    
+  - 초기 계정은 jetson/jetson 
+
 ```sh
 sudo apt-cache show nvidia-jetpack | grep Version
 ```
