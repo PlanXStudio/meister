@@ -1,13 +1,121 @@
 # Pilot 라이브러리 설계
 
-## I2C Device (PCA9685, MPU6050)
+## I2C Device
 ```sh
 sudo i2cdetect -y -r 0
-sudo i2cdetect -y -r 1
 ```
 
+### SMBUS2 for python 
+[smbus2 API](https://smbus2.readthedocs.io/en/latest/)
+
+```python
+from smbus2 import SMBus
+
+def scan(n, force=False):
+    devices = []
+    for addr in range(0x03, 0x77 + 1):
+        read = SMBus.read_byte, (addr,), {'force':force}
+        write = SMBus.write_byte, (addr, 0), {'force':force}
+
+        for func, args, kwargs in (read, write):
+            try:
+                with SMBus(n) as bus:
+                    _ = func(bus, *args, **kwargs)
+                    devices.append(addr)
+                    break
+            except OSError as expt:
+                if expt.errno == 16:
+                    continue #just busy, maybe permanent by a kernel driver or just temporary by some user code"
+                
+    return tuple(devices)
+
+
+for addr in scan(0, True):
+    print(f"0X{addr:02X}")
+```
+
+### PCA9685  
+옴니휠 메커니즘의 DC 모터 속도 제어를 위한 16 채널, 12 비트 PWM 컨트롤러  
+- Bus = 0, Address = 0x40 사용
 - [PCA9686 Datasheet](https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf)
+  - 7. Functional descripton 참조 
+
+**Workspace/serbot/pca9685.py**
+```python
+import time
+from smbus2 import SMBus
+
+class PWM:
+    """
+    PCA9685
+    address = 0x40
+    bus = 0
+    """
+        
+    MODE1       = 0x00     
+    PRESCALE    = 0xFE
+    
+    BASE_LOW    = 0x08 #LED0_OFF_L 
+    BASE_HIGH   = 0x09 #LED0_OFF_H
+
+    CLOCK_SPEED = 25000000.0 # 25MHz
+    FREQ        = 100 #200
+
+
+    def __init__(self, addr=0x40, bus=0):
+        self.__addr = addr
+        self.__bus = SMBus(bus)
+            
+        self.reset()
+        self.setFreq(self.FREQ) # p26. 7.3.5 PWM frequency 
+
+    def __del__(self):
+        self.__bus.close()
+    
+    def reset(self):
+        self.__bus.write_byte_data(self.__addr, self.MODE1, 0x00)
+    
+    def setFreq(self, freq):
+        assert(24 < freq or freq > 1526)
+                        
+        prescale = int(self.CLOCK_SPEED / (4096.0 * freq) - 1)
+
+        old_mode = self.__bus.read_byte_data(self.__addr, self.MODE1)
+        self.__bus.write_byte_data(self.__addr, self.MODE1, (old_mode & 0x7F) | 0x10) # sleep
+        self.__bus.write_byte_data(self.__addr, self.PRESCALE, prescale)
+        self.__bus.write_byte_data(self.__addr, self.MODE1, old_mode)
+        time.sleep(500/(1000 * 1000)) # p16. Remark: The SLEEP bit must be logic 0 for at least 500 us, before a logic 1 is written into the RESTART bit
+        self.__bus.write_byte_data(self.__addr, self.MODE1, old_mode | 0xA0) # restart enabled, internal clock, Auto-increment enabled, Normal mode(not sleep)
+        
+    def setDuty(self, channel, duty):        
+        data = int(duty * 4096 / 100 + 0.5) - 1 # 0..4095 
+        
+        self.__bus.write_byte_data(self.__addr, self.BASE_LOW + 4 * channel, data & 0xFF)
+        self.__bus.write_byte_data(self.__addr, self.BASE_HIGH + 4 * channel, data >> 8)
+```
+
+**Workspace/pca9685_test.py**
+```python
+from serbot.pca9685 import PWM
+import time
+
+pwm = PWM()
+
+pwm.setDuty(0, 0)
+pwm.setDuty(1, 100) # CCW (forward)
+time.sleep(3)
+pwm.setDuty(0, 100) # CW (backward)
+pwm.setDuty(1, 0)
+time.sleep(3)
+
+pwm.setDuty(0, 0)
+```
+
+### MPU6050
+6축 관성 센서
 - [MPU6050 Datasheet](https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf)
+- Bus = 1, Address = 0x68
+
 
 ## Jetson Nano
 ```sh
