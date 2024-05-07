@@ -125,68 +125,69 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
 
 ### Serbot2 제어 API
 **pop.driving**  
-Class Driving : 구동 제어관련 클래스, 조향 및 이동관련 기능을 포함 
--	steering : 값을 -1 ~ 1 사이값으로 지정하면 로봇의 앞바퀴를 좌/우로 조향
--	throttle : 값을 0~99 사이값으로 지정하여 로봇의 속력을 제어
--	stop() : 로봇을 정지
--	forward(throttle=None) : 로봇을 전진, 
--	throttle : 로봇 속력을 제어, 입력이 없다면 throttle property를 활용 
--	backward(throttle=None) : 로봇을 후진
--	throttle : 로봇 속력을 제어, 입력이 없다면 throttle property를 활용 
+Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동 기능을 포함 
+-	steering : -1 ~ 1 사이값으로 좌/우로 조향
+-	throttle : 0 ~ 99 사이값으로 속력 제어
+-	stop() : 정지
+-	forward(throttle=None) : 전진 
+  -	throttle : 속력 
+-	backward(throttle=None) : 후진
+  -	throttle : 속력 
 
 **pop.Encoder**  
-Class Encoder : 모터의 회전수를 확인
--	callback(func,repeat=1,param=None) : 콜백 등록, 수신되는 엔코더 데이터는 순서 대로 모터 동작 방향, 좌측 모터 엔코더 데이터, 우측 모터 엔코더 데이터 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 100ms
--	param : 콜백 메소드에 전달할 인자 
+Class Encoder : 모터 회전수
+-	callback(func,repeat=1,param=None) : 콜백 등록
+  -	func : 콜백 호출시 호출될 메소드 
+    - 매개변수는 모터 동작 방향, 좌측 모터 엔코더 데이터, 우측 모터 엔코더 데이터 
+  -	repeat : 반복 주기 설정, repeat * 100ms
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
 **pop.Ultrasonic**  
-Class Ultrasonic : 로봇에 장착된 초음파 센서 데이터 수신 
--	read() : 초음파 센서 데이터 수신, 순서대로 전방, 후방 
+Class Ultrasonic : 초음파 센서 
+-	read() : 센서값 읽기 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 10ms
--	param : 콜백 메소드에 전달할 인자 
+  -	func : 콜백 호출시 호출될 메소드 
+  -	repeat : 반복 주기 설정, repeat * 10ms
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
 **pop.Psd**  
-Class Psd: 로봇에 장착된 Psd 센서 데이터 수신 
--	read() : Psd 센서 데이터 수신, 순서대로 전방, 후방 
+Class Psd: Psd 센서 
+-	read() : 센서값 읽기 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 10ms
--	param : 콜백 메소드에 전달할 인자 
+  -	func : 콜백 호출시 호출될 메소드 
+  -	repeat : 반복 주기 설정, repeat * 10ms
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
 **pop.Battery**  
-Class Battery : 로봇의 베터리 데이터 수신 
--	read() : 베터리 데이터 수신, 순서대로 전압, 온도 
+Class Battery : 베터리 상태 
+-	read() : 상태값 읽기, 순서대로 전압, 온도 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 1s
--	param : 콜백 메소드에 전달할 인자 
+  -	func : 콜백 호출시 호출될 메소드 
+  -	repeat : 반복 주기 설정, repeat * 1s
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
 **pop.Light**  
-Class Light : 로봇에 장착된 Light 센서 데이터 수신 
--	read() : Light 센서 데이터 수신 
+Class Light : 빛 센서 
+-	read() : 센서값 읽기 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 100ms
--	param : 콜백 메소드에 전달할 인자 
+  -	func : 콜백 호출시 호출될 메소드 
+  -	repeat : 반복 주기 설정, repeat * 100ms
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단
 
 **pop.Imu**  
-Class Imu : 로봇에 장착된 Imu 센서 데이터 수신 
--	accel() : 가속도 센서값 반환, (x,y,z) 형태로 반환
--	magnetic() : 지자기 센서값 반환, (x,y,z) 형태로 반환 
--	gyro() : 자이로 센서값 반환, (x,y,z) 형태로 반환 
--	euler() : 오일러 센서값 반환, (yaw,roll,pitch) 형태로 반환
--	quat() : 쿼터니언 센서값 반환, (w,x,y,z) 형태로 반환  
+Class Imu : Imu 센서 
+-	accel() : 가속도 센서값 읽기. (x,y,z) 형태로 반환
+-	magnetic() : 지자기 센서값 읽기, (x,y,z) 형태로 반환 
+-	gyro() : 자이로 센서값 읽기, (x,y,z) 형태로 반환 
+-	euler() : 오일러 센서값 읽기, (yaw,roll,pitch) 형태로 반환
+-	quat() : 쿼터니언 센서값 읽기, (w,x,y,z) 형태로 반환  
 -	callback(func,repeat=1,param=None) : 콜백 등록 
--	func : 콜백 호출시 호출될 메소드 
--	repeat : 반복 주기 설정, repeat * 10ms
--	param : 콜백 메소드에 전달할 인자 
+  -	func : 콜백 호출시 호출될 메소드 
+  -	repeat : 반복 주기 설정, repeat * 10ms
+  -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단
