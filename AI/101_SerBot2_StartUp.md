@@ -7,25 +7,25 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
 ## 기본 구조
 ![serbot2_block](https://github.com/PlanXStudio/meister/assets/8893544/18896b8e-4cf9-40f3-a8d4-a79c2fa36b3c)
 
-**AI 엣지 컴퓨팅 모듈 (AP)**
+**AI 엣지 컴퓨팅 모듈 (AP)**  
 - NVIDIA Orin NX 16G, 100TOPS
 - Ubuntu Linux 22.04
 - Camera, Tourch Screen, Audio(Array-Mic, Speaker), Lidar 제어
 - CAN 프로토콜로 드라이빙 및 센서 컨트롤러 제어
 
-**드라이빙 컨트롤러 (MCU0)**
+**드라이빙 컨트롤러 (MCU0)**  
 - STM32F4
 - FreeRTOS
 - 전원 관리 및 옴니휠 메커니즘 제어
 - CAN 프로토콜 제공
 
-**센서 컨트롤러 (MCU1)**
+**센서 컨트롤러 (MCU1)**  
 - STM32F4
 - FreeRTOS
 - 9-axis IMU, Light Sensor, IoT 응용 모듈 제어
 - CAN 프로토콜 제공
 
-**옴니휠 메커니즘**
+**옴니휠 메커니즘**  
 - 인코더가 내장된 3개의 12V-DC Motor를 120도 간격으로 배치한 후 옴니휠 장착
 - 6면에 6개의 Ultra-sonic와 3개의 PSD 센서 배치
 - 14.8V/7000mA 배터리와 배터리 온도 센서 포함
@@ -124,7 +124,7 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
   ```
 
 ### Serbot2 제어 API
-**pop.driving**
+**pop.driving**  
 Class Driving : 구동 제어관련 클래스, 조향 및 이동관련 기능을 포함 
 -	steering : 값을 -1 ~ 1 사이값으로 지정하면 로봇의 앞바퀴를 좌/우로 조향
 -	throttle : 값을 0~99 사이값으로 지정하여 로봇의 속력을 제어
@@ -134,7 +134,7 @@ Class Driving : 구동 제어관련 클래스, 조향 및 이동관련 기능을
 -	backward(throttle=None) : 로봇을 후진
 -	throttle : 로봇 속력을 제어, 입력이 없다면 throttle property를 활용 
 
-**pop.Encoder**
+**pop.Encoder**  
 Class Encoder : 모터의 회전수를 확인
 -	callback(func,repeat=1,param=None) : 콜백 등록, 수신되는 엔코더 데이터는 순서 대로 모터 동작 방향, 좌측 모터 엔코더 데이터, 우측 모터 엔코더 데이터 
 -	func : 콜백 호출시 호출될 메소드 
@@ -142,7 +142,7 @@ Class Encoder : 모터의 회전수를 확인
 -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
-**pop.Ultrasonic**
+**pop.Ultrasonic**  
 Class Ultrasonic : 로봇에 장착된 초음파 센서 데이터 수신 
 -	read() : 초음파 센서 데이터 수신, 순서대로 전방, 후방 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
@@ -151,7 +151,7 @@ Class Ultrasonic : 로봇에 장착된 초음파 센서 데이터 수신
 -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
-**pop.Psd**
+**pop.Psd**  
 Class Psd: 로봇에 장착된 Psd 센서 데이터 수신 
 -	read() : Psd 센서 데이터 수신, 순서대로 전방, 후방 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
@@ -160,7 +160,7 @@ Class Psd: 로봇에 장착된 Psd 센서 데이터 수신
 -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
-**pop.Battery**
+**pop.Battery**  
 Class Battery : 로봇의 베터리 데이터 수신 
 -	read() : 베터리 데이터 수신, 순서대로 전압, 온도 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
@@ -169,7 +169,7 @@ Class Battery : 로봇의 베터리 데이터 수신
 -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단 
 
-**pop.Light**
+**pop.Light**  
 Class Light : 로봇에 장착된 Light 센서 데이터 수신 
 -	read() : Light 센서 데이터 수신 
 -	callback(func,repeat=1,param=None) : 콜백 등록 
@@ -178,7 +178,7 @@ Class Light : 로봇에 장착된 Light 센서 데이터 수신
 -	param : 콜백 메소드에 전달할 인자 
 -	stop() : 콜백 중단
 
-**pop.Imu**
+**pop.Imu**  
 Class Imu : 로봇에 장착된 Imu 센서 데이터 수신 
 -	accel() : 가속도 센서값 반환, (x,y,z) 형태로 반환
 -	magnetic() : 지자기 센서값 반환, (x,y,z) 형태로 반환 
