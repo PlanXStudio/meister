@@ -137,6 +137,8 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
   ```
 
 ### VSCode에서 원격 접속
+> VSCode를 최신 버전으로 업그레드 한 후 진행
+
 - SSH Remote 확장 설치
 - Remote Explorer > SSH > open ssh config file 선택
 - ~/.ssh/config 생성
