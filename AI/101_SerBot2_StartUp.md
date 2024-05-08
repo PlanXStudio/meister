@@ -58,8 +58,7 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
 
 ---
 
-## 기본 제어
-### PC에서 Serbot2에 원격 연결
+## PC에서 Serbot2에 원격 접속
 - PC와 Serbot2(엣지 컴퓨팅 모듈) 사이 Wi-Fi 또는 Ethernet 연결
   - Ethernet
     - Serbot2에는 IP 주소 192.168.101.101가 할당되어 있음
@@ -123,6 +122,64 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
   chsh -s /bin/zsh
   ```
 
+### SSH 키
+> 비밀번호 없이 원격 접속
+
+- 명령 프롬프트를 실행한 후 SSH 키 생성 
+  ```sh
+  ssh-keygen -t rsa -b 4096
+  이하 <ENTER> 
+  ```
+  
+- 홈 폴더 아래 .ssh 폴더에 생성된 공개키를 Serbot2에 복사
+  ```sh 
+  scp ~\.ssh\id_rsa.pub <your_id>@<serbot2_ip>:~/.ssh/authorized_keys
+  ```
+
+### VSCode에서 원격 접속
+- SSH Remote 확장 설치
+- Remote Explorer > SSH > open ssh config file 선택
+- ~/.ssh/config 생성
+  ```sh
+  Host serbot2_<serbot2_ip>
+      HostName <serbot2_ip>
+      User <your_id>
+      IdentityFile ~/.ssh/id_rsa
+  ```
+- REMOTES(TUNNELS/SSH) > Reflash
+- 목록의 serbot2_<serbot2_ip>에서 Connect in current window... 선택  
+- Platform select 목록이 표시되면 Linux 선택 
+- 최초 접속 시 VSCode Server를 인터넷에서 다운받아 Serbot2에 설치 함
+
+**VSCode에서 원격 접속 문제 해결**
+- 명령 프롬프트를 통해 Serbot2에 원격 접속
+- Serbot2에서 SSH 키 재 생성 
+  ```sh
+  sudo ssh-keygen -A
+  ```
+
+## 기본 제어
+```python
+import sys
+import time
+import signal
+
+def setup():
+  pass
+
+def loop():
+  pass
+
+def cleanup(*args):
+  pass
+
+if __name__ == "__main__":
+  signal.signal(signal.SIGINT, cleanup)
+  setup()
+  while True:
+    loop()
+```
+
 ### Serbot2 제어 API
 **pop.driving**  
 Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동 기능을 포함 
@@ -133,6 +190,20 @@ Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동
   -	throttle : 속력 
 -	backward(throttle=None) : 후진
   -	throttle : 속력 
+
+```sh
+from pop.driving import Driving
+
+drv = Driving
+
+def setup():
+  drv.forward(20)
+  time.sleep(3)
+  throttle = 30
+  drv.backward()
+  time.sleep(2)
+  drv.stop()  
+```
 
 **pop.Encoder**  
 Class Encoder : 모터 회전수
