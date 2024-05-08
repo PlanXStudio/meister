@@ -171,7 +171,7 @@ def loop():
   pass
 
 def cleanup(*args):
-  pass
+  sys.exit(0)
 
 if __name__ == "__main__":
   signal.signal(signal.SIGINT, cleanup)
@@ -191,18 +191,47 @@ Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동
 -	backward(throttle=None) : 후진
   -	throttle : 속력 
 
-```sh
+```python
 from pop.driving import Driving
 
-drv = Driving
+drv = None
 
-def setup():
+def basic_driving():
   drv.forward(20)
   time.sleep(3)
+
+  drv.backward(20)
+  time.sleep(3)
+
+  drv.stop()
+
+def steering_driving():
   throttle = 30
+  steering = -0.3
+
+  drv.forward()
+  time.sleep(3)
+
   drv.backward()
-  time.sleep(2)
+  time.sleep(3)
+
+  steering = 0.3
+
+  drv.forward()
+  time.sleep(3)
+
+  drv.backward()
+  time.sleep(3)
+
   drv.stop()  
+
+def setup():
+  global drv
+
+  drv = Driving()
+
+  basic_driving()
+  steering_driving
 ```
 
 **pop.Encoder**  
