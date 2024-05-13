@@ -70,8 +70,6 @@ SerBot이 방전 종지 전압에 도달하면 SerBot의 사용을 멈추고 외
 
 <details>
 <summary>Serbot OS 업그레이드</summary>
-Serbot의 옴니휠 움직임과 센서값 읽기 및 인공지능 예측은 NVIDIA의 엣지 슈퍼컴퓨팅 모듈인 jetson nano(아하 nano)를 사용합니다.
-nano에는 우분투 18.04와 인공지능을 위한 NVIDA BSP 및 한백전자 Pop 라이브러리가 사전 설치되어 있습니다.
 
 ## nano에 우분투 20.04 설치
 NVIDIA는 nano에 대해 우분투 20.04 이상을 지원하지 않으므로, 이를 사용하려면 전문가의 도움이 필요합니다.  
