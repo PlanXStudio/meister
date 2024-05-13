@@ -1,13 +1,26 @@
-# Pilot 라이브러리 설계
-Serbot 이동체 제어 라이브러리
+# SerBot 라이브러리 설계
+SerBot의 옴니휠과 IMU 센서 및 라이다, 오디오를 제어하는 라이브러리를 직접 구현해 봅니다.   
 
 ## I2C Device
+리눅스에서 I2C 버스에 연결된 장치를 검색할 때는 i2cdetect 명령을 사용합니다.
+
 ```sh
 sudo i2cdetect -y -r 0
 ```
 
 ### SMBUS2 for python 
-[smbus2 API](https://smbus2.readthedocs.io/en/latest/)
+smbus2는 I2C와 이를 확장한 smbus를 제어하는 파이썬 라이브러입니다. 
+
+다음과 같이 smbus2 모듈을 설치합니다.  
+```sh
+sudo -H pip3 install smbus2
+```
+
+smbus2 설명은 다음과 같습니다.  
+- [smbus2 API](https://smbus2.readthedocs.io/en/latest/)
+
+
+smbus2로 i2cdetect 처럼 해당 버스에서 장치를 찾아 봅니다.
 
 ```python
 from smbus2 import SMBus
@@ -36,11 +49,15 @@ for addr in scan(0, True):
 ```
 
 ### PCA9685  
-옴니휠 메커니즘의 DC 모터 속도 제어를 위한 16 채널, 12 비트 PWM 컨트롤러  
-- Bus = 0, Address = 0x40 사용
-- [PCA9686 Datasheet](https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf)
-  - `7. Functional descripton 참조`
+PCA9685는 SerBot 옴니휠 메커니즘의 DC 모터 방향/속도 제어를 위한 16 채널, 12 비트 PWM 컨트롤러로 I2C 버스에 연결해 사용합니다.
 
+SerBot에 포함된 PCA9685의 I2C 버스와 주소는 다음과 같습니다.  
+- Bus = 0, Address = 0x40 사용
+
+다음은 PCA9685 데이터시트입니다. 실제 코드 구현에 필요한 항목은  `7. Functional descripton` 부분입니다.
+- [PCA9686 Datasheet](https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf)
+
+데이터시트를 참조해 제어 코드를 구현합니다.  
 **Workspace/serbot/pca9685.py**
 ```python
 import time
@@ -95,6 +112,7 @@ class PWM:
         self.__bus.write_byte_data(self.__addr, self.BASE_HIGH + 4 * channel, data >> 8)
 ```
 
+구현한 제어 코드를 테스트해 봅니다. 
 **Workspace/pca9685_test.py**
 ```python
 import sys
@@ -131,10 +149,15 @@ if __name__ == "__main__":
 ```
 
 ### MPU6050
-Serbot 자세 제어를 위한 6축 관성 센서
+MPU6050는 Serbot의 자세 제어를 위한 6축 관성 센서로 I2C 버스에 연결해 사용합니다.  
+
+SerBot에 포함된 MPU6050는의 I2C 버스와 주소는 다음과 같습니다.  
 - Bus = 1, Address = 0x68
+
+다음은 MPU6050 데이터시트입니다.
 - [MPU6050 Datasheet](https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf)
 
+데이터시트를 참조해 제어 코드를 구현합니다.
 **Workspace/serbot/mpu6050.py**
 ```python
 from smbus2 import SMBus
@@ -251,6 +274,7 @@ class IMU:
         return (x, y, z)
 ```
 
+구현한 제어 코드를 테스트해 봅니다.   
 **Workspace/mpu6050_test.py**
 ```python
 import sys
@@ -278,8 +302,9 @@ if __name__ == "__main__":
 ```
 
 ### Pilot
-PCA9685와 MPU6050를 묶어 주행 제어 클래스로 정의
-**Workspace/serbot/Pilot.py**
+앞서 구현한 PCA9685와 MPU6050를 이용해 SerBot의 움직임 제어에 필요한 기능을 구현합니다.
+
+**Workspace/serbot/driving.py**
 ```python
 __version__='0.2.0'
 
@@ -500,7 +525,7 @@ class Driver:
         self.whl(3,self.speed)
 
 
-class SerBot:
+class Driving:
     steer_limit = 90
     max_speed=99
     min_speed=20
