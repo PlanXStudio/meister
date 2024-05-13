@@ -276,3 +276,281 @@ if __name__ == "__main__":
     while True:
         loop()
 ```
+
+### Pilot
+PCA9685와 MPU6050를 묶어 주행 제어 클래스로 정의
+**Workspace/serbot/Pilot.py**
+```python
+__version__='0.2.0'
+
+import time
+import math
+
+from .pca9685 import PWM
+from .mpu6050 import IMU
+
+class Driver:
+    GPIO_WHL_1_FORWARD    = 0
+    GPIO_WHL_1_BACKWARD   = 1
+    GPIO_WHL_2_FORWARD    = 2
+    GPIO_WHL_2_BACKWARD   = 3
+    GPIO_WHL_3_FORWARD    = 4
+    GPIO_WHL_3_BACKWARD   = 5
+
+    MIN_SPEED = 20
+    MAX_SPEED = 99
+
+    STEER_LIMIT = 180
+
+    STAT_STOP = 1
+    STAT_MOVING = 2
+    STAT_SETTING = 3
+    STAT_DRIVING = 4
+
+    stat=1
+
+    def __init__(self):            
+        self.stat = Driver.STAT_STOP
+        self.speed = Driver.MIN_SPEED
+        self.drct = 0
+        self.steer = 0
+
+        self.pwm = PWM()
+
+    def __del__(self):
+        self.stop()
+
+    def whl(self, id, value):
+        if id == 1 :
+            if value < 0 :
+                self.pwm.setDuty(0,abs(value))
+                self.pwm.setDuty(1,0)
+            elif value > 0 :
+                self.pwm.setDuty(0,0)
+                self.pwm.setDuty(1,abs(value))
+            else :
+                self.pwm.setDuty(0,0)
+                self.pwm.setDuty(1,0)
+        elif id == 2 :
+            if value < 0 :
+                self.pwm.setDuty(2,abs(value))
+                self.pwm.setDuty(3,0)
+            elif value > 0 :
+                self.pwm.setDuty(2,0)
+                self.pwm.setDuty(3,abs(value))
+            else :
+                self.pwm.setDuty(2,0)
+                self.pwm.setDuty(3,0)
+        elif id == 3 :
+            if value < 0 :
+                self.pwm.setDuty(4,abs(value))
+                self.pwm.setDuty(5,0)
+            elif value > 0 :
+                self.pwm.setDuty(4,0)
+                self.pwm.setDuty(5,abs(value))
+            else :
+                self.pwm.setDuty(4,0)
+                self.pwm.setDuty(5,0)
+
+    def setSpeed(self, speed):
+        if speed:
+            if abs(speed) > Driver.MAX_SPEED:
+                if speed > 0 :
+                    speed = Driver.MAX_SPEED
+                elif speed < 0 :
+                    speed = -Driver.MAX_SPEED
+            elif abs(speed) < Driver.MIN_SPEED:
+                if speed > 0 :
+                    speed = Driver.MIN_SPEED
+                elif speed < 0 :
+                    speed = -Driver.MIN_SPEED
+            self.speed = speed
+
+        if self.stat == Driver.STAT_MOVING:
+            self.move(self.drct, self.speed)
+        elif self.stat == Driver.STAT_DRIVING:
+            self.drive(self.steer, self.speed)
+
+    def getSpeed(self):
+        return self.speed
+
+    def stop(self):
+        self.whl(1,0)
+        self.whl(2,0)
+        self.whl(3,0)
+
+        self.stat = Driver.STAT_STOP
+
+    def setDirection(self, degree):
+        self.drct = degree % 360
+
+        if self.stat == Driver.STAT_MOVING:
+            self.move(self.drct, self.speed)
+
+    def setSteer(self, degree):
+        if abs(degree) > self.STEER_LIMIT :
+            if degree > 0 :
+                degree = self.STEER_LIMIT
+            elif degree < 0 :
+                degree = -self.STEER_LIMIT
+
+        self.steer=degree
+
+        if self.stat == Driver.STAT_DRIVING:
+            self.drive(self.steer, self.speed)
+
+    def move(self, degree=None, speed=None):
+        self.stat = Driver.STAT_SETTING
+
+        if degree is None :
+            degree = self.drct
+        else :
+            self.setDirection(degree)
+
+        if speed is None :
+            speed = self.speed
+        elif speed == 0 :
+            self.stop()
+        else :
+            self.setSpeed(speed)
+        
+        w1=math.sin(math.radians(self.drct-300))
+        w2=math.sin(math.radians(self.drct-60))
+        w3=math.sin(math.radians(self.drct-180))
+        
+        rate = (1.0/max(abs(w1), abs(w2), abs(w3)))
+
+        w1*=rate*self.speed
+        w2*=rate*self.speed
+        w3*=rate*self.speed
+
+        self.whl(1,w1)
+        self.whl(2,w2)
+        self.whl(3,w3)
+
+        self.stat = Driver.STAT_MOVING
+
+    def drive(self, steer=None, speed=None):
+        self.stat = Driver.STAT_SETTING
+
+        if steer is None :
+            steer = self.steer
+        else :
+            self.setSteer(steer)
+
+        if speed is None :
+            speed = self.speed
+        elif speed == 0 :
+            self.stop()
+            return
+        else :
+            self.setSpeed(speed)
+        
+        if abs(steer) != 0 and abs(steer) != 180:
+            theta = math.radians(90-steer)
+
+            h = 500 #mm
+            rad = {'x':h * math.tan(theta), 'y':0}
+            m = 150 #mm
+
+            W_1 = {'x':m * math.cos(math.radians(30)), 'y':m * math.sin(math.radians(30))}
+            W_2 = {'x':m * math.cos(math.radians(150)), 'y':m * math.sin(math.radians(150))}
+            W_3 = {'x':m * math.cos(math.radians(270)), 'y':m * math.sin(math.radians(270))}
+
+            RW_1 = math.sqrt((W_1['x']-rad['x'])**2 + (W_1['y']-rad['y'])**2) * (steer/abs(steer))
+            RW_2 = math.sqrt((W_2['x']-rad['x'])**2 + (W_2['y']-rad['y'])**2) * (steer/abs(steer))
+            RW_3 = math.sqrt((W_3['x']-rad['x'])**2 + (W_3['y']-rad['y'])**2) * (steer/abs(steer))
+
+            alpha_1 = math.acos( W_1['y'] / RW_1 ) + math.radians(30)
+            alpha_2 = math.acos( W_2['y'] / RW_2 ) + math.radians(150)
+            alpha_3 = math.acos( W_3['y'] / RW_3 ) + math.radians(270)
+
+            w1=math.sin(alpha_1)
+            w2=math.sin(alpha_2)
+            w3=math.sin(alpha_3)
+
+            rate = (1.0/max(abs(w1), abs(w2), abs(w3)))
+
+            w1*=rate*self.speed
+            w2*=rate*self.speed
+            w3*=rate*self.speed
+
+            self.whl(1,w1)
+            self.whl(2,w2)
+            self.whl(3,w3)
+        elif abs(steer) == 180 :
+            self.whl(1,self.speed)
+            self.whl(2,-self.speed)
+            self.whl(3,0)
+        elif abs(steer) == 0 :
+            self.whl(1,self.speed)
+            self.whl(2,-self.speed)
+            self.whl(3,0)
+
+        self.stat = Driver.STAT_DRIVING
+
+    def turnLeft(self):
+        self.whl(1,-self.speed)
+        self.whl(2,-self.speed)
+        self.whl(3,-self.speed)
+
+    def turnRight(self):
+        self.whl(1,self.speed)
+        self.whl(2,self.speed)
+        self.whl(3,self.speed)
+
+
+class SerBot:
+    steer_limit = 90
+    max_speed=99
+    min_speed=20
+
+    def __init__(self):
+        super().__init__()
+
+        self.drv = Driver()
+        self.speed = 0
+        self.steering = 0.0
+
+    @property
+    def steering(self):
+        return self._steering
+
+    @steering.setter
+    def steering(self, value):
+        assert(not (-1.0 >= value <= 1.0))
+
+        self._steering = value
+        self.drv.setSteer(value * self.steer_limit)
+
+    def turnLeft(self):
+        self.drv.turnLeft()
+
+    def turnRight(self):
+        self.drv.turnRight()
+
+    def setSpeed(self, speed):
+        self.speed=speed
+        self.drv.setSpeed(speed)
+
+    def getSpeed(self):
+        return self.drv.getSpeed()
+
+    def stop(self):
+        self.drv.stop()
+    
+    def forward(self, speed=None):
+        if speed is not None:
+            self.speed=speed
+
+        self.drv.drive(self.drv.steer, self.speed)
+    
+    def backward(self, speed=None):
+        if speed is not None:
+            self.speed=speed
+
+        self.drv.drive(self.drv.steer, -self.speed)
+
+    def move(self, degree, speed):
+        self.drv.move(degree,speed)
+```
