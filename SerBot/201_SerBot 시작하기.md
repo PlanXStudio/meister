@@ -69,117 +69,483 @@ SerBot이 방전 종지 전압에 도달하면 SerBot의 사용을 멈추고 외
 </details>
 
 <details>
-<summary>네크워크</summary>
+<summary>Serbot OS 업그레이드</summary>
+Serbot의 옴니휠 움직임과 센서값 읽기 및 인공지능 예측은 NVIDIA의 엣지 슈퍼컴퓨팅 모듈인 jetson nano(아하 nano)를 사용합니다.
+nano에는 우분투 18.04와 인공지능을 위한 NVIDA BSP 및 한백전자 Pop 라이브러리가 사전 설치되어 있습니다.
 
-## PC 네트워크 설정
-이더넷 케이블로 연결된 PC와 SerBot이 서로 통신하려면 PC의 이더넷 어댑터에 대한 TCP/IPv4 네트워크 설정이 필요합니다.  
-SerBot은 다음과 같이 사전에 네트워크 주소가 설정되어 있습니다.
-- IP주소: 192.168.101.101
-- 서브넷 마스크: 255.255.255.0
+## nano에 우분투 20.04 설치
+NVIDIA는 nano에 대해 우분투 20.04 이상을 지원하지 않으므로, 이를 사용하려면 전문가의 도움이 필요합니다.  
+임베디드 분야 전문 SW 기업인 Qengineering은 NVIDIA를 대신해 깃허브에 nano용 우분투 20.04 이미지를 공개했습니다.
 
-따라서 PC의 네트워크 설정은 다음과 같아야 합니다. (단, IP주소는 변경 가능)
-- IP주소: 192.168.101.120
-- 서브넷 마스크: 255.255.255.0
+### 준비물
+nano 운영체제를 우분투 20.04로 바꾸는데 필요한 준비물은 다음과 같습니다.
 
-> 마스크 비트의 일종인 서브넷 마스크는 IP주소와 비트 AND 연산한 결과를 로컬과 리모트 네트워크 구분 사용.  
-<!-- >> 로컬 네트워크는 직접, 리모트 네트워크는 게이트웨이를 경유해 SerBot에 데이터 전송.    -->
->> 호스트 주소는 로컬 네트워크에서 유일해야 험.    
+1. 윈도우 PC에서 진행한다고 가정합니다.
+2. win32diskimager를 다운받아 설치합니다.  
+  [win32diskimager 다운로드](https://sourceforge.net/projects/win32diskimager/files/latest/download)
 
-서브넷 마스트 255.255.255.0은 IP주소 앞 3자리를 네트워크 그룹으로, 나머지 1자리를 고유한 호스트 주소로 구분합니다.  
-- 네트워크 그룹: 192.168.101.0
-- 호스트 주소: PC는 120, SerBot은 101
-  - 0, 255는 예약되어 있고, 1(또는 254)은 로컬에서 리모트 네트워크를 연결하는 게이트웨이의 IP주소로 사용합니다.
+3. JetsonNanoUb20_3b.img.xz를 다운받아 압축 해제합니다. (20GB 이상 여유 공간 필요)  
+  [JetsonNanoUb20_3b.img.xz 다운로드](https://ln5.sync.com/dl/403a73c60/bqppm39m-mh4qippt-u5mhyyfi-nnma8c4t/view/default/14418794280004)
 
-PC에 연결된 USB 이더넷 어댑터의 네트워크 설정은 다음과 같습니다.  
-- 실행창(윈도우+R)에서 **ncpa.cpl** ① 명령으로 제어판의 네트워크 설정 애플릿을 실행합니다.
-- SerBot과 연결된 USB 이더넷 어댑터 ② 의 속성 ③ 을 선택합니다.
-- 인터넷 프로토콜 버전 4(TCP/IPv4) ④ 를 더블클릭한 후 다음 IP주소 사용 ⑤ 으로 IP주소와 서브넷 마스크 ⑥ 를 입력합니다.
+4. PC에 자체 T-Flash 리더기가 없으면 USB 타입 T-Flash 리더기를 준비합니다.
 
-PC 네트워크 설정이 끝나면 통신이 가능한지 확인하기 위해 명령 프롬프트를 실행한 후 **ping** 명령으로 SerBot의 응답을 확인합니다.
+**nerd 폰트 설치**  
+nerd 폰트는 기존 폰트에 수 많은 그래픽 문자를 추가한 특별한 폰트로 텍스트 화면을 멋지게 꾸밀 때 사용합니다.
+
+1. 배포 사이트에서 마음에 드는 nerd 폰트 하나를 고릅니다.   
+   [Nerd 폰트 다운로드](https://www.nerdfonts.com/font-downloads)
+
+2. **Download** 링크를 눌러 다운로드한 후 압축을 해제합니다.
+
+3. *.ttf 파일을 모두 선택한 후 컨텍스트 메뉴(마우스 오른쪽 클릭)에서 **설치** 를 선택합니다.
+
+**파워 쉘 설치**  
+MS에서 오픈소스로 배포하는 파워 쉘은 고전적인 윈도용 cmd를 대체하는 새로운 멀티 플랫폼용 쉘입니다.
+
+1. 명령 프롬프트를 실행한 후 winget으로 파워 쉘을 설치합니다.  
+```sh
+winget install Microsoft.PowerShell -s winget
+```
+
+2. pwsh 명령으로 파워 쉘을 실행합니다.
+```sh
+pwsh
+```
+
+**윈도우 터미널 설치**  
+더 향상된 윈도우 쉘 환경을 위해 윈도우 터미널을 설치합니다.
+
+1. winget으로 윈도우 터미널을 설치합니다.  
+```sh
+winget install Microsoft.WindowsTerminal -s winget
+```
+
+2. 윈도우 터미널 설치가 끝나면 wt 명령으로 실행합니다.
+```sh
+wt
+```
+
+3. <Ctrl>+<,>를 눌러 설정을 표시합니다.
+
+4. 시작에서 기본 프로필을 **PowerShell** 로 변경합니다.
+
+5. 시작에서 기본 터미널 프로그램 항목을 **Windows 터미널** 로 변경합니다.
+
+6. 프로필 아래 기본값에서 모양을 선택하고 색 구성 표를 **Tango Dark**, 글꼴은 앞서 설치한 **\<nerd 폰트>**를 선택합니다.
+
+7. 프로필 아래 기본값에서 고급을 선택하고 프로필 종료 동작을 **프로세스가 종료, 실패 또는 충돌 시 닫기**로 변경합니다.
+
+8. 저장 버튼을 눌러 설정을 종료합니다.
+
+
+### nano 모듈에 연결된 T-Flash 빼내기
+Serbot의 nano 모듈에 연결된 T-Flash는 64GB용량이므로 이를 재사용합니다. 단, Serbot은 구조 상 nano 모듈의 T-Flash 슬롯 접근이 조금 어렵습니다.
+T-Flash는 nano 캐리어 보드의 SO-DIMM 컨넥터에 연결된 nano 모듈 아래에 T-Flash 슬롯에 꼽혀 있으므로 드라이버를 이용해 다음과 같이 캐리어 보드에서 nano 모듈의 고정 나사 및 걸쇠를 풀고 T-Flash 슬롯에서 T-Flash를 빼냅니다.
+
+- 드라이버로 nano 모듈 고정 나사 2개 풀기 (나사 파손 및 분실 주의)
+- 드라이버로 nano 모듈 잠금 걸쇠 2개를 바깥으로 밀기
+- nano 모듈이 약 30도 정도 비스듬하게 위로 올라옴
+- nano 모듈 아래에 T-Flash 슬롯에서 완전히 삽입된 T-Flash를 살짝 누름
+- T-Flash가 10mm 정도 튀어 나오면 이를 뽑음
+
+### T-Flash에 Ubuntu 20.04 이미지 설치
+T-Flash를 리더기에 연결하면 새로운 드라이버 문자가 할당됩니다. win32diskimager를 이용해 압축 해제한 이미지 파일을 다음과 같이 설치합니다.
+- win32diskimager 실행
+- Image File 선택 버튼을 누르고 압축 해제한 경로에서 JetsonNanoUb20_3b.img 선택
+- Device에서 T-Flash가 연결된 드라이버 문자 선택
+- Write 버튼을 눌러 이미지 설치 (약 25 ~ 35분 정도 소요)
+- 설치가 완료되면 리더기에서 T-Flash를 뽑아 다시 jetson nano에 연결
+
+### T-Flash를 nano 모듈에 다시 넣기
+T-Flash를 nano 모듈에 다시 넣는 것은 빼내기의 역순입니다. 이미지 설치가 끝나면 다음과 같이 진행합니다.
+- T-Flash를 nano 모듈 아래 T-Flash 슬롯에 완전히 밀어 넣음
+- 비스듬하게 세워진 nano 모듈을 아래로 눌러 2개의 잠금 걸쇠에 고정
+- 드라이버로 2개의 nano 모듈 고정 나사를 조임
+
+## 원격 터미널 연결
+Serbot에 전원을 넣고 스위치를 켜면 Qengineering에서 배포한 우분투 20.04가 부팅되며, 초기 사용자 id와 pw는 둘 다 jetsno입니다.
+PC에서 Serbot의 우분투 20.04 리눅스 쉘에 접근하려면 TCP/IP 기반 SSH 원격 터미널 기능을 사용합니다.  
+
+PC와 Serbot을 Wi-Fi나 이더넷 또는 USB 케이블 중 하나로 연결한 후 Serbot에 부여된 IP 주소를 이용해 원격 터미널 연결을 시작합니다.
+
+### Wi-Fi 연결
+PC와 Serbot은 같은 네트워크에 속해야 하며 다음과 같이 해당 공유기에 연결한 후 자동 할당된 IP 주소를 확인합니다.
+
+- Serbot 화면 왼쪽 런처에서 Settings 아이콘 클릭
+- 설정창 왼쪽 항목에서 Wi-Fi 선택
+- 오른쪽 연결 가능한 공유기 목록에서 연결할 공유기 선택
+- 패스워드 입력창이 표시되면 가상 키보드를 이용해 공유기 비밀번호 입력 (처음 가상 키보드가 표시되면 인식이 안될 수 있으므로 30초 간 대기 후 입력 시작)
+- 연결된 공유기 항목 끝의 설정 아이콘을 눌러 할당된 IP 주소 확인
+
+### 이더넷 연결
+PC와 Serbot은 같은 네트워크에 속해야 하며 일반적으로 DHCP 서버로부터 자동으로 IP 주소를 할당받아야 합니다. 자동 할당된 IP 주소는 다음과 같이 확인합니다.
+
+- Serbot의 이더넷 포트에 이더넷 케이블 연결
+- Serbot 화면 왼쪽 런처에서 Settings 아이콘 클릭
+- 설정창 왼쪽 항목에서 Network 선택
+- 연결된 이더넷 항목 끝의 설정 아이콘을 눌러 할당된 IP 주소 확인
+
+### USB 연결
+USB 케이블로 PC와 Serbot을 연결하면 이더넷 연결과 같으나 PC와 Serbot 사이 1:1 통신만 허용하므로 시스템 업데이트가 필요하면 추가로 Wi-Fi나 이더넷 연결이 필요합니다.
+
+PC와 Serbot에는 다음과 같이 미리 설정한 IP가 자동 할당됩니다. 
+
+- PC와 Serbot에는 가상 이더넷 어댑터가 자동 추가됨
+- PC의 가상 이더넷 어댑터에는 IP 주소 192.168.55.100이 자동 할당됨
+- Serbotd의 가상 이더넷 어댑터에는 IP 주소 192.168.55.1이 자동 할당됨
+
+### ping 테스트
+Serbot에 할당된 IP 주소로 ping 테스트를 수행합니다.
 
 ```sh
-ping 192.168.101.101
+ping 192.168.100.59
 ```
 
-통신이 가능하다면 결과는 다음과 같아야 합니다.
+### 원격 쉘 얻기
+ping 테스트가 성공하면 Serbot에 할당된 IP 주소와 사용자 계정으로 SSH 접속에 접속합니다. 계정 id와 비밀번호는 모두 jetson입니다.
 
-```
-Pinging 192.168.101.101 with 32 bytes of data:
-Reply from 192.168.101.101: bytes=32 time<1ms TTL=64
-Reply from 192.168.101.101: bytes=32 time<1ms TTL=64
-Reply from 192.168.101.101: bytes=32 time<1ms TTL=64
-Reply from 192.168.101.101: bytes=32 time<1ms TTL=64
-
-Ping statistics for 192.168.101.101:
-    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
-Approximate round trip times in milli-seconds:
-    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+```sh
+ssh jetson@192.168.100.59
 ```
 
-결과가 다르면 처음부터 다시 시도해 보세요. 
-> PC의 USB 포트에 USB 이더넷 어댑터가 잘 꼽혔는지 확인.  
-> 양쪽 이더넷 포트에 이더넷 케이블이 잘 꼽혔는지 확인.  
-> PC의 USB 이더넷 어댑터에 네트워크 설정이 맞는지 확인.
-> 간혹 이더넷 케이블 내부가 끊어진 경우가 있음. 다른 케이블 사용.  
-
-<br>
-
-## SerBot 원격 접속 
-PC와 SerBot이 통신할 수 있는 상태라면 PC에 설치한 VSCode와 Remote SSH 확장을 통해 SerBot에 원격 접속할 수 있습니다.
-
-### 연결 설정 만들기
-VSCode로 SerBot에 원격 접속하려면 SerBot의 IP주소와 계정 정보(IP, 패스워드)가 필요합니다.  
-연결할 때마다 매번 입력하는 것보다 연결 설정 파일을 만든 후 이를 이용하면 편리합니다.  
-
-SerBot의 기본 계정 정보는 다음과 같습니다.    
-- ID: soda  
-- 패스워드: soda  
-
-VSCode를 실행하고 왼쪽 사이드바에서 **Remote Explorer** ① 를 선택한 후 다음 순서대로 SerBot의 연결 설정을 만듭니다.
-- SSH 항목으로 마우스 커서를 옮긴 후 **Open SSH Config File** ② 을 누릅니다.  
-- 목록이 표시되면 홈 폴더 경로의 **.ssh\config** ③ 을 선택합니다.
-- 파일이 열리면 SerBot의 연결에 필요한 설정 ④ 을 입력합니다. 
-  - Host는 연결 이름이며, HostName은 SerBot의 IP 주소, User는 SerBot의 계정 이름입니다.
-- 연결 설정 입력이 끝나면 **<Ctrl>+s** ⑤ 를 눌러 파일을 저장합니다.
-  - 홈 폴더 경로의 .ssh 폴더 안에 config란 이름으로 저장됨
-- REMOTES 항목으로 마우스 커서를 옮긴 후 **Reflash** ⑥ 를 누르면 SSH 항목 아래 설정한 연결 이름이 표시됩니다.
-
-> 홈 폴더(또는 디렉터리)는 사용자를 위한 전용 작업공간
->> 윈도우: C:/User/<계정 이름>  
->> 리눅스: /home/<계정 이름>  
->> Mac: /Users/<계정 이름>
-
-### 원격 접속
-처음 SerBot에 원격 접속할 때는 몇 가지 절차를 더 진행하는데, VSCode는 SerBot에서 실행되는 **VS Code Server**가 없으면 자동으로 인터넷 저장소에서 이를 다운로드하여 설치합니다.  
-
-SerBot 접속은 사이드바의 **Remote Explorer**에서 다음과 같이 진행합니다.
-> 각 단계를 진행할 때 시간을 지체하면 연결이 실패하므로 주의할 것
-
-- 앞서 만든 연결 이름(Target_192.168.101.101)에서 **Connect in Current Window** ① 를 선택합니다.
-- 처음 연결이라면 플랫폼 선택창이 표시되는데, **Linux** ② 를 선택합니다.
-- 처음 연결이라면 암호화 통신에 필요한 키 교환 창이 표시되는데, **Continue** ③ 를 선택합니다.
-  - 현재 SerBot 연결에 대한 키 정보는 홈 폴더의 .ssh 폴더 안에 known_hosts 파일로 저장됩니다.
-- SerBot 패스워드 입력창이 표시되면 **soda** ④ 를 입력합니다.
-  - 연결 설정 파일에는 보안을 위해 SerBot의 soda 계정에 대한 패스워드가 저장되어 있지 않습니다.
-- 처음 연결했다면 자동으로 **VS Code Server**를 다운로드한 후 설치 ⑤ 합니다. 
-- 연결 절차가 성공적으로 끝나면 상태 표시줄에 연결 이름 ⑥ 이 표시됩니다. 
+- 처음 연결하면 암호화에 필요한 fingerprint 키 저장을 요청하는데 yes 입력
+- 비밀번호는 jetson<ENTER> 입력 (화면에 표시되지 않음)
+- bash 실행
 
 
-### 문제 해결
-연결 실패 창이 표시되면 **Close Remote**를 선택한 후 처음부터 다시 시도합니다.
+## T-Flash의 파이션1 크기 확장
+T-Flash는 우분투 20.04 파일 시스템의 /dev/mmcblk0 포인터에 마운트되어 있으며, 우분투 20.04 파일 시스템 자체는 파티션1(p1)에 위치합니다.
+Qengineering은 20GB 크기의 파티션에서 우분투 20.04 배포 이미지를 만들었으므로 T-Flash 크기가 32GB 이상이면, 나머지 공간에 대한 확장이 필요합니다.
 
-문제가 계속되면 다음 사항을 확인합니다.
-- PC가 인터넷에 연결되어 있는가?
-- PC의 USB 이더넷 어댑터의 네트워크 설정이 올바른가?
-- SerBot의 연결 설정이 올바른가?
-- 명령 프롬프트에서 **ping 192.168.101.101** 명령을 실행하면 SerBot가 정상적으로 응답하는가?
-- SerBot이 켜져 있는가? 켜져 있다면 메인 모듈이 시작될 만큼 충분한 시간이 흘렀는가?
+### 시스템 업데이트
+처음 Serbot에 원격 접속하면 다음과 같이 인터넷 저장소 정보를 업데이트 후 오래된 시스템 패키지를 업그레이드 합니다.
 
-그래도 문제가 해결되지 않으면 다음 내용을 실행한 후 원격 접속을 다시 시도합니다.
-- VSCode를 종료한 후 탐색기를 통해 VSCode 루트의 data 폴더 아래 만들어진 **user-data** 폴더를 삭제합니다.
-  - user-data 폴더에는 VSCode의 실행 상태(빠른 실행을 위한 캐시 데이터) 및 사용자 환경 설정이 저장되어 있습니다.
-- 홈 폴더의 .ssh 폴더 안에 들어있는 **known_hosts**, **known_hosts.old** 파일을 삭제합니다.
-  - 앞서 진행한 접속 절차에 따라 해당 파일이 없을 수도 있습니다.
+```sh
+sudo apt update
+sudo apt upgrade -y
+```
+
+### 파이션1 크기 변경
+T-Flash 파티션 할당 정보는 lsblk 명령으로 확인합니다.
+
+```sh
+lsblk /dev/mmcblk0
+```
+
+T-Flash의 크기는 다음과 같이 59.6G이나 파티션1(/)은 29.1G만 사용하는 것을 알 수 있습니다.
+
+```
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+mmcblk0      179:0    0 59,5G  0 disk
+├─mmcblk0p1  179:1    0 29,1G  0 part /
+...
+```
+
+다음과 같이 fdisk 명령으로 기존 파이션1을 삭제한 후 새로 만듦니다.
+
+1. T-Flash에 대해 fidks 명령을 실행합니다.
+```
+sudo fdisk /dev/mmcblk0
+```
+
+2. 모든 파티션 정보 출력합니다.
+```
+p
+```
+
+3. 파이션1을 삭제합니다.
+```
+d
+1
+```
+
+4. 파티션1을 새로운 크기로 다시 만듦니다.
+```
+n
+1
+<ENTER>
+<ENTER>
+y<ENTER>
+```
+
+5. 저장 후 종료합니다.
+```
+w
+```
+
+### 파일 시스템에 반영
+
+lsblk로 확인해 보면 파티션1의 크기가 바뀌었습니다.
+
+```sh
+lsblk /dev/mmcblk0
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+mmcblk0      179:0    0 59,5G  0 disk
+├─mmcblk0p1  179:1    0 59,5G  0 part /
+...
+```
+
+하지만 df 명령으로 실제 파티션1의 할당 크기를 보면 변경되지 않았습니다.
+```sh
+df -h
+```
+```sh
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p1   26G   20G  4,2G  83% /
+```
+
+resize2fs 명령으로 변경한 파티션1 정보를 파일 시스템에 반영합니다.
+
+```sh
+sudo resize2fs /dev/mmcblk0p1
+```
+
+```sh
+df -h
+```
+```sh
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p1   59G   20G   37G  36% /
+```
+
+
+## 필요치 않은 패키지 제거
+우분투는 데스크탑을 위한 리눅스 운영체제로 nano와 같은 임베디드 환경에서는 다소 무겁습니다. 꼭 필요하지 않은 몇몇 패키지와 서비스를 제거하면 저장소를 절약할 수 있습니다.
+
+
+### snap
+snap은 우분투의 패키지 관리자 중 하나로 모든 종속성을 포함한 패키지를 빠르고 쉽게 찾아 설치할 수 있지만, deb 패키지에 비해 성능이 느리고, 패키지 크기가 더 크다는 단점이 있습니다.
+
+1. snap 설치 목록을 확인합니다.
+
+```sh
+snap list
+```
+```sh
+Name               Version           Rev    Tracking         Publisher   Notes
+bare               1.0               5      latest/stable    canonical✓  base
+core18             20230703          2794   latest/stable    canonical✓  base
+core20             20240227          2267   latest/stable    canonical✓  base
+core22             20230801          867    latest/stable    canonical✓  base
+gnome-3-34-1804    0+git.3556cb3     94     latest/stable/…  canonical✓  -
+gnome-3-38-2004    0+git.cd626d1     88     latest/stable    canonical✓  -
+gtk-common-themes  0.1-59-g7bca6ae   1519   latest/stable/…  canonical✓  -
+snap-store         41.3-71-g709398e  963    latest/stable/…  canonical✓  -
+snapd              2.60.3            20102  latest/stable    canonical✓  snapd
+```
+
+2. 목록에서 표시된 snap 패키지를 다음과 같이 하나씩 차례로 제거합니다.
+
+```sh
+sudo snap remove --purge snap-store
+sudo snap remove --purge gnome-3-38-2004
+sudo snap remove --purge gnome-3-34-1804
+sudo snap remove --purge gtk-common-themes
+sudo snap remove --purge bare
+sudo snap remove --purge core18
+sudo snap remove --purge core20
+sudo snap remove --purge core22
+sudo snap remove --purge snapd
+```
+
+3. snap 데몬을 제거 합니다.
+```sh
+sudo apt remove --autoremove snapd -y
+```
+
+4. snap이 시스템 업데이트 과정에서 다시 설치되지 않도록 트리거를 중단합니다.
+- vi 편집기로 /etc/apt/preferences.d 경로에 nosnap.pref 파일을 만듧니다.
+```sh
+sudo -H vi /etc/apt/preferences.d/nosnap.pref
+```
+
+- 빈 파일이 열리면 \<i>를 눌려 입력 모드로 바꿉니다.
+- 다음 내용을 입력합니다.
+```sh
+Package: snapd
+Pin: release a=*
+Pin-Priority: -10
+```
+- \<ESC>를 눌러 명령 모드로 바꿉니다.
+- \<:> \<x> \<ENTER>를 차례로 눌러 저장한 후 종료합니다.
+
+5. gnome 소프트웨어를 apt로 설치할 때 snap이 다시 설치되지 않도록 다음 명령을 실행합니다.
+```sh
+sudo apt install --install-suggests gnome-software -y
+```
+
+**snap 다시 되돌리기**
+만약 snap이 필요하면 다음 명령을 실행합니다.
+```sh
+sudo rm /etc/apt/preferences.d/nosnap.pref
+sudo apt update && sudo apt upgrade
+sudo snap install snap-store
+```
+
+### 윈도우 관련 패키지
+우분투 20.04의 디스플레이 관리자는 gdm3이고 데스크톱 환경은 gnome이며 창 관리자는 unity를 사용합니다. 그 밖에 사전 설치된 패키지는 제거하는 것이 좋습니다.
+
+1. lightdm 디스플레이 관리자를 제거합니다.
+```sh
+sudo apt remove --purge lightdm* -y
+```
+
+2. lxde 데스트톱 환경을 제거합니다.
+```sh
+sudo apt remove --purge lx* -y
+```
+
+3. openbox 창 관리자를 제거합니다.
+```sh
+sudo apt remove --purge openbox*  -y
+```
+
+### 파이썬2
+일반적으로 파이썬3를 사용하므로 오래된 파이썬2 패키지를 제거합니다.
+
+```sh
+sudo apt remove --purge python2* -y
+```
+
+## 현대적인 CLI 설치
+우분투 20.04의 기본 쉘은 오래된 bash입니다. 생산성 향상을 위해 이를 현대적인 zsh로 변경한 후 테마 관리자와 테마를 함께 설치합니다.
+
+### zsh
+zsh은 재귀 경로 확장을 비롯해 플러그인과 테마를 지원하는 현대적인 쉘입니다.
+
+1. apt 명령으로 zsh을 설치합니다.
+```sh
+sudo apt install zsh -y
+```
+
+2. zsh을 설치했으면, 기본 쉘을 zsh로 변경합니다.
+```sh
+chsh -s $(which zsh) 
+```
+
+3. zsh을 실행합니다. 
+```sh
+zsh
+```
+
+4. 쉘 스크립트 선택 메시지가 출력되면 <2>를 눌러 범용 설정으로 자동 생성합니다. 
+```
+...
+You can:
+
+(q)  Quit and do nothing.  The function will be run again next time.
+
+(0)  Exit, creating the file ~/.zshrc containing just a comment.
+     That will prevent this function being run again.
+
+(1)  Continue to the main menu.
+
+(2)  Populate your ~/.zshrc with the configuration recommended
+     by the system administrator and exit (you will need to edit
+     the file by hand, if so desired).
+
+--- Type one of the keys in parentheses --- 
+```
+
+### oh-my-zsh
+oh-my-zsh은 zsh을 위한 테마 관리자입니다. oh-my-zsh을 설치하면 zsh 기능을 확장하는 유용한 플러그인을 설치하고 내장된 테마 중 하나를 선택할 수 있습니다.
+
+1. wget으로 oh-my-zsh 설치 스크립트를 다운받아 실행합니다.
+```sh
+sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+```
+
+2. 만약 기본 쉘로 zsh을 사용할지 묻는 메시지가 표시되면 <y> 또는 <ENTER>를 누릅니다.
+```
+Looking for an existing zsh config...
+Found /home/jetson/.zshrc. Backing up to /home/jetson/.zshrc.pre-oh-my-zsh
+Using the Oh My Zsh template file and adding it to /home/jetson/.zshrc.
+
+Time to change your default shell to zsh:
+Do you want to change your default shell to zsh? [Y/n]
+```
+
+3. 기본 테마가 자동 선택된 후 설치가 종료합니다.
+```sh
+...
+         __                                     __   
+  ____  / /_     ____ ___  __  __   ____  _____/ /_  
+ / __ \/ __ \   / __ `__ \/ / / /  /_  / / ___/ __ \ 
+/ /_/ / / / /  / / / / / / /_/ /    / /_(__  ) / / / 
+\____/_/ /_/  /_/ /_/ /_/\__, /    /___/____/_/ /_/  
+                        /____/                       ....is now installed!
+
+
+Before you scream Oh My Zsh! look over the `.zshrc` file to select plugins, themes, and options.
+
+• Follow us on Twitter: @ohmyzsh
+• Join our Discord community: Discord server
+• Get stickers, t-shirts, coffee mugs and more: Planet Argon Shop
+```
+
+### powerlevel10k
+powerlevel10k는 zsh 테마 중 하나로 oh-my-zsh에 포함된 테마보다 더 보기 좋습니다. 
+
+1. git으로 powerlevel10k을 설치합니다.
+```sh
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+```
+
+2. vi 편집기로 ~/.zshrc 파일을 엶니다.
+```sh
+vi ~/.zshrc
+```
+
+3. 방향 키로 커서를 ZSH_THEME 변수 위치(11번 줄)로 옮깁니다.
+```sh
+ZSH_THEME="ZSH_THEME="robbyrussell""
+```
+
+4. 문자열을 <DEL>로 삭제하고, <i>를 눌러 입력 모드로 바꾼 후 다음과 같이 입력합니다.  
+```sh
+ZSH_THEME="powerlevel10k/powerlevel10k"
+```
+
+5. <ECS>와 <:><x><ENTER>를 차례로 눌러 저장한 후 종료합니다.
+
+6. exit 명령으로 터미널 연결을 종료합니다. 
+```sh
+exit
+```
+
+7. 윈도우에서 ssh 명령으로 다시 Serbot IP 주소를 이용해 접속합니다. 
+```sh
+ssh jetson@192.168.100.59
+```
+
+8. powerlevel10k 설정을 시작합니다.
+```
+diamond: y (Yes)
+lock: y (Yes)
+upwards arrow y (Yes)
+fit between the crosses: y (Yes)
+Prompt Style: 3 (Rainbow)
+Character Set: 1 (Unicode)
+Show current time: 2 (24-hour format)
+Prompt Separators: 4 (Round)
+Prompt Heads: 4 (Slanted)
+Prompt Tails: 5 (Round)
+Prompt Height: 2 (Two lines)
+Prompt Connection: 3 (Dotted)
+Prompt Frame: 3 (Right)
+Connection & Frame Color: 3 (Dark)
+Prompt Spacing: 2 (Sparse)
+Icons: 2 (Many icons)
+Prompt Flow: 2 (Fluent)
+Enable Transient Prompt: y (Yes)
+Instant Prompt Mode: 2 (Quiet)
+Apply changes to ~/.zshrc: y (Yes)
+```
+
+9. powerlevel10k를 다시 설정하려면 다음 명령을 실행합니다.
+```sh
+ p10k configure 
+```
 </details>
   
 <details>
