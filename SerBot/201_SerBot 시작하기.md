@@ -74,9 +74,10 @@ SerBot이 방전 종지 전압에 도달하면 SerBot의 사용을 멈추고 외
 ## nano에 우분투 20.04 설치
 NVIDIA는 nano에 대해 우분투 20.04 이상을 지원하지 않으므로, 이를 사용하려면 전문가의 도움이 필요합니다.  
 임베디드 분야 전문 SW 기업인 Qengineering은 NVIDIA를 대신해 깃허브에 nano용 우분투 20.04 이미지를 공개했습니다.
+Serbot에 이를 설치하면 pop 라이브러리를 비롯해 사전 설치한 파이썬 패키지를 다시 설치해야 합니다.
 
 ### 준비물
-nano 운영체제를 우분투 20.04로 바꾸는데 필요한 준비물은 다음과 같습니다.
+작업에 필요한 PC 준비물은 다음과 같습니다.
 
 1. 윈도우 PC에서 진행한다고 가정합니다.
 2. win32diskimager를 다운받아 설치합니다.  
@@ -84,11 +85,12 @@ nano 운영체제를 우분투 20.04로 바꾸는데 필요한 준비물은 다�
 
 3. JetsonNanoUb20_3b.img.xz를 다운받아 압축 해제합니다. (20GB 이상 여유 공간 필요)  
   [JetsonNanoUb20_3b.img.xz 다운로드](https://ln5.sync.com/dl/403a73c60/bqppm39m-mh4qippt-u5mhyyfi-nnma8c4t/view/default/14418794280004)
+  > 이 링크는 시간이 지나면 사라질 수 있습니다. 다운받은 파일은 안전한 곳에 별도 보관해 둡니다.
 
 4. PC에 자체 T-Flash 리더기가 없으면 USB 타입 T-Flash 리더기를 준비합니다.
 
 **nerd 폰트 설치**  
-nerd 폰트는 기존 폰트에 수 많은 그래픽 문자를 추가한 특별한 폰트로 텍스트 화면을 멋지게 꾸밀 때 사용합니다.
+nerd 폰트는 공개용 코딩 폰트에 수 많은 그래픽 문자를 추가한 특별한 폰트로 텍스트 화면을 멋지게 꾸밀 때 사용합니다.
 
 1. 배포 사이트에서 마음에 드는 nerd 폰트 하나를 고릅니다.   
    [Nerd 폰트 다운로드](https://www.nerdfonts.com/font-downloads)
@@ -111,7 +113,7 @@ pwsh
 ```
 
 **윈도우 터미널 설치**  
-더 향상된 윈도우 쉘 환경을 위해 윈도우 터미널을 설치합니다.
+윈도우 터미널은 CLI 디스플레이 관리자로 윈도우 터미널은 설치하면 명령 프롬프트를 비롯해 파워 쉘은 더 향상된 CLI 환경에서 실행됩니다.
 
 1. winget으로 윈도우 터미널을 설치합니다.  
 ```sh
@@ -176,6 +178,8 @@ PC와 Serbot은 같은 네트워크에 속해야 하며 다음과 같이 해당 
 - 연결된 공유기 항목 끝의 설정 아이콘을 눌러 할당된 IP 주소 확인
 
 ### 이더넷 연결
+> 기존 Serbot에서 제공하던 이더넷 IP 192.168.101.101을 사용하려면 사용자 작업이 필요합니다.
+
 PC와 Serbot은 같은 네트워크에 속해야 하며 일반적으로 DHCP 서버로부터 자동으로 IP 주소를 할당받아야 합니다. 자동 할당된 IP 주소는 다음과 같이 확인합니다.
 
 - Serbot의 이더넷 포트에 이더넷 케이블 연결
@@ -184,7 +188,7 @@ PC와 Serbot은 같은 네트워크에 속해야 하며 일반적으로 DHCP 서
 - 연결된 이더넷 항목 끝의 설정 아이콘을 눌러 할당된 IP 주소 확인
 
 ### USB 연결
-USB 케이블로 PC와 Serbot을 연결하면 이더넷 연결과 같으나 PC와 Serbot 사이 1:1 통신만 허용하므로 시스템 업데이트가 필요하면 추가로 Wi-Fi나 이더넷 연결이 필요합니다.
+USB 케이블로 PC와 Serbot을 연결하면 이더넷 연결과 같으나 PC와 Serbot 사이 1:1 로컬 통신만 허용하므로 인터넷을 통한 시스템 업데이트가 필요하면 추가로 Wi-Fi나 이더넷 연결이 필요합니다.
 
 PC와 Serbot에는 다음과 같이 미리 설정한 IP가 자동 할당됩니다. 
 
@@ -193,6 +197,8 @@ PC와 Serbot에는 다음과 같이 미리 설정한 IP가 자동 할당됩니�
 - Serbotd의 가상 이더넷 어댑터에는 IP 주소 192.168.55.1이 자동 할당됨
 
 ### ping 테스트
+> PC와 Serbot이 같은 AP에 연결되었고, Serbot의 IP 주소는 192.168.100.59로 가정합니다.
+
 Serbot에 할당된 IP 주소로 ping 테스트를 수행합니다.
 
 ```sh
@@ -200,7 +206,9 @@ ping 192.168.100.59
 ```
 
 ### 원격 쉘 얻기
-ping 테스트가 성공하면 Serbot에 할당된 IP 주소와 사용자 계정으로 SSH 접속에 접속합니다. 계정 id와 비밀번호는 모두 jetson입니다.
+> 기존 Serbot 운영체제의 사용자 계정은 soda였으나 새로 설치한 운영체제의 사용자 계정은 jetson입니다.
+ping 테스트가 성공하면 Serbot에 할당된 IP 주소와 사용자 계정으로 SSH 접속에 접속합니다.   
+계정 id와 비밀번호는 모두 jetson입니다.
 
 ```sh
 ssh jetson@192.168.100.59
@@ -208,20 +216,12 @@ ssh jetson@192.168.100.59
 
 - 처음 연결하면 암호화에 필요한 fingerprint 키 저장을 요청하는데 yes 입력
 - 비밀번호는 jetson<ENTER> 입력 (화면에 표시되지 않음)
-- bash 실행
+- bash이 실행됨
 
 
 ## T-Flash의 파이션1 크기 확장
 T-Flash는 우분투 20.04 파일 시스템의 /dev/mmcblk0 포인터에 마운트되어 있으며, 우분투 20.04 파일 시스템 자체는 파티션1(p1)에 위치합니다.
 Qengineering은 20GB 크기의 파티션에서 우분투 20.04 배포 이미지를 만들었으므로 T-Flash 크기가 32GB 이상이면, 나머지 공간에 대한 확장이 필요합니다.
-
-### 시스템 업데이트
-처음 Serbot에 원격 접속하면 다음과 같이 인터넷 저장소 정보를 업데이트 후 오래된 시스템 패키지를 업그레이드 합니다.
-
-```sh
-sudo apt update
-sudo apt upgrade -y
-```
 
 ### 파이션1 크기 변경
 T-Flash 파티션 할당 정보는 lsblk 명령으로 확인합니다.
@@ -307,11 +307,45 @@ Filesystem      Size  Used Avail Use% Mounted on
 ```
 
 
-## 필요치 않은 패키지 제거
-우분투는 데스크탑을 위한 리눅스 운영체제로 nano와 같은 임베디드 환경에서는 다소 무겁습니다. 꼭 필요하지 않은 몇몇 패키지와 서비스를 제거하면 저장소를 절약할 수 있습니다.
+## 우분투 20.04 최적화
+> Serbot에 설치되었던 기존 우분투 18.04는 이 작업을 포함한 더 많은 최적화가 적용되어 있습니다.
 
+우분투는 데스크탑을 위한 리눅스 운영체제로 nano와 같은 임베디드 환경에서는 다소 무겁습니다. 꼭 필요하지 않은 몇몇 패키지와 서비스를 제거하면 더 적은 메모리를 사용하고, 저장소를 절약할 수 있습니다.
 
-### snap
+### 시스템 업데이트
+처음 우분투 20.04를 시작하면 인터넷 저장소 정보를 업데이트한 후 오래된 시스템 패키지를 업그레이드 합니다.
+
+```sh
+sudo apt update
+sudo apt upgrade -y
+```
+
+### 시간을 한국 표준 시간(KST)로 변경
+우분투는 기본적으로 로컬 타임 존이 미국 동부 시간으로 설정되어 있습니다. 우리나라 시간에 맞추기 위해 아시아 서울로 변경합니다.
+
+```sh
+date
+sudo ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+date
+```
+
+### 인터넷 연결 설정
+기존 우분투 데스크탑 환경에서 Wi-Fi 또는 이더넷 연결 설정은 시스템 설정 툴을 사용합니다. 하지만 gnome 패키지를 제거하면 함께 삭제되므로 지금은 사용할 수 없습니다.
+대신 우분투 네트워크 설정을 관리하는 NetworkManager는 CLI 환경을 위해 nmcli와 nmtui와 함께 제공하며 초보자라면 메뉴 형식의 nmtui가 좀 더 직관적입니다.
+단, Serbot이 이미 인터넷에 연결된 공유기에 연결된 상태라면 넘어가도 됩니다. 즉, 다른 공유기를 사용할 때만 실행합니다.
+
+1. nmtui을 실행합니다.
+```sh
+nmtui
+```
+
+2. 메뉴가 표시되면 방향 키와 <ENTER>로 Edit a connction을 선택합니다.
+
+3. Wi-Fi 목록에서 연결할 공유기 이름을 확인한 후 이를 <ENTER>를 선택합니다. 
+
+4. Password에 알맞는 비밀번호를 입력한 후 <OK>를 선택하면 설정이 완료됩니다.
+
+### snap 제거
 snap은 우분투의 패키지 관리자 중 하나로 모든 종속성을 포함한 패키지를 빠르고 쉽게 찾아 설치할 수 있지만, deb 패키지에 비해 성능이 느리고, 패키지 크기가 더 크다는 단점이 있습니다.
 
 1. snap 설치 목록을 확인합니다.
@@ -380,33 +414,149 @@ sudo apt update && sudo apt upgrade
 sudo snap install snap-store
 ```
 
-### 윈도우 관련 패키지
-우분투 20.04의 디스플레이 관리자는 gdm3이고 데스크톱 환경은 gnome이며 창 관리자는 unity를 사용합니다. 그 밖에 사전 설치된 패키지는 제거하는 것이 좋습니다.
+### X.org 관련 상위 패키지 변경
+리눅스 GUI 환경은 윈도우 운영체제와 달리 X.org(X-Server의 구현 중 하나)와 같은 디스플레이 서버 위에 디스플레이 괸리자와 창 관리자 또는 데스크톱 환경이 목적에 따라 다양한 조합으로 실행됩니다.  
+디스플레이 서버는 GUI 환경을 위한 표준 서비스이고, 나머지는 디스플레이 서버가 제공하는 서비스를 이용하는 응용프로그램입니다.
+그 중 디스플레이 관리자는 부팅 프로세스가 끝나면 기본 쉘 대신 표시되는 그래픽 인터페이스로 로그인 및 세션을 관리하고, 창 관리자는 창의 생성, 조작, 배치 및 표시를 관리하는 프로그램입니다.
+디스크탑 환경은 사용자를 위해 테마와 창 효과를 비롯해, GUI 환경에서 시스템 설정 및 업데이트와 작업 표시 줄, 런처 같은 다양한 부가 가능을 제공합니다.
 
-1. lightdm 디스플레이 관리자를 제거합니다.
+우분투 20.04는 디스플레이 관리자로 gdm3을, 데스크톱 환경은 창 관리자인 unity가 결합된 gnome을 사용합니다. 하지만 교체를 희망하는 사용자를 위해 lightdm과 openbox도 함께 설치되어 있습니다.
+lightdm은 gdm3를 대체하는 디스플레이 관리자이고, openbox는 gnome을 대체하는 창 관리자입니다. gdm3나 gnone+unity 조합에 비해 부가 기능이나 화려함은 떨어지지만 더 적은 메모리와 저장소를 사용하므로 좀 더 쾌적한 환경에서 인공지능 로봇 개발을 진행할 수 있습니다.
+
+1. gdm3 및 gnome, unity를 제거합니다.
 ```sh
-sudo apt remove --purge lightdm* -y
+bash
+sudo apt purge gnome* -y
+sudo apt autoremove -y
+
+rm -rf ~/.config/*
+exit
 ```
 
-2. lxde 데스트톱 환경을 제거합니다.
+2. lightdm을 디스플레이 관리자로 설정합니다.
 ```sh
-sudo apt remove --purge lx* -y
+sudo dpkg-reconfigure lightdm
+cat /etc/X11/default-display-manager
 ```
 
-3. openbox 창 관리자를 제거합니다.
+3. openbox을 창 관리자로 설정합니다.
+- vi 편집기로 /etc/lightdm/lightdm.conf.d/ 경로의 50-nvidia.conf 파일을 엶니다.
 ```sh
-sudo apt remove --purge openbox*  -y
+sudo vi /etc/lightdm/lightdm.conf.d/50-nvidia.conf
 ```
 
-### 파이썬2
+- 커서를 **user-session=**로 옮긴 후 <DEL>를 차례로 눌러 ux-LXDM을 삭제합니다. 
+- \<i>를 눌려 입력 모드로 바꾼 다음 삭제한 문자열 대신 ux-openbox를 입력합니다.
+```sh
+user-session=ux-openbox
+```
+- \<ESC>를 눌러 명령 모드로 바꿉니다.
+- \<:> \<x> \<ENTER>를 차례로 눌러 저장한 후 종료합니다.
+
+4. Serbot을 재 시작해 openbox를 실행합니다.
+- Serbot을 다시 시작하면 jetson 계정으로 자동 로그인합니다.
+```sh
+sudo reboot
+```
+
+### 배경 이미지나 색 설정
+openbox는 바탕 화면에 대한 지원이 없습니다. 따라서 배경 색이나 이미지를 설정하려면 다른 툴의 도움을 받아야 합니다.
+SSH 원격 접속 터미널에서 X 응용프로그램을 실행할 때는 DISPLAY 환경변수 설정이 필요합니다.
+
+1. 배경 이미지를 설정하려면 nitrogen보다 빠른 feh를 설치합니다.
+```sh
+sudo apt install feh
+```
+
+2. 배경 이미지를 출력해 봅니다.
+```sh
+DISPLAY=:0 feh --bg-fill /usr/share/backgrounds/NVIDIA_Wallpaper.jpg
+```
+
+3. openbox가 실행될 때 배경 이미지 설정 명령도 함께 실행되도록 합니다.
+- vi 편집기로 ~/.config/openbox 경로에 autostart 파일을 만듦니다.
+```sh
+vi ~/.config/openbox/autostart
+```
+- 빈 파일이 열리면 \<i>를 눌려 입력 모드로 바꾼 다음 다음 내용을 입력합니다.
+```sh
+feh --bg-fill /usr/share/backgrounds/NVIDIA_Wallpaper.jpg
+```
+- \<ESC>를 눌러 명령 모드로 바꾼 후 \<:> \<x> \<ENTER>를 차례로 눌러 저장한 후 종료합니다.
+
+4. 배경색 설정은 다음 명령을 사용합니다. (단 배경 이미지는 사용할 수 없습니다.)
+```sh
+DISPLAY=:0 xsetroot -solid "#006666"
+```
+
+5. ~/.config/openbox/autostart를 수정해 openbox가 실행될 때 배경색 설정 명령도 함께 실행되도록 합니다.
+```sh
+xsetroot -solid "#006666"
+```
+
+### 윈도우 패널 설치
+openbox는 단순한 창 관리자이므로 패널(시작 메뉴, 현재 실행 중인 프로그램 목록, 트레이 등)나 배경화면과 같은 데스크탑 환경은 제공하지 않습니다.  
+lxpanel, xface panel, tint2 등 다양한 다양한 패널 프로그램이 있는데, 그 중 openbox와 어울리는 패널은 tint2입니다.
+
+1. tint2를 설치합니다.
+```sh
+sudo apt install tint2
+```
+
+2. tint2 테마를 설치합니다.
+```sh
+git clone https://github.com/addy-dclxvi/tint2-theme-collections ~/.config/tint2 --depth 1
+```
+
+3. tint2를 해당 테마로 실행해 봅니다. <Ctrl>+c를 누르면 종료합니다.
+```sh
+DISPLAY=:0 tint2 -c ~/.config/tint2/raven/raven-cyan.tint2rc
+```
+
+4. openbox가 실행될 때 tint2도 함께 실행되도록 설정합니다.
+- vi 편집기로 ~/.config/openbox 경로의 autostart 파일을 엶니다.
+```sh
+vi ~/.config/openbox/autostart
+```
+- 파일이 열리면 끝 줄로 이동한 후 \<o>를 눌려 아랫 줄을 추가한 후 입력 모드에서 다음 내용을 입력합니다. (줄 끝 &는 백그라운드 실행을 의미합니다.)
+```sh
+tint2 -c ~/.config/tint2/raven/raven-cyan.tint2rc &
+```
+- \<ESC>를 눌러 명령 모드로 바꾼 후 \<:> \<x> \<ENTER>를 차례로 눌러 저장한 후 종료합니다.
+
+
+### GUI 원격 데스크탑 환경
+PC에서 원격으로 Serbot의 GUI 환경을 사용할 때는 VNC를 비롯해 RDP등 다양한 솔루션이 있지만, 네트워크 환경에 따라 가변 압축을 지원하는 nomachine을 권장합니다.
+nomachine은 상업, 비상업 버전으로 나뉘는데, 두 버전의 기본적인 기능은 같고 비상업 버전은 세션당 한명의 사용자만 연결할 수 있습니다.
+
+1. Serbot에 nomachine 서버를 설치합니다.
+```sh
+wget https://www.nomachine.com/free/arm/v8/deb -O nomachine.deb
+sudo dpkg -i nomachine.deb
+rm nomachine.deb
+```
+
+2. PC에서 nomachine 클라이언트를 설치합니다.
+```sh
+winget install NoMachine.NoMachineClient -s winget
+```
+
+3. PC에서 namachine 클라이언트를 실행한 후 Serbot의 IP 주소를 이용해 원격 접속합니다.
+- Search 창에 SerBot IP 주소를 입력한 후 목록에서 <connect to new host ...> 선택
+- 연결 창에 Username과 Password에 모두 jetson을 입력 한 후 Login 선택
+- Serbot에 연결되면 마우스로 openbox 화면 오른쪽 상단 끝을 클릭해 설정 화면으로 이동
+- 하단 아이콘 목록에서 Change settins(오른쪽 끝) 선택
+- Resolution을 1280x720으로 변경 후 Modify 선택
+- 하단 아이콘 목록에서 Resize remote display(가운데) 선택
+- 상단 뒤로 가기 버튼을 눌러 원래 openbox 화면으로 복귀
+
+
+### 파이썬2 제거
 일반적으로 파이썬3를 사용하므로 오래된 파이썬2 패키지를 제거합니다.
 
 ```sh
 sudo apt remove --purge python2* -y
 ```
-
-## 현대적인 CLI 설치
-우분투 20.04의 기본 쉘은 오래된 bash입니다. 생산성 향상을 위해 이를 현대적인 zsh로 변경한 후 테마 관리자와 테마를 함께 설치합니다.
 
 ### zsh
 zsh은 재귀 경로 확장을 비롯해 플러그인과 테마를 지원하는 현대적인 쉘입니다.
