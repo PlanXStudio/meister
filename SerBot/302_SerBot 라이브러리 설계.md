@@ -154,10 +154,11 @@ MPU6050는 Serbot의 자세 제어를 위한 6축 관성 센서로 I2C 버스에
 SerBot에 포함된 MPU6050는의 I2C 버스와 주소는 다음과 같습니다.  
 - Bus = 1, Address = 0x68
 
-다음은 MPU6050 데이터시트입니다.
+다음은 MPU6050 데이터시트와 실제 구현에필요한 `레지스터 맵`입니다.
 - [MPU6050 Datasheet](https://product.tdk.com/system/files/dam/doc/product/sensor/mortion-inertial/imu/data_sheet/mpu-6000-datasheet1.pdf)
+- [MPU6050 Register Map](https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Register-Map1.pdf)
 
-데이터시트를 참조해 제어 코드를 구현합니다.
+레지스터 맵을 참조해 제어 코드를 구현합니다.
 **Workspace/serbot/mpu6050.py**
 ```python
 from smbus2 import SMBus
@@ -302,7 +303,7 @@ if __name__ == "__main__":
 ```
 
 ### Pilot
-앞서 구현한 PCA9685와 MPU6050를 이용해 SerBot의 움직임 제어에 필요한 기능을 구현합니다.
+앞서 구현한 PCA9685와 MPU6050를 이용해 SerBot의 움직임 제어에 필요한 driving 기능을 구현합니다.
 
 **Workspace/serbot/driving.py**
 ```python
@@ -579,3 +580,35 @@ class Driving:
     def move(self, degree, speed):
         self.drv.move(degree,speed)
 ```
+
+### Rplidar A2
+대표적인 2D Lidar 중 하나인 Rplidar A2는 Serbot의 카메라와 함께 각을 담당하며, 레이저 빛을 쏜 후 대상에 반사되어 돌아오는 시간을 계산해 대상과의 거리를 측정합니다.
+시리얼 통신으로 제어하는데 최대 측정 거리는 모델에 따라 3 ~ 12m이고 1초에 360도(degree)를 10 frame 이상 측정할 수 있습니다. 
+일반적으로 UART 출력을 USB로 변환하는 컨버터를 사용하므로 USB 포트에 연결해 사용합니다.
+
+SerBot에 포함된 Rplidar A2의 가상 시리얼 포트는 다음과 같습니다.  
+- /dev/ttyUSB0
+
+다음은 Rplidar A2 데이터시트와 실제 구현에 필요한 `Rplidar 프로토콜`입니다.  
+- [Rplidar A2 datasheet](http://bucket.download.slamtec.com/004eb70efdaba0d30a559d7efc60b4bc6bc257fc/LD204_SLAMTEC_rplidar_datasheet_A2M4_v1.0_en.pdf)
+- [Rplidar Protocols](https://bucket-download.slamtec.com/6494fd238cf5e0d881f56d914c6d1f355c0f582a/LR001_SLAMTEC_rplidar_protocol_v2.4_en.pdf)
+
+Slamtec은 Rplidar 프로토콜을 C++로 구현한 SDK를 Github에 공개하고 있으므로 이를 이용해 SWIG로 파이썬 바인더를 구현합니다.
+1. github에서Rplidar sdk 최신 버전 복제  
+```sh
+git clone https://github.com/Slamtec/rplidar_sdk
+```
+
+2. 빌드
+```
+cd rplidar_sdk
+make -j6
+```
+
+3. 파이썬 바인더 생성
+- rplidar_sdk/sdk 폴더에서 진행하며, rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a를 rplidar_sdk/sdk로 복사
+- app/simple-grabber/main.cpp와 app/ultra_simple/main.cpp 코드를 참조해 파이썬으로 변환할 C++ 클래스 헤더(lidar2d_h)와 소스(lidar2d.cpp) 정의
+- C++ 헤더를 참조해 swig 인터페이스 정의 (lidar2d.i)
+  - C++ STL 라이브러리 변환 구현을 제외하면 include로 포함하는 헤더를 추가하는 수준
+- 셋업(setup.py) 및 빌드(make.py) 정의
+- 빌드(make.py)를 실행하면 공유 라이브러리(_lidar2d.so)와 binding 파일(lidar2d.py)이 생성됨
