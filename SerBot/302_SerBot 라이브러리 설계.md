@@ -125,7 +125,7 @@ pwm = None
 def setup():
     global pwm
     
-    imu = IMU()
+    pwm = PWM()
 
     pwm.setDuty(0, 0)
     pwm.setDuty(1, 100) # CCW (forward)
