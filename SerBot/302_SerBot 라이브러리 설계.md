@@ -606,9 +606,303 @@ make -j6
 ```
 
 3. 파이썬 바인더 생성
+- C++를 python으로 변환하는 swig 설치
+  ```sh
+  sudo apt install swig
+  ```
 - rplidar_sdk/sdk 폴더에서 진행하며, rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a를 rplidar_sdk/sdk로 복사
 - app/simple-grabber/main.cpp와 app/ultra_simple/main.cpp 코드를 참조해 파이썬으로 변환할 C++ 클래스 헤더(lidar2d_h)와 소스(lidar2d.cpp) 정의
 - C++ 헤더를 참조해 swig 인터페이스 정의 (lidar2d.i)
   - C++ STL 라이브러리 변환 구현을 제외하면 include로 포함하는 헤더를 추가하는 수준
 - 셋업(setup.py) 및 빌드(make.py) 정의
 - 빌드(make.py)를 실행하면 공유 라이브러리(_lidar2d.so)와 binding 파일(lidar2d.py)이 생성됨
+
+결과는 다음 링크를 통해 다운받을 수 있습니다.
+[Rplidar binding](https://1drv.ms/f/s!AtTAtBZJQ9JFpdR0lh0zdIrNiUMjYQ?e=2Q0GSB)
+
+다음은 결과 생성에 필요한 소스 코드입니다.
+**lidar2d.h**
+```python
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+
+#include "include/sl_lidar.h"
+#include "include/sl_lidar_driver.h"
+
+#define DEFAULT_PORT_PATH "/dev/ttyUSB0"
+#define DEFAULT_BAUD_RATE 115200
+
+using namespace sl;
+
+class Lidar2D {
+        public:
+                Lidar2D();
+                ~Lidar2D();
+
+                bool connect(const char * port=DEFAULT_PORT_PATH, int baud=DEFAULT_BAUD_RATE);
+                void disconnect(void);
+                void reset(void);
+
+                const char * getSerialNumber(void);
+                const char * getFirmwareVersion(void);
+                const char * getHardwareVersion(void); 
+
+                std::vector<std::vector<double>> getVectors();
+                std::vector<std::vector<double>> getXY();
+
+        private:
+                sl_lidar_response_measurement_node_hq_t nodes[8192];
+                size_t count;
+
+                ILidarDriver * drv;
+                char serial_number[64] = {0,};
+                char firmware_version[64] = {0,};
+                char hardware_version[64] = {0,};
+                
+        private:
+                bool checkHealth(void);
+};
+```
+
+**lidar2d.cpp**
+```python
+#include <unistd.h>
+#include <cmath>
+
+#include "lidar2d.h"
+
+constexpr double deg2rad = M_PI/180.0;
+
+static inline void delay(sl_word_size_t ms){
+    while (ms>=1000){
+        usleep(1000*1000);
+        ms-=1000;
+    };
+    if (ms!=0)
+        usleep(ms*1000);
+}
+
+
+Lidar2D::Lidar2D()
+{
+    drv = *createLidarDriver();
+    if (!drv) { 
+        fprintf(stderr, "insufficent memory exit\n");
+        exit(-2);
+    }
+
+    count = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
+}
+
+Lidar2D::~Lidar2D()
+{   
+    disconnect();
+    
+    delete drv;
+    drv = NULL;
+}
+
+bool Lidar2D::connect(const char * port, int baud)
+{
+    IChannel * _channel;
+    sl_lidar_response_device_info_t _devinfo;
+    LidarScanMode scanMode;
+
+    _channel = (*createSerialPortChannel(port, baud));
+    if (SL_IS_OK((drv)->connect(_channel))) {
+        if (SL_IS_OK(drv->getDeviceInfo(_devinfo))) {
+            for (int pos = 0; pos < 16 ;++pos) {
+                sprintf(&serial_number[pos*2], "%02X", _devinfo.serialnum[pos]);
+            }
+            sprintf(firmware_version, "%d.%02d", _devinfo.firmware_version>>8, _devinfo.firmware_version & 0xFF);
+            sprintf(hardware_version, "%d", (int)_devinfo.hardware_version);
+
+            if (checkHealth()) {
+                drv->setMotorSpeed();
+                drv->startScan(false, true, 0, &scanMode);
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            delete drv;
+            drv = NULL;
+            
+            return false;
+        }
+    }
+
+    return false;
+}
+
+void Lidar2D::disconnect(void)
+{
+    if (drv) {
+        drv->stop();
+        delay(200);
+        drv->setMotorSpeed(0);
+    }
+}
+
+void Lidar2D::reset()
+{
+    drv->reset();
+}
+
+bool Lidar2D::checkHealth()
+{
+    sl_result op_result;
+    sl_lidar_response_device_health_t healthinfo;
+
+    op_result = drv->getHealth(healthinfo);
+    if (SL_IS_OK(op_result)) {
+        printf("Lidar health status : %d\n", healthinfo.status);
+        if (healthinfo.status == SL_LIDAR_STATUS_ERROR) {
+            fprintf(stderr, "Error, slamtec lidar internal error detected. Please reboot the device to retry.\n");
+            return false;
+        } else {
+            return true;
+        }
+
+    } else {
+        fprintf(stderr, "Error, cannot retrieve the lidar health code: %x\n", op_result);
+        return false;
+    }
+}
+
+const char * Lidar2D::getSerialNumber(void)
+{
+    return serial_number;
+}
+
+const char * Lidar2D::getFirmwareVersion(void)
+{
+    return firmware_version;
+}
+
+const char * Lidar2D::getHardwareVersion(void)
+{
+    return hardware_version;
+}
+
+std::vector<std::vector<double>> Lidar2D::getVectors()
+{
+    std::vector<double> sample(4);
+    std::vector<std::vector<double>> output;
+
+    if (SL_IS_OK(drv->grabScanDataHq(nodes, count, 0))) {
+        drv->ascendScanData(nodes, count);
+        for (int pos = 0; pos < (int)count ; ++pos) {
+            sample.at(0) = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+            sample.at(1) = nodes[pos].dist_mm_q2/4.0f;
+            sample.at(2) = nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
+            sample.at(3) = nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT ? 1.0 : 0.0;
+            output.push_back(sample);
+        }
+
+        output.reserve(count);
+    }
+    
+    return output;
+}
+
+std::vector<std::vector<double>> Lidar2D::getXY()
+{
+    std::vector<std::vector<double>> points = getVectors();
+    std::vector<std::vector<double>> output(points.size(), std::vector<double>(2));
+
+    for (unsigned int i = 0; i<points.size(); i++) {
+        output.at(i).at(0) = std::cos(deg2rad*points.at(i).at(0)) * points.at(i).at(1);
+        output.at(i).at(1) = std::sin(deg2rad*points.at(i).at(0)) * points.at(i).at(1);
+    }
+
+    return output;
+}
+```
+
+**lidar2d.i**
+```python
+%module lidar2d
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+
+#include "include/sl_lidar.h"
+#include "include/sl_lidar_driver.h"
+#include "lidar2d.h"
+%}
+
+%include <std_vector.i>
+%include <std_string.i>
+%include "include/sl_lidar.h"
+%include "include/sl_lidar_driver.h"
+%include "lidar2d.h"
+%template(vector_double) std::vector<double>;
+%template(vector_vector_double) std::vector<std::vector<double> >;
+
+%typemap(out) std::vector<std::vector<double> >* %{
+    $result = PyList_New($1->size()); 
+    for(size_t i = 0; i < $1->size(); ++i)
+    {
+        auto t = PyList_New((*$1)[i].size()); 
+        for(size_t j = 0; j < (*$1)[i].size(); ++j) {
+            PyList_SET_ITEM(t,j,PyFloat_FromDouble((*$1)[i][j]));
+        }
+        PyList_SET_ITEM($result,i,t);
+    }
+%}
+```
+
+**setup.py**
+```python
+from distutils.core import setup, Extension
+
+lidar2d_module = Extension('_lidar2d',
+                            sources=['lidar2d_wrap.cxx', 'lidar2d.cpp'],
+				extra_objects=["libsl_lidar_sdk.a"],
+				extra_compile_args=['-lpthread', '-lstdc++'],
+                           )
+
+setup (name = 'lidar2d',
+       version = '1.1',
+       author = "PlanX-Labs",
+       description = """lidar2d Python Binder""",
+       ext_modules = [lidar2d_module],
+       py_modules = ["lidar2d"],
+       )
+```
+
+**make.py**
+```python
+#!/usr/bin/python3
+
+import subprocess
+import os
+
+p = subprocess.Popen(['swig',
+                      '-c++',
+                      '-python',
+                      'lidar2d.i'])
+p.wait()
+
+p = subprocess.Popen(['python3',
+                      'setup.py',
+                      'build_ext',
+                      '--inplace'])
+p.wait()
+
+for file in os.listdir(os.getcwd()):
+    if file.find('_lidar2d.cpython') >= 0:
+        os.rename(os.path.join(os.getcwd(), file), os.path.join(os.getcwd(), '_lidar2d.so'))
+        break
+```
+
+
+
+
