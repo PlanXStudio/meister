@@ -302,7 +302,7 @@ if __name__ == "__main__":
         loop()
 ```
 
-### Pilot
+### Driving
 앞서 구현한 PCA9685와 MPU6050를 이용해 SerBot의 움직임 제어에 필요한 driving 기능을 구현합니다.
 
 **Workspace/serbot/driving.py**
@@ -581,6 +581,42 @@ class Driving:
         self.drv.move(degree,speed)
 ```
 
+구현한 Driving 클래스를 테스트해 봅니다.   
+**Workspace/driving_test.py**
+```python
+import sys
+import signal
+import time
+
+from serbot.driving import Driving
+
+drv = Driving()
+
+def setup():
+    for s in range(20, 100+1, 10):
+        drv.forward(s)
+        print(f"Current speed = {s}")
+        time.sleep(2)
+    for s in range(100, 20-1, -10):
+        drv.backward(s)
+        print(f"Current speed = {s}")
+        time.sleep(2)
+    
+    cleanup()
+
+def loop():
+    pass
+
+def cleanup(*args, **kwargs):
+    sys.exit()
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, cleanup)
+    setup()
+    while True:
+        loop()
+```
+
 ### Rplidar A2
 대표적인 2D Lidar 중 하나인 Rplidar A2는 Serbot의 카메라와 함께 시각을 담당합니다. 
 라이다는 레이더나 소나와 같은 원리로 작동합니다. 세 기술 모두 에너지 파동을 방출하여 물체를 감지하고 추적합니다. 
@@ -589,9 +625,41 @@ class Driving:
 Rplidar A2는 대중적인 2D 라이다 중 하나로 시리얼 통신으로 제어하는데 최대 측정 거리는 모델에 따라 3 ~ 12m이고 1초에 360도(degree)를 10 frame 이상 측정할 수 있습니다. 
 일반적으로 UART 출력을 USB로 변환하는 컨버터를 사용하므로 USB 포트에 연결해 사용합니다.
 
-SerBot에 포함된 Rplidar A2의 가상 시리얼 포트는 다음과 같습니다.  
-- /dev/ttyUSB0
+**시리얼 접근 설정**  
+1. SerBot에 포함된 Rplidar A2의 가상 시리얼 포트는 **/dev/ttyUSB0** 입니다.
+```sh
+lsusb | grep 10c4
 
+ls -l /dev/ttyUSB*
+```
+
+2. dialout 그룹에 현재 계정(jetson)을 추가합니다.
+```sh
+sudo usermod -a -G dialout jetson
+``` 
+
+3. vi로 /etc/udev/rules.d 경로에 rplidar.rules 파일을 새로 만듦니다.
+```sh
+sudo vi /etc/udev/rules.d/rplidar.rules
+```
+
+4. 새 파일이 열리면 다음 내용을 추가한 후 저장 및 종료합니다.
+```
+KERNEL=="ttyUSB0", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE:="0666", GROUP:="dialout",  SYMLINK+="rplidar"
+```
+
+5. udev 서비스를 다시 시작합니다.
+```
+sudo service udev reload
+sudo service udev restart
+``` 
+
+6. 시스템을 재 시작합니다.
+```sh
+sudo reboot
+```
+
+**Rplidar SDK 빌드 및 파이썬 바인더 생성**
 다음은 Rplidar A2 데이터시트와 실제 구현에 필요한 `Rplidar 프로토콜`입니다.  
 - [Rplidar A2 datasheet](http://bucket.download.slamtec.com/004eb70efdaba0d30a559d7efc60b4bc6bc257fc/LD204_SLAMTEC_rplidar_datasheet_A2M4_v1.0_en.pdf)
 - [Rplidar Protocols](https://bucket-download.slamtec.com/6494fd238cf5e0d881f56d914c6d1f355c0f582a/LR001_SLAMTEC_rplidar_protocol_v2.4_en.pdf)
@@ -608,27 +676,18 @@ cd rplidar_sdk
 make -j6
 ```
 
-3. 파이썬 바인더 생성
-- C++를 python으로 변환하는 swig 설치
-  ```sh
-  sudo apt install swig
-  ```
-- rplidar_sdk/sdk 폴더에서 진행하며, rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a를 rplidar_sdk/sdk로 복사
-- app/simple-grabber/main.cpp와 app/ultra_simple/main.cpp 코드를 참조해 파이썬으로 변환할 C++ 클래스 헤더(lidar2d_h)와 소스(lidar2d.cpp) 정의
-- C++ 헤더를 참조해 swig 인터페이스 정의 (lidar2d.i)
-  - C++ STL 라이브러리 변환 구현을 제외하면 include로 포함하는 헤더를 추가하는 수준
-- 셋업(setup.py) 및 빌드(make.py) 정의
-- 빌드(make.py)를 실행하면 공유 라이브러리(_lidar2d.so)와 binding 파일(lidar2d.py)이 생성됨
-
-결과는 다음 링크를 통해 다운받을 수 있습니다. 
-[Rplidar binding](https://1drv.ms/f/s!AtTAtBZJQ9JFpdR0lh0zdIrNiUMjYQ?e=2Q0GSB)
-- **[주의]** libc6으로 빌드한 결과물이므로 반드시 다음 명령 실행 필요  
+3.  C++를 python으로 변환하는 swig 설치
 ```sh
-sudo apt install libc6
+sudo apt install swig
 ```
 
-다음은 결과 생성에 필요한 소스 코드입니다.
-**lidar2d.h**
+4. 파이썬 바인더 작업 폴더는 sdk이며, 이곳에 앞서 빌드한 라이브러리 복사
+```sh
+cd sdk
+cp ../output/Linux/Release/libsl_lidar_sdk.a .
+``` 
+
+5. 파이썬으로 변환할 C++ 클래스 헤더(**lidar2d_h**) 정의
 ```python
 #include <stdio.h>
 #include <stdlib.h>
@@ -673,7 +732,7 @@ class Lidar2D {
 };
 ```
 
-**lidar2d.cpp**
+6. 헤더에 대한 소스(**lidar2d.cpp**) 정의
 ```python
 #include <unistd.h>
 #include <cmath>
@@ -832,7 +891,7 @@ std::vector<std::vector<double>> Lidar2D::getXY()
 }
 ```
 
-**lidar2d.i**
+7. C++ 헤더를 참조해 swig 인터페이스(**lidar2d.i**) 정의
 ```python
 %module lidar2d
 %{
@@ -866,7 +925,7 @@ std::vector<std::vector<double>> Lidar2D::getXY()
 %}
 ```
 
-**setup.py**
+8. 셋업(**setup.py**) 정의
 ```python
 from distutils.core import setup, Extension
 
@@ -885,7 +944,7 @@ setup (name = 'lidar2d',
        )
 ```
 
-**make.py**
+9. 빌드(**make.py**) 정의
 ```python
 #!/usr/bin/python3
 
@@ -910,6 +969,112 @@ for file in os.listdir(os.getcwd()):
         break
 ```
 
+10. 빌드 실행
+```sh
+chmod u+x make.py
+./make.py
+```
 
+11. 생성된 공유 라이브러리(**_lidar2d.so**)와 파이썬 바인더(**lidar2d.py**)를 라이브러리 경로로 복사합니다.  
+```
+cp _lidar2d.so lidar2d.py ~/Workspace/serbot
+```
 
+구현한 Lidar2D 클래스를 테스트해 봅니다.   
+**Workspace/lidar2d_test.py**
+```python
+import sys
+import signal
+import time
 
+from serbot.lidar2d import Lidar2D
+
+lidar = Lidar2D()
+
+def setup():
+    lidar.connect()
+
+def loop():
+    for data in lidar.getVectors():
+        print(data[0], data[1])
+
+def cleanup(*args, **kwargs):
+    lidar.disconnect()
+    sys.exit()
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, cleanup)
+    setup()
+    while True:
+        loop()
+```
+
+### Camera
+Serbot에는 160도 광각 렌즈가 포함된 소니 IMX219 카메라 모듈이 장착되어 있으며, GStreamer로 카메라를 제어합니다. 
+단, 외곽에 붉은 톤이 감도는 버그가 있어, 카메라 설정 파일의 업데이트가 필요합니다.
+
+1. 패치 파일을 다운받은 후 압축을 해제합니다.  
+```sh
+wget https://www.waveshare.com/w/upload/e/eb/Camera_overrides.tar.gz
+tar zxvf Camera_overrides.tar.gz 
+```
+
+2. 패치 파일을 카메라 설정 폴더로 옮긴 후 실행 권한을 설정합니다.
+```sh
+sudo cp camera_overrides.isp /var/nvidia/nvcam/settings/
+sudo chmod 664 /var/nvidia/nvcam/settings/camera_overrides.isp
+sudo chown root:root /var/nvidia/nvcam/settings/camera_overrides.isp
+```
+
+3. 카메라 프리뷰를 확인해 봅니다.
+```sh
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! nvoverlaysink
+```
+
+OpenCV의 VideoCapture 객체에서 카메라에 접근할 수 있도록 GStreamer 구문을 구현합니다.
+**Workspace/serbot/cam.py**
+```python
+cam_cmd = lambda cam_with=1280, cam_height=720, win_with=1280, win_height=720, rate=60, flip=0 : ('nvarguscamerasrc ! '
+            'video/x-raw(memory:NVMM), '
+            'width={0}, height={1}, '
+            'format=NV12, framerate={2}/1 ! '
+            'nvvidconv flip-method={3} ! '
+            'video/x-raw, width={4}, height={5}, '
+            'format=BGRx ! '
+            'videoconvert ! appsink').format(cam_with, cam_height, rate, flip, win_with, win_height)
+```
+
+OpenCV에서 구현한 cmd_cmd를 테스트해 봅니다.   
+**Workspace/camera_test.py**
+```python
+import sys
+import signal
+import time
+
+import cv2
+from serbot.cam import cam_cmd
+
+cam = cv2.VideoCapture(cam_cmd(640, 480, 640, 480), cv2.CAP_GSTREAMER)
+
+def setup():
+    if cam.isOpened() == False:
+        print("Can't open the Camera")
+        cleanup()    
+    
+def loop():
+    ret, frame = cam.read()
+    cv2.imshow("preview", frame)
+    if cv2.waitKey(10) >= 0:
+        cleanup
+
+def cleanup(*args, **kwargs):
+    cam.release()
+    cv2.destroyWindow('preview')    
+    sys.exit()
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, cleanup)
+    setup()
+    while True:
+        loop()
+```
