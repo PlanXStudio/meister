@@ -620,8 +620,12 @@ make -j6
 - 셋업(setup.py) 및 빌드(make.py) 정의
 - 빌드(make.py)를 실행하면 공유 라이브러리(_lidar2d.so)와 binding 파일(lidar2d.py)이 생성됨
 
-결과는 다음 링크를 통해 다운받을 수 있습니다.
+결과는 다음 링크를 통해 다운받을 수 있습니다. 
 [Rplidar binding](https://1drv.ms/f/s!AtTAtBZJQ9JFpdR0lh0zdIrNiUMjYQ?e=2Q0GSB)
+- **[주의]** libc6으로 빌드한 결과물이므로 반드시 다음 명령 실행 필요
+```sh
+sudo apt install libc6
+``
 
 다음은 결과 생성에 필요한 소스 코드입니다.
 **lidar2d.h**
