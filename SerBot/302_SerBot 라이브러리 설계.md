@@ -240,7 +240,7 @@ class IMU:
         self.__bus.write_byte_data(self.__addr, self.GYRO_CONFIG, 0)
         self.__bus.write_byte_data(self.__addr, self.GYRO_CONFIG, range)
 
-    def setFilterRange(self, range=FILTER_BW_256):
+    def setFilterRange(self, range):
         ext_sync_set = self.__bus.read_byte_data(self.__addr, self.MPU_CONFIG) & 0b00111000
         self.__bus.write_byte_data(self.__addr, self.MPU_CONFIG,  ext_sync_set | range)
 
