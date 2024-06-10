@@ -1078,3 +1078,57 @@ if __name__ == "__main__":
     while True:
         loop()
 ```
+
+### AI
+Serbot의 인공지능 모듈은 GPU가 내장되어 인공지능 연산을 CUDA(10.2.300), cuDNN(8.2.1.32), TensorRT(8.0.1.6)로 최적화합니다.  
+CUDA Arch BIN이 5.3인 관계로 CUDA 버전을 올릴 수 없지만, 상대적으로 낮은 소모전력으로 높은 효율을 제공하며, 인공지능 프레임워크로 Tensorflow와 PyTorch가 사전에 설치되어 있습니다.
+
+인공지능 상위 프레임워크는 pycuda에 의존하므로 이를 먼저 설치해야 합니다.   
+
+1. 주피터 환경과 Keras 지원을 위해 파이썬 모듈을 설치합니다.
+```sh
+pip3 install ipykernel
+pip3 install ipywidgets
+pip3 install keras
+```
+  
+2. 홈 폴더에서 vi 편집기로 install_pycuda.sh 파일을 만듦니다.
+3. 새 파일이 열리면 다음 내용을 입력합니다.
+```sh
+#!/bin/bash
+
+set -e
+
+folder=${HOME}/src
+mkdir -p $folder
+
+echo "** Install requirements"
+sudo apt-get install -y build-essential python3-dev python3-pip
+sudo apt-get install -y libboost-python-dev libboost-thread-dev
+sudo pip3 install setuptools
+
+echo "** Download pycuda-2019.1.2 sources"
+pushd $folder
+if [ ! -f pycuda-2019.1.2.tar.gz ]; then
+  wget https://files.pythonhosted.org/packages/5e/3f/5658c38579b41866ba21ee1b5020b8225cec86fe717e4b1c5c972de0a33c/pycuda-2019.1.2.tar.gz
+fi
+
+echo "** Build and install pycuda-2019.1.2"
+tar xzvf pycuda-2019.1.2.tar.gz > /dev/null
+cd pycuda-2019.1.2
+python3 ./configure.py  --cuda-root=/usr/local/cuda
+sudo python3 setup.py install
+
+popd
+
+python3 -c "import pycuda; print('pycuda version:', pycuda.VERSION)"
+```
+4. 파일을 저장합니다.
+5. 실행 권한을 부여한 후 실행합니다.
+```
+chmod u+x install_pycuda.sh
+./install_pycuda.sh
+```
+
+한백전자에서 제공하는 인공지능 모듈을 설치합니다. 여기에는 기본적으로 객체 탐지와 트랙 주행 기능이 구현되어 있습니다. 
+> 다음 주 공개 예정 
