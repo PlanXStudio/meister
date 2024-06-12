@@ -166,24 +166,27 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
 - loop()가 무한히 실행되므로 키보드 인터럽트로 강제 종료  
    
 ```python
-import sys
-import time
+import sys 
 import signal
+import time
 
 def setup():
-  pass
+    pass
 
 def loop():
-  pass
+    pass
 
 def cleanup(*args):
-  sys.exit(0)
+    sys.exit(0)
 
 if __name__ == "__main__":
-  signal.signal(signal.SIGINT, cleanup)
-  setup()
-  while True:
-    loop()
+    signal.signal(signal.SIGINT, cleanup)
+    setup()
+    while True:
+        try:
+            loop()
+        except:
+            break
 ```
 
 ### Serbot2 제어 API
