@@ -398,10 +398,18 @@ Paho API는 콜백 기반이며 사용자 정의 비즈니스 로직을 다른 �
 파이썬용 Paho API 설치는 다음과 같습니다.
 
 ```sh
+sudo pip3 install paho-mqtt<2.0.0
+```
+
+[주의] 2024년 2월에 중요한 업데이트가 포함된 V2.0.0이 출시되었으며, 이 문서는 **1.X 버전**을 기준으로 설명합니다. 따라서 paho-mqtt를 설치할 때는 버전을 2.0.0 미만을 설치해 주세요.  
+만약 V2.0.0 이상을 설치했다면 [Migrations](https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html) 링크를 참조하세요.
+
+```sh
 sudo pip3 install paho-mqtt
 ```
 
-파이션용 Paho API는 MQTT 클라이언트 구현을 지원하는 client 모듈 외에 구독자와 발행자를 좀 더 쉽게 구현할 수 있도록 publish 모듈과 subscribe 모듈을 함께 제공합니다. 일반적으로 사용자는 다음과 같은 방법으로 client 모듈을 로드합니다. 
+파이션용 Paho API는 MQTT 클라이언트 구현을 지원하는 client 모듈 외에 구독자와 발행자를 좀 더 쉽게 구현할 수 있도록 publish 모듈과 subscribe 모듈을 함께 제공합니다. 일반적으로 사용자는 다음과 같은 방법으로 client 모듈을 로드합니다.  
+    
 
 ```python
 01:	import paho.mqtt.client as mqtt
