@@ -1,0 +1,113 @@
+# XNode Home 기본 제어
+XNode 모트(또는 Auto 제어기에 포함된 XNode 모듈)은 1개의 LED와 빛 센서, 온도/기압/습도 센서가 내장되어 있으며, 배터리 전압을 확인할 수 있음   
+- LED: MCU의 GPIO 포트 'D9'에 Active Low 상태로 연결되어 있으며, pop 라이브러리의 Led 클래스로 제어
+- 빛 센서: MCU의 I2C 버스에 연결(주소는 0x23)되어 있으며, pop 라이브러리의 Bright 클래스로 센서값을 읽음
+- 온도/기압/습도 센서: MCU의 I2C 버스에 연결(주소는 0x77)되어 있으며, pop 라이브러리의 Tphg 클래스로 한 번에 3개의 센서값을 읽음
+- 배터리 전압: MCU의 ADC와 연관된 GPIO 포트 'D2' 포트에 연결되어 있고, pop 라이브러리의 Battery 클래스로 배터리 공급 전압을 읽음
+   
+## LED 켜고 끄기
+프로그래밍 가능한 1개의 사용자 LED를 core 모듈의 Led 객체로 제어
+- on(): 켜기
+- off(): 크기
+- state(): 현재 상태 반환. True이면 켜짐
+ 
+**led.py**
+```
+import xnode.pop.core as core
+import time
+
+led = core.Led()
+
+def setup():
+    print("Start...")
+
+def loop():
+    led.on()
+    time.sleep_ms(500)
+    led.off()
+    time.sleep_ms(500)
+
+if __name__ == "__main__":
+    setup()
+    while True:
+        loop()
+```
+
+## 빛(조도) 센서값 읽기
+빛 센서는 스마트폰에 포함된 것과 유사한 부품으로 core 모듈의 Bright 객체로 제어
+- read(): 주변 빛의 밝기 읽기. 단위는 룩스
+
+**bright.py**
+```
+import xnode.pop.core as core
+import time
+
+br = core.Bright()
+
+def setup():
+    print("Start...")
+
+def loop():
+    ret = br.read()
+    print("{} lux".format(ret))
+    time.sleep_ms(20)
+
+if __name__ == "__main__":
+    setup()
+    while True:
+        loop()
+```
+
+## 온도, 습도, 기압 읽기 
+실습장비에는 온도, 습도, 기압 센서가 포함되어 있으며, tphg 모듈의 Tphg 객체로 제어
+- read(): 센서로부터 (온도, 기압, 습도, None) 값을 반환. (마지막 값은 None으로 사용하지 않음)
+- set_temperature_correction(): 온도 보정값 전달. 측정값이 실제 온도와 차이가 있을 때 사용
+- sealevel(): 고도를 전달하면 측정된 기압을 이용해 현재 해면기압 반환
+- altitude(): 현재 해면기압을 전달하면 특정된 기압을 이용해 현재 고도 반환
+
+**thp.py**
+```
+import xnode.pop.tphg as tphg
+import time
+
+tphg = tphg.Tphg()
+
+def setup():
+    print("Start...")
+
+def loop():
+    t, p, h, _ = tphg.read() #네번째 값은 항상 None
+    print("{:.1f} C, {:.1f} %, {:.1f} hPa".format(t, h, p))
+    time.sleep_ms(100)
+
+if __name__ == "__main__":
+    setup()
+    while True:
+        loop()
+```
+
+## 배터리 전압 읽기 
+배터리로 운영되는 XNode 모트는 배터리 전압을 확인하는 것이 중요하며, 배터리가 부족하면 충전하도록 사용자에게 알릴 필요가 있음  
+core 모듈의 Battery 객체로 제어
+- read(): 현재 배터리 공급 전압 읽기. 단위는 Volt
+ 
+**battery.py***
+```
+import xnode.pop.core as core
+import time
+
+br = core.Battery()
+
+def setup():
+    print("Start...")
+
+def loop():
+    ret = bt.read()
+    print("{} volt".format(ret))
+    time.sleep_ms(20)
+
+if __name__ == "__main__":
+    setup()
+    while True:
+        loop()
+```
