@@ -1,4 +1,4 @@
-# AIoT TestBed
+# AIoT 테스트베드
 AIoT TestBed는 3개의 Edge Computer와 5개의 Zigbee V3 기반 Auto 제어기 및 Zigbee V3 코디네이터를 통해 모든 액추에이터와 센서 및 카메라, 픽셀 디스플레이를 제어합니다.
 
 ### Edge Computer
