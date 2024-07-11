@@ -221,6 +221,9 @@ if __name__ == "__main__":
     main()
 ```
 
+<details>
+<summary>구현 사례 연구</summary>
+
 ### 구현 사례 연구
 제공된 예시 코드는 다음 기능을 수행합니다.
 
@@ -309,3 +312,4 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+</details>
