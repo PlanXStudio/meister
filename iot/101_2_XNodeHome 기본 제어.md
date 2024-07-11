@@ -12,7 +12,7 @@ XNode 모트(또는 Auto 제어기에 포함된 XNode 모듈)은 1개의 LED와 
 - state(): 현재 상태 반환. True이면 켜짐
  
 **led.py**
-```
+```python
 import xnode.pop.core as core
 import time
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 - read(): 주변 빛의 밝기 읽기. 단위는 룩스
 
 **bright.py**
-```
+```python
 import xnode.pop.core as core
 import time
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 - altitude(): 현재 해면기압을 전달하면 특정된 기압을 이용해 현재 고도 반환
 
 **thp.py**
-```
+```python
 import xnode.pop.tphg as tphg
 import time
 
@@ -92,7 +92,7 @@ core 모듈의 Battery 객체로 제어
 - read(): 현재 배터리 공급 전압 읽기. 단위는 Volt
  
 **battery.py***
-```
+```python
 import xnode.pop.core as core
 import time
 
