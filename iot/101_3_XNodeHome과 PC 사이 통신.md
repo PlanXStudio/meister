@@ -79,8 +79,9 @@ if __name__ == "__main__":
     while True:
         loop()
 ```
+
 - 마이크로파이썬의 input(), print() 대신 pop 라이브러리의 Uart.readLine()과 Uart.write() 권장
-  - PC에서 pyserial로 데이터를 주고 받을 때 문제가 발생함
+  - input(), print()는 PC에서 pyserial로 데이터를 주고 받을 때 추가 처리 필요
     
 2. xnode 툴의 run 명령으로 작성할 파일을 실행한 후 오류가 없는지 결과 확인
 ```sh
