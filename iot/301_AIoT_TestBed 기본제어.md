@@ -77,18 +77,18 @@ Main Edge Computer는 Zigbee 노드와 인터넷을 연결하는 일종의 게�
 ### AIoT TestBed Topic List
 Edge Computer 내부의 Broker와 통신하여 TestBed의 센서의 값을 확인하거나 액추에이터를 제어할때는 토픽을 활용합니다. 각각의 토픽들은 미리 정의되어 있으며 정해진 토픽을 활용하는 형태로 TestBed를 활용합니다. 
 
-최상위 토픽은 각 TestBed의 고유 코드로 설정되어 있습니다. 앞서 소개한 바와 같이 코드 코드가 ASM이고 5대의 TestBed가 설치되어 있다면 최상위 토픽은 장비마다 다음과 같습니다.
+최상위 토픽은 각 TestBed의 고유 코드로 설정되어 있습니다. 앞서 소개한 바와 같이 고유 코드가 ASM이고 5대의 TestBed가 설치되어 있다면 최상위 토픽은 장비마다 다음과 같습니다.
 
 
 Device | Main Topic 
 -------|------------
-#1 | ASM01
-#2 | ASM02
-#3 | ASM03
-#4 | ASM04
-#5 | ASM05
+#1 | TB/ASM/01
+#2 | TB/ASM/02
+#3 | TB/ASM/03
+#4 | TB/ASM/04
+#5 | TB/ASM/05
 
-다음 절의 각각의 토픽 리스트 소개에서는 편의상 최상위 토픽을 <고유 코드>라고 표기하겠습니다. 
+다음 절의 각각의 토픽 리스트 소개에서는 편의상 **최상위 토픽**을 **<고유 코드>**라고 표기하겠습니다. 
 
 ### 액추에이터 제어(/actuator)
 **조명 제어**
@@ -181,8 +181,8 @@ Device | Main Topic
 - Data: 0(미감지) or 1(감지)
 - Topic: <고유 코드>/sensor/pir
 
-## 파이썬 스크립트
-MQTTX와 같은 범용 툴로 먼저 AIoT TestBed에 토픽과 메시지를 발생(액추에이터)하고 센서값을 구독(센서)해 본 후 파이썬으로 자동화 합니다.
+## 파이썬으로 TestBed 제어
+MQTTX와 같은 범용 툴로 먼저 AIoT TestBed에 토픽과 메시지를 발행(액추에이터)하고 센서값을 구독(센서)해 본 후 파이썬으로 자동화 합니다.
 
 ### Template
 아래 코드를 기반으로 AIoT TestBed에 publish(<토픽>, <데이터>)로 액추에이터 제어 토픽을 발행하고, subscribe(<토픽>)로 센서 토픽을 구독해 봅니다.
@@ -246,7 +246,7 @@ def main():
     client.connect("192.168.5.201")
     client.loop_start()
 
-    top = "ASM05/"
+    top = "TB/ASM/05/"
     postion = ["kitchen", "living", "door"]
     actuator = "actuator/"
     pixels = "display"
