@@ -100,23 +100,31 @@ NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서�
   ```sh
   sudo gpasswd -a mini sudo
   ```
-- soda의 설정 폴더 및 파일을 새 계정에 복사 및 소유권 변경
+- soda의 설정 폴더 및 파일을 새 계정에 복사
   ```sh
-  sudo cp -R .* /home/mini
-  sudo cp -R * /home/mini
+  sudo cp .p10k.zsh .tmux.conf .zshrc /home/mini
+  sudo cp -R .vim .tmux .oh-my-zsh .local /home/mini
+  sudo rm -rf /home/mini/.local/share /home/mini/.local/state
+
+  sudo mkdir -p /home/mini/.config
+  sudo cp -R .config/nvim .config/pulse /home/mini/.config
   ```
+  
 - 새 계정에 복사 파일 및 폴더 소유권 변경
   ```sh
   sudo chown -R mini.mini /home/mini
   ```
+  
 - 원격 연결 종료
   ```sh
   exit
   ```
+  
 - 새 계정으로 원격 접속
   ```sh 
   ssh mini@<serbot2_ip>
   ```
+  
 - 새 계정의 쉘을 bash에서 zsh로 변경
   ```sh
   chsh -s /bin/zsh
@@ -190,7 +198,7 @@ if __name__ == "__main__":
 ```
 
 ### Serbot2 제어 API
-**pop.driving**  
+**serbot2.driving**  
 Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동 기능을 포함 
 -	steering : -1 ~ 1 사이값으로 좌/우로 조향
 -	throttle : 0 ~ 99 사이값으로 속력 제어
@@ -201,7 +209,7 @@ Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동
   -	throttle : 속력 
 
 ```python
-from pop.driving import Driving
+from serbot2.driving import Driving
 
 drv = None
 
