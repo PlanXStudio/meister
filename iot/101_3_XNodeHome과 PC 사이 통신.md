@@ -85,7 +85,7 @@ if __name__ == "__main__":
     
 2. xnode 툴의 run 명령으로 작성할 파일을 실행한 후 오류가 없는지 결과 확인
 ```sh
-xnode --sport com11 run serial_xnode.py
+xnode --sport com11 run -in serial_xnode.py
 ```
 - 문자열을 입력한 후 \<Enter>를 누르면, 실습장비에서 수신한 문자열을 다시 PC로 전송함
 - 오류가 없으면 \<Ctrl>+c를 눌러 xnode 툴 종료 
