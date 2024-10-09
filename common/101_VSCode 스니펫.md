@@ -1,7 +1,7 @@
 # 코드 스니펙 만들기
 ## PyQt6 코드 탬플릿 사례
 1. VSCode 실행
-2. File > Preferences > Configure Snippets 선택
+2. File(파일) > Preferences(기본 설정) > Configure Snippets(코드 조각 구성) 선택
 3. python 선택
 4. python.json 파일이 열리면 다음 내용으로 덮어쓰기
 ```xml
