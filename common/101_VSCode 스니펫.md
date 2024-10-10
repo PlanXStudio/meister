@@ -35,7 +35,7 @@ body에 '$1', '$2'와 같이 변수를 사용하면 추가한 코드에 사용�
 4. python.json 파일이 열리면 다음 내용으로 덮어쓰기
 ```xml
 {
-	"PyQt6 Code": {
+	"QtApp": {
 		"prefix": "qapp",
 		"body" : [
 			"import sys",
@@ -43,17 +43,17 @@ body에 '$1', '$2'와 같이 변수를 사용하면 추가한 코드에 사용�
 			"from $1 import Ui_MainWindow",
 			"",
 			"class $2(QMainWindow, Ui_MainWindow):",
-    		"    def __init__(self):",
-        	"        super().__init__()",
-        	"        self.setupUi(self)",
+    			"    def __init__(self):",
+			"        super().__init__()",
+        		"        self.setupUi(self)",
+			"        $3",
 			"",
 			"if __name__ == '__main__':",
 			"    app = QApplication(sys.argv)",
-			"    $3 = $2()",
-			"    $3.show()",
+			"    win = $2()",
+			"    win.show()",
 			"    app.exec()" 
 		],
-		"description": "PyQt6 Code Template"
 	}
 }
 ```
