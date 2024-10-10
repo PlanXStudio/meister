@@ -19,14 +19,13 @@
 	...
 }
 ```
-prefix, body, description은 키워드이므로 수정할 수 없습니다. 
-- your_prefix: 스니펫을 추가할 문자열입니다.
-- your_code: your_prefix가 호출될 때 추가할 내용입니다.
-- your_description: 스니펫에 대해 설명입니다. 
+prefix, body, description은 키워드이므로 수정할 수 없고 사용자는 다음 내용을 수정합니다. 또한 your_title과 your_prefix는 일반적으로 같은 문자열을 사용합니다. 
+- your_prefix: 스니펫 호출 문자열입니다.
+- your_code: 스니펫이 호출될 때 추가할 소스 코드입니다.
+  - 들여쓰기는 **탭문자 1개 대신 스페이스 문자 4개**를 사용합니다.  
+- your_description: 스니펫에 대해 설명으로 생략 가능합니다. 
 
-your_title과 your_prefix는 일반적으로 같은 문자열을 사용합니다.
-  
-body에 '$1', '$2'와 같이 변수를 사용하면 추가한 코드에 사용자가 직접 문자열을 입력합니다. 변수 이동은 \<TAB>입니다. 
+body에 '$1', '$2'와 같이 변수를 사용하면 사용자가 직접 내용을 입력해야 합니다. 변수 이동은 \<TAB> 또는 \<Shift>\<TAB>입니다. 
 
 ## PyQt6 코드 탬플릿 사례
 1. VSCode 실행
