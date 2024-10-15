@@ -168,16 +168,6 @@
   sudo ssh-keygen -A
   ```
 
-### SerBot2 Wi-Fi 공유기 연결
-SerBot2는 이미 XField-Network 공유기에 연결되어 있으나 공유기가 변경되거나 연결 정보가 삭제되면 다시 연결해야 함. 
-
-1. 네트워크 관리자 실행
-```sh
-sudo nmcui
-``` 
-
-
-
 ## 기본 제어
 > 아두이노 등에서 채택한 프로세싱 구조 적용
 - signal()로 키보드 인터럽트가 발생하면 cleanup() 호출   
@@ -264,3 +254,22 @@ def setup():
 
 
 **serbot2.sensers**
+class Ultrasonic: 6개의 초음파 센서값 읽기
+- read(): 리스트 반환. 단위는 cm
+class Psd: 3개의 Psd 센서값 읽기
+- read(): 리스트 반환. 단위는 cm (오차가 있음)
+class Battery: 공급 전압(배터리 포함) 읽기
+- read(): 현재 전압. 단위는 volt
+class Light: 빛 센서 값 읽기
+- read(): 현재 빛의 밝기. 단위는 lux
+class IMU.Accel: 3축 가속도계(액셀러미터) 값 읽기
+- read(): 튜플 반환
+class IMU.Gyro: 3축 각속도계(자이로스코프) 값 읽기
+- read(): 튜플 반환
+class IMU.Magnetic: 3축 지자기(마그네틱) 값 읽기
+- read(): 튜플 반환
+class IMU.Euler: 오일러 값 읽기
+- read(): 튜플 반환
+class IMU.Quat: 4원수(쿼터니엄) 값 읽기
+- read(): 튜플 반환
+
