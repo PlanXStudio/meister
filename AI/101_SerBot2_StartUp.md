@@ -1,5 +1,5 @@
 # SerBot2
-NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서비스 로봇 개발장비  
+리눅스 기반 임베디드 시스템의 일종으로 NVIDIA Orin NX 16G와 STM43F4로 운영되는 옴니휠 메커니즘 기반 서비스 로봇 개발장비  
 > 가장 아래부터 옴니휠 메커니즘(3WD Block), 드라이빙 컨트롤러(Hidden), 터치 스크린 + 적재함, AI 엣지 컴퓨팅 모듈(Main Processor) + 센서 컨트롤러
   
 ![serbot2](https://github.com/PlanXStudio/meister/assets/8893544/56dc6169-b0bc-4297-a38c-de6e58c9203f)
@@ -184,17 +184,14 @@ def setup():
 def loop():
     pass
 
-def cleanup(*args):
+def cleanup():
     sys.exit(0)
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, cleanup)
+    signal.signal(signal.SIGINT, lambda *args: cleanup())
     setup()
     while True:
-        try:
-            loop()
-        except:
-            break
+        loop()
 ```
 
 ### Serbot2 제어 API
@@ -206,7 +203,11 @@ Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동
 -	forward(throttle=None) : 전진 
   -	throttle : 속력 
 -	backward(throttle=None) : 후진
-  -	throttle : 속력 
+  -	throttle : 속력
+- trunLeft(throttle=None) : 왼쪽 회전
+- trunRight(throttle=None) : 오른쪽 회전
+- move(angle, throttle=None) : 해당 각도로 이동
+  - angle: degree 각   
 
 ```python
 from serbot2.driving import Driving
@@ -251,60 +252,5 @@ def setup():
   steering_driving
 ```
 
-**pop.Encoder**  
-Class Encoder : 모터 회전수
--	callback(func,repeat=1,param=None) : 콜백 등록
-  -	func : 콜백 호출시 호출될 메소드 
-    - 매개변수는 모터 동작 방향, 좌측 모터 엔코더 데이터, 우측 모터 엔코더 데이터 
-  -	repeat : 반복 주기 설정, repeat * 100ms
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단 
 
-**pop.Ultrasonic**  
-Class Ultrasonic : 초음파 센서 
--	read() : 센서값 읽기 
--	callback(func,repeat=1,param=None) : 콜백 등록 
-  -	func : 콜백 호출시 호출될 메소드 
-  -	repeat : 반복 주기 설정, repeat * 10ms
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단 
-
-**pop.Psd**  
-Class Psd: Psd 센서 
--	read() : 센서값 읽기 
--	callback(func,repeat=1,param=None) : 콜백 등록 
-  -	func : 콜백 호출시 호출될 메소드 
-  -	repeat : 반복 주기 설정, repeat * 10ms
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단 
-
-**pop.Battery**  
-Class Battery : 베터리 상태 
--	read() : 상태값 읽기, 순서대로 전압, 온도 
--	callback(func,repeat=1,param=None) : 콜백 등록 
-  -	func : 콜백 호출시 호출될 메소드 
-  -	repeat : 반복 주기 설정, repeat * 1s
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단 
-
-**pop.Light**  
-Class Light : 빛 센서 
--	read() : 센서값 읽기 
--	callback(func,repeat=1,param=None) : 콜백 등록 
-  -	func : 콜백 호출시 호출될 메소드 
-  -	repeat : 반복 주기 설정, repeat * 100ms
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단
-
-**pop.Imu**  
-Class Imu : Imu 센서 
--	accel() : 가속도 센서값 읽기. (x,y,z) 형태로 반환
--	magnetic() : 지자기 센서값 읽기, (x,y,z) 형태로 반환 
--	gyro() : 자이로 센서값 읽기, (x,y,z) 형태로 반환 
--	euler() : 오일러 센서값 읽기, (yaw,roll,pitch) 형태로 반환
--	quat() : 쿼터니언 센서값 읽기, (w,x,y,z) 형태로 반환  
--	callback(func,repeat=1,param=None) : 콜백 등록 
-  -	func : 콜백 호출시 호출될 메소드 
-  -	repeat : 반복 주기 설정, repeat * 10ms
-  -	param : 콜백 메소드에 전달할 인자 
--	stop() : 콜백 중단
+**serbot2.sensers**
