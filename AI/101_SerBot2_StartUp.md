@@ -168,6 +168,16 @@
   sudo ssh-keygen -A
   ```
 
+### SerBot2 Wi-Fi 공유기 연결
+SerBot2는 이미 XField-Network 공유기에 연결되어 있으나 공유기가 변경되거나 연결 정보가 삭제되면 다시 연결해야 함. 
+
+1. 네트워크 관리자 실행
+```sh
+sudo nmcui
+``` 
+
+
+
 ## 기본 제어
 > 아두이노 등에서 채택한 프로세싱 구조 적용
 - signal()로 키보드 인터럽트가 발생하면 cleanup() 호출   
