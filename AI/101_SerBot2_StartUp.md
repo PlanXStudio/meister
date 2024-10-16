@@ -209,18 +209,16 @@ if __name__ == "__main__":
 
 ### Serbot2 제어 API
 **serbot2.driving**  
-Class Driving : 옴니휠 메커니즘 제어관련 클래스, 조향 및 이동 기능을 포함 
--	steering : -1 ~ 1 사이값으로 좌/우로 조향
--	throttle : 0 ~ 99 사이값으로 속력 제어
--	stop() : 정지
+class Driving : 옴니휠 메커니즘 제어관련 클래스 
+-	steering : 조향 값. -1.0 ~ 1.0 
+-	throttle : 출력 값. 0 ~ 100
 -	forward(throttle=None) : 전진 
-  -	throttle : 속력 
 -	backward(throttle=None) : 후진
-  -	throttle : 속력
-- trunLeft(throttle=None) : 왼쪽 회전
-- trunRight(throttle=None) : 오른쪽 회전
+- spinLeft(throttle=None) : 왼쪽 회전
+- spinRight(throttle=None) : 오른쪽 회전
 - move(angle, throttle=None) : 해당 각도로 이동
   - angle: degree 각   
+-	stop() : 정지
 
 ```python
 from serbot2.driving import Driving
@@ -286,3 +284,40 @@ class IMU.Euler: 오일러 값 읽기
 class IMU.Quat: 4원수(쿼터니엄) 값 읽기
 - read(): 튜플 반환
 
+```python
+from serbot2.driving import Driving
+from serbot2.sensors import Ultrasonic, Psd
+import time
+import signal
+import sys
+
+SPIN_WAIT = 0.1
+DETECTION_DISTANCE = 20
+
+drv = Driving()
+us = Ultrasonic()
+psd = Psd()
+
+def setup():
+    pass
+
+def loop():
+    us_detect = us.read()
+    psd_detect = psd.read()
+    
+    if psd_detect[0] < DETECTION_DISTANCE or us_detect[0] < DETECTION_DISTANCE or us_detect[1] < DETECTION_DISTANCE:
+        drv.spinLeft(50)
+        time.sleep(SPIN_WAIT)
+    else:
+        drv.forward(60)
+
+def cleanup():
+    drv.stop()
+    sys.exit()
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, lambda *args : cleanup())
+    setup()
+    while True:
+        loop()
+```
