@@ -222,6 +222,7 @@ class Driving : 옴니휠 메커니즘 제어관련 클래스
 
 ```python
 from serbot2.driving import Driving
+import time
 
 drv = None
 
@@ -231,8 +232,6 @@ def basic_driving():
 
   drv.backward(20)
   time.sleep(3)
-
-  drv.stop()
 
 def steering_driving():
   throttle = 30
@@ -252,15 +251,20 @@ def steering_driving():
   drv.backward()
   time.sleep(3)
 
-  drv.stop()  
-
 def setup():
   global drv
 
   drv = Driving()
 
   basic_driving()
-  steering_driving
+  #steering_driving()
+  cleanup()
+
+def cleanup():
+    drv.stop()
+    sys.exit(0)
+
+...
 ```
 
 
