@@ -66,6 +66,7 @@
   - Wi-Fi
     - PC와 Serbot2를 같은 공유기(AP)에 연결해야 함
     - Serbot 화면의 작업 표시줄 오른쪽 끝에 있는 Wi-Fi 설정 애플릿을 통해 해당 AP에 연결
+      - (주의) 이미 XField-Network 공유기에 연결된 상태라면 수정하지 말 것!
   - Serbot2의 화면 오른쪽 하단에 어댑터 별 현재 IP 주소가 표시됨
     - eth0: Ethernet 어댑터에 할당된 개발용 IP (192.168.101.101)
     - eth1: Ethernet 어댑터에 할당된 IP (예: a.b.c.d)
