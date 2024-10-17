@@ -1,13 +1,14 @@
 # 인터넷 기반 원격 제어
 
 ## MQTT 테스트
-### 공유 상수
+### 단방향 통신
+**mqtt_const.py**
 ```python
 BROKER_SERVER= "mqtt.eclipseprojects.io"
-TOPIC_LOTTO = "asm/iot/lotto/4"
+TOPIC_LOTTO = "asm/iot/0/lotto"
 ```
 
-### 로또 발행자
+**mqtt_pub_lotto.py**
 ```python
 import sys
 import json
@@ -42,14 +43,14 @@ if __name__ == "__main__":
     main()
 ```
 
-### 로또 구독자
+**mqtt_sub_lotto.py**
 ```python
 import sys
 import json
 import random
 
 import paho.mqtt.client as mqtt
-from mqtt_broker import BROKER_ADDR, TOPIC_LOTTO
+from mqtt_const import BROKER_SERVER, TOPIC_LOTTO
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -62,7 +63,7 @@ def on_connect(client, userdata, flags, rc):
 def on_subscribe(client, userdata, mid, granted_qos):
     print("브로커에 토픽 구독이 등록되었습니다.")
 
-def on_message(client, usrdata, message):
+def on_message(client, userdata, message):
     t = message.topic
     p = json.loads(message.payload)
     print(t, p)
@@ -73,7 +74,7 @@ def main():
     c.on_subscribe = on_subscribe
     c.on_message = on_message
     
-    c.connect(BROKER_ADDR)
+    c.connect(BROKER_SERVER)
     c.loop_forever()
 
 if __name__ == "__main__":
