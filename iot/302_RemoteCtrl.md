@@ -1,4 +1,18 @@
-# 인터넷 기반 원격 제어
+# MQTT로 IoT 장비 원격 제어
+
+## 시스템 구성
+### Auto 제어기
+Light와 Fan의 Red 선(VCC)을 PWM 포트 A(0)와 B(2)에 연결하고, Black 선은 PWM 및 IO포트의 GND에 연결 
+Pwm 클래스를 이용해 펌웨어 구현
+
+```python
+```
+
+### PC1 (브릿지)
+PySerial과 paho-mqtt로 데이터 교환
+
+### PC2 (원격 제어)
+paho-mqtt와 pyqt6로 GUI 기반 원격 제어
 
 ## MQTT 테스트
 ### 단방향 통신
