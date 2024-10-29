@@ -36,5 +36,59 @@ t1 = Thread(target=task_buff_write)
 t1.start()
 
 t1.join()
-
 ```
+
+## SimplePlayer 라이브러리
+
+**splay.py**
+```python
+from playsound import playsound
+from threading import Thread
+from multiprocessing import Process
+import time
+
+class SimplePlayer:
+    def __init__(self, path, exit_handler=None):
+        self.__process = Process(target=playsound, args=(path,), daemon=True)
+        self.__process.start()
+        if exit_handler:
+            Thread(target=self.__loop, args=(exit_handler,), daemon=True).start()
+        
+    def __loop(self, exit_handler):
+        while self.isPlaying: time.sleep(1e-3)
+        exit_handler()
+        
+    def Stop(self):
+        if self.__process.is_alive:
+            self.__process.terminate()
+
+    @property
+    def isPlaying(self):
+        return self.__process.is_alive
+
+
+def main1():
+    p = SimplePlayer("StairwayToHeaven_LedZeppelin.mp3")
+    while True:
+        if p.isPlaying:
+            if input("Do you want to stop? (y/n)").lower() == 'y':
+                print("stoped")
+                break
+        else:
+            print("finished")
+            break
+
+def main2():
+    def finished():
+        print("finished")
+    
+    p = SimplePlayer("StairwayToHeaven_LedZeppelin.mp3", finished)
+    while True:
+        if input("Do you want to stop? (y/n)").lower() == 'y':
+            print("stoped")
+            break
+
+if __name__ == "__main__":
+    main2()
+```
+
