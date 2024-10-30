@@ -1,101 +1,152 @@
 # MQTT로 IoT 장비 원격 제어
 
-## 시스템 구성
-### Auto 제어기
-Light와 Fan의 Red 선(VCC)을 PWM 포트 A(0)와 B(2)에 연결하고, Black 선은 PWM 및 IO포트의 GND에 연결 
-Pwm 클래스를 이용해 펌웨어 구현
+## Auto 제어기 배선
+Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 IO포트의 GND 또는 DIO포트의 GND에 연결 
+
+## Auto 제어기
+### Pwm 클래스를 이용해 Auto 제어기용 펌웨어 구현
+PWM(): PWM 객체 생성
+- scan(): PWM 컨트롤러 검색. True이면 이상 없음
+- init(): PWM 컨트롤러 초기화
+- freq(n): 주파수 설정 (50 ~ 10000)
+ - duty(ch, n): 채당 채널에 듀티 값에 따른 PWM 신호 출력
+   - ch: 채널 번호: 0 ~ 3
+   - n: 튜티 값: 0 ~ 50 (50 이상은 과전류 문제가 발생할 수 있음)
+
+**firm_cond_ctrl.py**
 ```python
+from xnode.pop.autoctrl import PWM
+
+pwm = PWM()
+pwm.init()
+
+pwm.freq(1000)
+
+while True:
+    cmd = input().lower() # "pwm.duty(0, 50)\r"
+    try:
+        eval(cmd)
+    except SyntaxError:
+        pass
 ```
 
-### PC1 (브릿지)
-PySerial과 paho-mqtt로 데이터 교환
-
-### PC2 (원격 제어)
-paho-mqtt와 pyqt6로 GUI 기반 원격 제어
-
-## MQTT 테스트
-### 단방향 통신
-**mqtt_const.py**
-```python
-BROKER_SERVER= "mqtt.eclipseprojects.io"
-TOPIC_LOTTO = "asm/iot/0/lotto"
+### 테스트
+```sh
+xnode --sport com13 run -in firm_cond_ctrl.py
 ```
 
-**mqtt_pub_lotto.py**
+```sh
+pwn.duty(0, 30)
+pwm.duty(0, 0)
+pwm.duty(2, 40)
+pwm.duty(2, 0)
+```
+
+## 시리얼과 인터넷 연결 브릿지
+Auto 제어기와 시리얼로 연결된 PC에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
+
+### 시리얼 프로그램 구현
+PC에서 입력 받은 채널과 듀티 값을 묶어 PySerial을 이용해 시리얼 통신으로 Auto 제어기에 전달 
+- "pwm.duty(0, 30)\r" 형태의 문자열
+
+**bridge_cond_ctrl.py**
 ```python
-import sys
-import json
-import random
+from serial import Serial
 
-import paho.mqtt.client as mqtt
-from mqtt_const import BROKER_SERVER, TOPIC_LOTTO
-
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("브로커에 연결되었습니다.")
-        lotto = random.sample(range(1, 45+1), 6)
-        client.publish(TOPIC_LOTTO, json.dumps(lotto))
-        print(lotto)
-    else:
-        print("브로커에 연결할 수 없습니다.")
-        sys.exit()
-
-def on_publish(client, userdata, mid):
-    print("브로커에 토픽 메시지가 게시되었습니다.")
-    sys.exit()
+ser = Serial("COM13", 115200, inter_byte_timeout=1)
 
 def main():
-    c = mqtt.Client()
-    c.on_connect = on_connect
-    c.on_publish = on_publish
-    
-    c.connect(BROKER_SERVER)
-    c.loop_forever()
+    while True:
+        ch = input("Enter of channel: ")
+        duty = input("Enter of duty: ")
+        ser.write(f"pwm.duty({ch}, {duty})\r".encode())
 
 if __name__ == "__main__":
     main()
 ```
 
-**mqtt_sub_lotto.py**
+**테스트**
+```sh
+python bridge_cond_ctrl.py
+```
+```sh
+Enter of channel: 0
+Enter of duty: 20
+```
+
+### 브릿지 프로그램 구현
+paho-mqtt를 이용해 인터넷으로 구독한 페이로드(데이터)를 시리얼을 통해 Auto 제어기에 전달
+앞서 구현한 펌웨어 테스트 프로그램을 수정해 구현
+
+**bridge_cond_ctrl.py**
 ```python
-import sys
-import json
-import random
-
+from serial import Serial
 import paho.mqtt.client as mqtt
-from mqtt_const import BROKER_SERVER, TOPIC_LOTTO
+import json
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
+TOPIC_IOT_PWM = "asm/iot/pwm/#"
+"""
+asm/iot/pwm/light/1, 50
+asm/iot/pwm/light/2, 50
+asm/iot/pwm/fan/1, 50
+asm/iot/pwm/fan/2, 50
+"""
+
+ser = Serial("COM13", 115200, inter_byte_timeout=1)
+
+def on_connect(*args):
+    if args[3] == 0:
         print("브로커에 연결되었습니다.")
-        client.subscribe(TOPIC_LOTTO)
+        args[0].subscribe(TOPIC_IOT_PWM)
     else:
-        print("브로커에 연결할 수 없습니다.")
-        sys.exit()
+        pass
 
-def on_subscribe(client, userdata, mid, granted_qos):
-    print("브로커에 토픽 구독이 등록되었습니다.")
+def on_subscribe(*args):
+    print(f"브로커에 {TOPIC_IOT_PWM} 토픽 구독이 등록되었습니다.")
 
-def on_message(client, userdata, message):
-    t = message.topic
-    p = json.loads(message.payload)
-    print(t, p)
+def on_message(*args):
+    topic = args[2].topic
+    duty = json.loads(args[2].payload)
+    if topic == "asm/iot/pwm/light/1":
+        channel = 0
+    elif topic == "asm/iot/pwm/light/2":
+        channel = 1
+    elif topic == "asm/iot/pwm/fan/1":
+        channel = 2
+    elif topic == "asm/iot/pwm/fan/2":
+        channel = 3
+    else:
+        return
     
+    ser.write(f"pwm.duty({channel}, {duty})\r".encode())
+
 def main():
     c = mqtt.Client()
     c.on_connect = on_connect
     c.on_subscribe = on_subscribe
     c.on_message = on_message
     
-    c.connect(BROKER_SERVER)
-    c.loop_forever()
-
+    c.connect("mqtt.eclipseprojects.io")
+    c.loop_forever() 
+    
 if __name__ == "__main__":
     main()
 ```
 
-## PyQt6와 MQTT로 구현하는 PWM 기반 조명, 팬 제어기
-### PyQt6를 위한 MQTT Client
+**테스트**
+MQTTX를 브릿지와 같은 브로커에 연결한 후 토픽 메시지 발생
+- 새 연결
+  - Name: EclipseProjects
+  - Host: mqtt.eclipseprojects.io
+- 발행
+  - Type: JSON
+  - Topic: asm/iot/pwm/light/1
+  - Payload: 40
+
+## 원격 제어용 GUI
+MQTT 브로커에 토픽 메시지를 발생하는 기능을 pyqt6 기반 GUI로 구현
+
+### PyQt6용 MQTT 클라이언트 구현
 **pyqt6_mqtt.py**
 ```python
 import json
@@ -137,7 +188,33 @@ class PyQt6MqttClient(QObject):
         self.client.publish(topic, json.dumps(payload))
 ```
 
-### GUI
+### 원격 제어용 GUI 구현
+QT 디자이너로 화면 디자인
+- groupLight1
+  - diagLight1
+    - 0 ~ 50 
+  - fndLight1
+    - digit: 2
+  - dialLight1.valueChanged(int) --> fndLight1.display(int) 
+- groupLight2
+  - diagLight2
+    - 0 ~ 50 
+  - fndLight2
+    - digit: 2
+  - dialLight2.valueChanged(int) --> fndLight2.display(int) 
+- groupFan1
+  - diagFan1
+    - 0 ~ 50 
+  - fndFan1
+    - digit: 2
+  - dialFan1.valueChanged(int) --> fndFan1.display(int) 
+- groupFan2
+  - diagFan2
+    - 0 ~ 50 
+  - fndFan2 
+    - digit: 2
+  - dialFan2.valueChanged(int) --> fndFan2.display(int) 
+
 ![{AA354EAE-DED6-4512-A0F5-E82B38FBB5D1}](https://github.com/user-attachments/assets/0fd75a1f-e621-4142-96eb-50d38a855ca7)
 
 **ConditionCtrl.ui**
