@@ -1,17 +1,38 @@
 # MQTT로 IoT 장비 원격 제어
+Auto 제어기의 PWM 컨트롤러에 연결된 팬과 조명의 속도 및 밝기를 인터넷 환경에서 GUI 프로그램을 이용해 원격 제어
 
-## Auto 제어기 배선
-Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 IO포트의 GND 또는 DIO포트의 GND에 연결 
+## 시스템 구성
+Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리얼-인터넷 브릿지 및 PC2에서 실행하는 GUI 프로그램으로 구성 
+
+### 준비물
+- Auto 제어기: 1개
+  - USB 케이블: 1개
+  - 파워 어댑터: 1개 
+  - 드라이버: 1개
+  - 조명 패키지: 1개 (2개의 조명 포함) 
+  - 팬: 2개
+- PC: 2대
+  - PC1: Audo 제어기와 시리얼 연결
+  - PC2: PC1과 인터넷 연결
+ 
+### 케이블링
+Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 DIO 포트의 GND에 연결 
 
 ## Auto 제어기
-### Pwm 클래스를 이용해 Auto 제어기용 펌웨어 구현
-PWM(): PWM 객체 생성
-- scan(): PWM 컨트롤러 검색. True이면 이상 없음
-- init(): PWM 컨트롤러 초기화
-- freq(n): 주파수 설정 (50 ~ 10000)
- - duty(ch, n): 채당 채널에 듀티 값에 따른 PWM 신호 출력
-   - ch: 채널 번호: 0 ~ 3
-   - n: 튜티 값: 0 ~ 50 (50 이상은 과전류 문제가 발생할 수 있음)
+### PWM 클래스를 이용해 Auto 제어기용 펌웨어 구현
+시리얼로 수신한 데이터에 따라 PWM 컨트롤러의 각 채널에 PWM 신호 출력
+
+- PWM 클래스
+  - PWM(): PWM 객체 생성
+  - scan(): PWM 컨트롤러 검색. True이면 이상 없음
+  - init(): PWM 컨트롤러 초기화
+  - freq(n): 주파수 설정 (50 ~ 20000)
+  - duty(ch, n): 채당 채널에 듀티 값에 해당하는 PWM 신호 출력
+    - ch: 채널 번호 (0 ~ 3)
+    - n: 튜티 값 (0 ~ 100)
+
+- 데이터 포맷은 PWM 객체의 duty 메소드 호출에 대한 문자열
+  - 예: "pwm.duty(0, 50)\r"
 
 **firm_cond_ctrl.py**
 ```python
@@ -31,23 +52,30 @@ while True:
 ```
 
 ### 테스트
+xnode 툴을 이용해 구현한 펌웨어를 Auto 제어기에 전송 및 실행한 후 제어 명령을 정의한 데이터 형식으로 전송
+
 ```sh
 xnode --sport com13 run -in firm_cond_ctrl.py
 ```
 
 ```sh
-pwn.duty(0, 30)
+pwm.duty(0, 30)
 pwm.duty(0, 0)
 pwm.duty(2, 40)
 pwm.duty(2, 0)
 ```
 
 ## 시리얼과 인터넷 연결 브릿지
-Auto 제어기와 시리얼로 연결된 PC에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
+Auto 제어기와 시리얼로 연결된 PC1에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
+
+PWM 채널에 따른 토픽 정의
+- ams/iot/pwm/light/1
+- ams/iot/pwm/light/2
+- ams/iot/pwm/fan/1
+- ams/iot/pwm/fan/2
 
 ### 시리얼 프로그램 구현
-PC에서 입력 받은 채널과 듀티 값을 묶어 PySerial을 이용해 시리얼 통신으로 Auto 제어기에 전달 
-- "pwm.duty(0, 30)\r" 형태의 문자열
+PC1에서 입력 받은 채널과 듀티 값을 묶어 PySerial을 이용해 시리얼 통신으로 Auto 제어기에 전달 
 
 **bridge_cond_ctrl.py**
 ```python
@@ -76,7 +104,7 @@ Enter of duty: 20
 
 ### 브릿지 프로그램 구현
 paho-mqtt를 이용해 인터넷으로 구독한 페이로드(데이터)를 시리얼을 통해 Auto 제어기에 전달
-앞서 구현한 펌웨어 테스트 프로그램을 수정해 구현
+앞서 구현한 펌웨어 테스트 프로그램 수정
 
 **bridge_cond_ctrl.py**
 ```python
@@ -135,6 +163,7 @@ if __name__ == "__main__":
 
 **테스트**
 MQTTX를 브릿지와 같은 브로커에 연결한 후 토픽 메시지 발생
+
 - 새 연결
   - Name: EclipseProjects
   - Host: mqtt.eclipseprojects.io
