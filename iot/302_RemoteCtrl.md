@@ -134,7 +134,11 @@ def on_subscribe(*args):
 
 def on_message(*args):
     topic = args[2].topic
-    duty = json.loads(args[2].payload)
+    try:
+        duty = json.loads(args[2].payload)
+    except ValueError:
+        return
+
     if topic == "asm/iot/pwm/light/1":
         channel = 0
     elif topic == "asm/iot/pwm/light/2":
