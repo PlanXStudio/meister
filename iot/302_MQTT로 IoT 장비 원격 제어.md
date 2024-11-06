@@ -81,7 +81,8 @@ PySerial을 이용해 PC1에서 사용자가 입력한 채널과 듀티 값을 �
 ```python
 from serial import Serial
 
-ser = Serial("COM13", 115200, inter_byte_timeout=1)
+XNODE_PORT = "COM13" # 자신의 COM 포트로 변경할 것
+ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
 
 def main():
     while True:
@@ -113,6 +114,7 @@ from serial import Serial
 import paho.mqtt.client as mqtt
 import json
 
+XNODE_PORT = "COM13" # 자신의 COM 포트로 변경할 것
 TOPIC_IOT_PWM = "asm/iot/pwm/#"
 """
 asm/iot/pwm/light/1, 50
@@ -121,7 +123,7 @@ asm/iot/pwm/fan/1, 50
 asm/iot/pwm/fan/2, 50
 """
 
-ser = Serial("COM13", 115200, inter_byte_timeout=1)
+ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
 
 def on_connect(*args):
     if args[3] == 0:
