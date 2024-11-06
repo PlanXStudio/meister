@@ -75,9 +75,9 @@ PWM 채널에 따른 토픽 정의
 - ams/iot/pwm/fan/2
 
 ### 시리얼 프로그램 구현
-PC1에서 입력 받은 채널과 듀티 값을 묶어 PySerial을 이용해 시리얼 통신으로 Auto 제어기에 전달 
+PySerial을 이용해 PC1에서 사용자가 입력한 채널과 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달 
 
-**bridge_cond_ctrl.py**
+**serial_cond_ctrl.py**
 ```python
 from serial import Serial
 
@@ -103,8 +103,9 @@ Enter of duty: 20
 ```
 
 ### 브릿지 프로그램 구현
-paho-mqtt를 이용해 인터넷으로 구독한 페이로드(데이터)를 시리얼을 통해 Auto 제어기에 전달
-앞서 구현한 펌웨어 테스트 프로그램 수정
+paho-mqtt를 이용해 인터넷으로 구독한 토픽 메시지를 시리얼 통신을 통해 Auto 제어기에 전달
+구독할 토픽은 # 필터 이용 
+- "asm/iot/pwm/#"
 
 **bridge_cond_ctrl.py**
 ```python
@@ -177,16 +178,27 @@ MQTTX를 브릿지와 같은 브로커에 연결한 후 토픽 메시지 발생
   - Payload: 40
 
 ## 원격 제어용 GUI
-MQTT 브로커에 토픽 메시지를 발생하는 기능을 pyqt6 기반 GUI로 구현
+PC1과 인터넷으로 연결된 PC2에서 진행하며, MQTT 브로커에 토픽 메시지를 발생하는 기능을 pyqt6 기반 GUI로 구현
 
 ### PyQt6용 MQTT 클라이언트 구현
-**pyqt6_mqtt.py**
+MQTT 클라이언트 객체의 비동기 호출을 QT의 신호/슬롯 구조로 변환하는 중간 계층을 추가한 후 이를 통해 QT 응용프로그램과 연결하면, QT 응용프로그램이 쉬워짐
+이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 수행되려면 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경해야 함
+
+QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호 정의
+- connectSignal: 브로커 연결 요청이 처리되었음을 알리는 신호 보내기
+- publishSignal: 토픽 메시지가 발행되었음을 알리는 신호 보내기
+- subscribeSignal: 토픽 메시지 구독이 완료되었음을 알리는 신호 보내기
+- messageSignal: 토픽 메시지가 수신되었음을 알리는 신호 보내기
+
+[신호와 슬롯 개념](https://doc.qt.io/qtforpython-6/overviews/signalsandslots.html)
+  
+**PyQt6Mqtt.py**
 ```python
 import json
 from PyQt6.QtCore import QObject, pyqtSignal as Signal
 import paho.mqtt.client as mqtt
 
-class PyQt6MqttClient(QObject):
+class Client(QObject):
     connectSignal = Signal(int)
     publishSignal = Signal(int)
     subscribeSignal = Signal(int, int)
@@ -221,36 +233,43 @@ class PyQt6MqttClient(QObject):
         self.client.publish(topic, json.dumps(payload))
 ```
 
-### 원격 제어용 GUI 구현
-QT 디자이너로 화면 디자인
-- groupLight1
-  - diagLight1
-    - 0 ~ 50 
-  - fndLight1
-    - digit: 2
-  - dialLight1.valueChanged(int) --> fndLight1.display(int) 
-- groupLight2
-  - diagLight2
-    - 0 ~ 50 
-  - fndLight2
-    - digit: 2
-  - dialLight2.valueChanged(int) --> fndLight2.display(int) 
-- groupFan1
-  - diagFan1
-    - 0 ~ 50 
-  - fndFan1
-    - digit: 2
-  - dialFan1.valueChanged(int) --> fndFan1.display(int) 
-- groupFan2
-  - diagFan2
-    - 0 ~ 50 
-  - fndFan2 
-    - digit: 2
-  - dialFan2.valueChanged(int) --> fndFan2.display(int) 
+### UI(화면) 디자인
+QMainWindow 폼에 QMenuBar만 제거한 후 4개의 QGroupBox 배치
+- 각 QGroupBox마다 QDial와 QLCDNumber 배치
 
-![{AA354EAE-DED6-4512-A0F5-E82B38FBB5D1}](https://github.com/user-attachments/assets/0fd75a1f-e621-4142-96eb-50d38a855ca7)
+1. QT 디자이너를 실행
+```sh
+qt6-tools designer
+```
 
-**ConditionCtrl.ui**
+2. 다음과 같이 UI 디자인
+> CondCtrl.ui
+
+<img src="res/ui.png"> 
+
+- QMainWindow 폼에 QMenuBar만 제거한 후 4개의 QGroupBox 배치. 각 QGroupBox마다 QDial와 QLCDNumber 배치
+  - QMainWindow 속성 중 windowTitle은 "Condition Control System"으로 설정
+  - QGrupBox 1 속성 중 objectName은 grpLight_1, enabled는 체크 해제, title은 Light1로 설정 
+    - QDial 1 속성 중 objectName은 dialLight_1, maximum은 100, notchTarget은 1.0, notchesVisible은 체크 선택
+    - QLCDNumber 1 속성 중 objectName은 fndLight_1, frameShape는 Panel, frameShadow은 Sunken, digitCount는 3, segmentStyle은 Outline 선택
+  - QGrupBox 2 속성 중 objectName은 grpLight_2, enabled는 체크 해제, title은 Light2로 설정
+    - QDial 2 속성 중 objectName은 dialLight_2, maximum은 100, notchTarget은 1.0, notchesVisible은 체크 선택
+    - QLCDNumber 2 속성 중 objectName은 fndLight_2, frameShape는 Panel, frameShadow은 Sunken, digitCount는 3, segmentStyle은 Outline 선택
+  - QGrupBox 3 속성 중 objectName은 grpFan_1, enabled는 체크 해제, title은 Fan1로 설정
+    - QDial 3 속성 중 objectName은 diaFan_1, maximum은 100, notchTarget은 1.0, notchesVisible은 체크 선택
+    - QLCDNumber 3 속성 중 objectName은 fndFan_1, frameShape는 Panel, frameShadow은 Sunken, digitCount는 3, segmentStyle은 Outline 선택
+  - QGrupBox 4 속성 중 objectName은 grpFan_2, enabled는 체크 해제, title은 Fan2로 설정
+    - QDial 4 속성 중 objectName은 diaFan_2, maximum은 100, notchTarget은 1.0, notchesVisible은 체크 선택
+    - QLCDNumber 4 속성 중 objectName은 fndFan_2, frameShape는 Panel, frameShadow은 Sunken, digitCount는 3, segmentStyle은 Outline 선택
+- Signal/Slot 편집기에서 QDial과 QLCDNumber 사이 연결 설정
+  - dialLight1.valueChanged(int) -> findLight1.display(int) 
+  - dialLight2.valueChanged(int) -> findLight2.display(int) 
+  - dialFan1.valueChanged(int) -> findFan1.display(int) 
+  - dialFan2.valueChanged(int) -> findFan2.display(int) 
+
+<details>
+<summary><b>ConditionCtrl.ui</b></summary>
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
@@ -260,46 +279,64 @@ QT 디자이너로 화면 디자인
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>322</width>
-    <height>339</height>
+    <width>570</width>
+    <height>359</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Condition Controller</string>
+   <string>Condition Control System</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupLight">
+   <widget class="QGroupBox" name="grpLight_1">
     <property name="enabled">
      <bool>false</bool>
     </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>20</y>
-      <width>301</width>
-      <height>141</height>
+      <width>261</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
-     <string>Light</string>
+     <string>Light1</string>
     </property>
-    <widget class="QDial" name="dialLight">
+    <property name="alignment">
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <widget class="QDial" name="dialLight_1">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>111</width>
-       <height>111</height>
+       <x>11</x>
+       <y>18</y>
+       <width>121</width>
+       <height>121</height>
       </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
      </property>
      <property name="maximum">
       <number>100</number>
      </property>
      <property name="singleStep">
-      <number>2</number>
+      <number>1</number>
      </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+     <property name="pageStep">
+      <number>10</number>
+     </property>
+     <property name="sliderPosition">
+      <number>0</number>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
      </property>
      <property name="invertedAppearance">
       <bool>false</bool>
@@ -317,61 +354,70 @@ QT 디자이너로 화면 디자인
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLCDNumber" name="fndLight">
+    <widget class="QLCDNumber" name="fndLight_1">
      <property name="geometry">
       <rect>
-       <x>190</x>
-       <y>40</y>
-       <width>91</width>
-       <height>61</height>
+       <x>150</x>
+       <y>46</y>
+       <width>100</width>
+       <height>60</height>
       </rect>
      </property>
      <property name="frameShape">
-      <enum>QFrame::WinPanel</enum>
+      <enum>QFrame::Panel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
-     <property name="smallDecimalPoint">
-      <bool>false</bool>
-     </property>
      <property name="digitCount">
       <number>3</number>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Outline</enum>
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupFan">
+   <widget class="QGroupBox" name="grpLight_2">
     <property name="enabled">
      <bool>false</bool>
     </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>180</y>
-      <width>301</width>
-      <height>141</height>
+      <x>290</x>
+      <y>20</y>
+      <width>261</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
-     <string>Fan</string>
+     <string>Light2</string>
     </property>
-    <widget class="QDial" name="dialFan">
+    <widget class="QDial" name="dialLight_2">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>111</width>
-       <height>111</height>
+       <x>11</x>
+       <y>18</y>
+       <width>121</width>
+       <height>121</height>
       </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
      </property>
      <property name="maximum">
       <number>100</number>
      </property>
      <property name="singleStep">
-      <number>2</number>
+      <number>1</number>
      </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+     <property name="pageStep">
+      <number>10</number>
+     </property>
+     <property name="sliderPosition">
+      <number>0</number>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
      </property>
      <property name="invertedAppearance">
       <bool>false</bool>
@@ -389,62 +435,257 @@ QT 디자이너로 화면 디자인
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLCDNumber" name="fndFan">
+    <widget class="QLCDNumber" name="fndLight_2">
      <property name="geometry">
       <rect>
-       <x>190</x>
-       <y>40</y>
-       <width>91</width>
-       <height>61</height>
+       <x>150</x>
+       <y>46</y>
+       <width>100</width>
+       <height>60</height>
       </rect>
      </property>
      <property name="frameShape">
-      <enum>QFrame::WinPanel</enum>
+      <enum>QFrame::Panel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
-     <property name="smallDecimalPoint">
+     <property name="digitCount">
+      <number>3</number>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Outline</enum>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="grpFan_1">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>180</y>
+      <width>261</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Fan1</string>
+    </property>
+    <widget class="QDial" name="dialFan_1">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>18</y>
+       <width>121</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
       <bool>false</bool>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="singleStep">
+      <number>1</number>
+     </property>
+     <property name="pageStep">
+      <number>10</number>
+     </property>
+     <property name="sliderPosition">
+      <number>0</number>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
+     </property>
+     <property name="wrapping">
+      <bool>false</bool>
+     </property>
+     <property name="notchTarget">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="notchesVisible">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLCDNumber" name="fndFan_1">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>46</y>
+       <width>100</width>
+       <height>60</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
      </property>
      <property name="digitCount">
       <number>3</number>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Outline</enum>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="grpFan_2">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>180</y>
+      <width>261</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Fan2</string>
+    </property>
+    <widget class="QDial" name="dialFan_2">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>18</y>
+       <width>121</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="singleStep">
+      <number>1</number>
+     </property>
+     <property name="pageStep">
+      <number>10</number>
+     </property>
+     <property name="sliderPosition">
+      <number>0</number>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
+     </property>
+     <property name="wrapping">
+      <bool>false</bool>
+     </property>
+     <property name="notchTarget">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="notchesVisible">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLCDNumber" name="fndFan_2">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>46</y>
+       <width>100</width>
+       <height>60</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="digitCount">
+      <number>3</number>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Outline</enum>
      </property>
     </widget>
    </widget>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>dialLight</sender>
+   <sender>dialLight_1</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>fndLight</receiver>
+   <receiver>fndLight_1</receiver>
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>85</x>
-     <y>95</y>
+     <x>91</x>
+     <y>98</y>
     </hint>
     <hint type="destinationlabel">
-     <x>245</x>
-     <y>90</y>
+     <x>219</x>
+     <y>95</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>dialFan</sender>
+   <sender>dialLight_2</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>fndFan</receiver>
+   <receiver>fndLight_2</receiver>
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>85</x>
-     <y>255</y>
+     <x>361</x>
+     <y>98</y>
     </hint>
     <hint type="destinationlabel">
-     <x>245</x>
-     <y>250</y>
+     <x>489</x>
+     <y>95</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>dialFan_2</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>fndFan_2</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>361</x>
+     <y>258</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>489</x>
+     <y>255</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>dialFan_1</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>fndFan_1</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>91</x>
+     <y>258</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>219</x>
+     <y>255</y>
     </hint>
    </hints>
   </connection>
@@ -452,46 +693,91 @@ QT 디자이너로 화면 디자인
 </ui>
 ```
 
+</details>
+
+3. 완성된 UI를 CondCtrl.ui로 저장
+  
+4. 저장한 UI 파일(CondCtrl.ui)을 파이썬 파일(CondCtrlUi.py)로 변환
+```sh
+pyuic6 CondCtrl.ui -o CondCtrlUi.py
+```
+
+### 코드 구현
+PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발생한 파이썬 코드 구현
+- 4개의 QDial.valueChanged 신호에 대한 슬롯 구현
+  - dialLight_1의 valueChanged 신호를 onLight1ValueChange()에 연결
+    - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/light/1" 토픽으로 발행
+  - dialLight_1의 valueChanged 신호를 onLight2ValueChange()에 연결
+    - 신호를 받으면 함께 전달된 QDial 값을 "sm/iot/pwm/light/2" 토픽으로 발행
+  - dialFan_1의 valueChanged 신호를 onFan1ValueChange()에 연결
+    - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/fan/1" 토픽으로 발행
+  - dialFan_1의 valueChanged 신호를 onFan2ValueChange()에 연결
+    - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/fan/2" 토픽으로 발행
+- PyQt6Mqtt 모듈의 Client 객체를 생성한 후 해당 신호에 대한 슬롯 구현
+  - Client 객체의 connectSignal 신호를 onConnect()에 연결
+    - 신호를 받으면 함께 전달된 rc를 검사해 처리
+      - 0이면 모든 QGrouopBox의 setEnabled() 메소드에 True를 전달해 위젯 활성화
+      - 아니면 실패이므로 QMainWindow의 close() 메소드를 호출해 창을 닫음(프로그램 종료)
+  - Client 객체의 publishSignal 신호를 onPublish()에 연결
+    - 신호를 받으면 함께 전달된 mid(발행한 메시지 일련번호)를 상태바에 출력하기 위해 QStatusBar의 showMessage() 메소드 호출
+  - Client 객체의 connect() 메소드를 호출해 mqtt 클라이언트 라이브러리가 브로커(mqtt.eclipseprojects.io) 연결을 처리하도록 요청
+     
 **ConditionCtrl.py**
 ```python
 import sys
+import json
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
-from ConditionCtrl_ui import Ui_MainWindow
-from pyqt6_mqtt import PyQt6MqttClient
+from CondCtrlUi import Ui_MainWindow
+from PyQt6Mqtt import Client
 
-class ConditionCtrl(QMainWindow, Ui_MainWindow):
+class CondCtrl(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.dialLight.sliderReleased.connect(self.onLight_sliderReleased)
-        self.dialFan.valueChanged.connect(self.onFan_valueChanged)
-    
-        self.client = PyQt6MqttClient(self)
+        
+        self.dialLight_1.valueChanged.connect(self.onLight1ValueChange)
+        self.dialLight_2.valueChanged.connect(self.onLight2ValueChange)
+        self.dialFan_1.valueChanged.connect(self.onFan1ValueChange)
+        self.dialFan_2.valueChanged.connect(self.onFan2ValueChange)
+        
+        self.client = Client()
         self.client.connectSignal.connect(self.onConnect)
         self.client.publishSignal.connect(self.onPublish)
         self.client.connect("mqtt.eclipseprojects.io")
-        
+    
     def onConnect(self, rc):
         if rc == 0:
             QMessageBox.information(self,"MQTT Broker", "브로커에 연결되었습니다.")
-            self.groupLight.setEnabled(True)
-            self.groupFan.setEnabled(True)
+            self.grpLight_1.setEnabled(True)
+            self.grpLight_2.setEnabled(True)
+            self.grpFan_1.setEnabled(True)
+            self.grpFan_2.setEnabled(True)
+            self.statusBar.showMessage("준비")
         else:
             self.close()
     
     def onPublish(self, mid):
-        print(mid)
+        self.statusBar.showMessage(f"{mid} 번째 메시지가 발행되었습니다.")
     
-    def onLight_sliderReleased(self):
-        value = self.dialLight.value()
-        self.client.publish("asm/iot/pwm/light", value)
-            
-    def onFan_valueChanged(self, value):
-        self.client.publish("asm/iot/pwm/fan", value)
+    def onLight1ValueChange(self, value):
+        self.client.publish("asm/iot/pwm/light/1", json.dumps(value))
+    
+    def onLight2ValueChange(self, value):
+        self.client.publish("asm/iot/pwm/light/2", json.dumps(value))
+    
+    def onFan1ValueChange(self, value):
+        self.client.publish("asm/iot/pwm/fan/1", json.dumps(value))
+    
+    def onFan2ValueChange(self, value):
+        self.client.publish("asm/iot/pwm/fan/2", json.dumps(value))
+
+
+def main():
+    app = QApplication(sys.argv)
+    win = CondCtrl()
+    win.show()
+    app.exec()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    ui = ConditionCtrl()
-    ui.show()
-    app.exec()
+    main()
 ```
