@@ -285,7 +285,7 @@ qt6-tools designer
   - dialFan2.valueChanged(int) -> findFan2.display(int) 
 
 <details>
-<summary><b>ConditionCtrl.ui</b></summary>
+<summary><b>CondCtrl.ui</b></summary>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -739,7 +739,7 @@ PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 �
     - 신호를 받으면 함께 전달된 mid(발행한 메시지 일련번호)를 상태바에 출력하기 위해 QStatusBar의 showMessage() 메소드 호출
   - Client 객체의 connect() 메소드를 호출해 mqtt 클라이언트 라이브러리가 브로커(mqtt.eclipseprojects.io) 연결을 처리하도록 요청
      
-**ConditionCtrl.py**
+**CondCtrl.py**
 ```python
 import sys
 import json
