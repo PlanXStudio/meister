@@ -31,8 +31,9 @@ Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하
     - ch: 채널 번호 (0 ~ 3)
     - n: 튜티 값 (0 ~ 100)
 
-- 데이터 포맷은 PWM 객체의 duty 메소드 호출에 대한 문자열
-  - 예: "pwm.duty(0, 50)\r"
+- PC에서 시리얼로 제어 문자열을 전송하면 펌웨어가 이를 읽어 eval()로 실행
+  - 형식은 PWM 객체의 duty 메소드 호출 구문   
+  - 예) "pwm.duty(0, 50)\r"
 
 **firm_cond_ctrl.py**
 ```python
@@ -52,8 +53,9 @@ while True:
 ```
 
 ### 테스트
-xnode 툴을 이용해 구현한 펌웨어를 Auto 제어기에 전송 및 실행한 후 제어 명령을 정의한 데이터 형식으로 전송
-- PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인
+xnode 툴을 이용해 구현한 펌웨어를 Auto 제어기에 전송, 실행한 후 펌웨어서 정의한 데이터 형식으로 제어 문자열 전송
+
+1. PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인
 ```sh
 xnode scan
 ```
@@ -61,12 +63,12 @@ xnode scan
 com13
 ```
 
-- 확인한 시리얼 포트 번호를 이용해 펌웨어를 실행한 후 xnode 툴로 PC에서 Auto 제어기로 제어 문자열 전송 
+2. 확인한 시리얼 포트 번호를 이용해 펌웨어를 실행한 후 xnode 툴로 PC에서 Auto 제어기로 제어 문자열 전송 
 ```sh
 xnode --sport com13 run -in firm_cond_ctrl.py
 ```
 
-- "pwm.duty(채널, 듀티)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
+3. "pwm.duty(채널, 듀티)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
 ```sh
 pwm.duty(0, 30)
 pwm.duty(0, 0)
@@ -74,8 +76,10 @@ pwm.duty(2, 40)
 pwm.duty(2, 0)
 ```
 
+4. 테스트가 완료되면 Ctrl+c를 눌러 강제 종료
+
 ### 펌웨어 실행
-테스트가 완료되면 Ctrl+c로 강제 종료한 후 Auto 제어기에 펌웨어만 실행한 후 xnode 툴은 종료
+Auto 제어기에 펌웨어만 실행한 후 xnode 툴은 종료
 ```sh
 xnode --sport com13 run -n firm_cond_ctrl.py
 ```
@@ -83,7 +87,7 @@ xnode --sport com13 run -n firm_cond_ctrl.py
 ## 시리얼과 인터넷 연결 브릿지
 Auto 제어기와 시리얼로 연결된 PC1에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
 
-PWM 채널에 따른 토픽 정의
+PWM 채널에 따른 토픽은 다음과 같으며, 페이로드는 json 문자열 형식의 튜티 값 (0 ~ 100)
 - ams/iot/pwm/light/1
 - ams/iot/pwm/light/2
 - ams/iot/pwm/fan/1
@@ -120,7 +124,7 @@ Enter of duty: 20
 
 ### 브릿지 프로그램 구현
 paho-mqtt를 이용해 인터넷으로 구독한 토픽 메시지를 시리얼 통신을 통해 Auto 제어기에 전달
-구독할 토픽은 # 필터 이용 
+토픽은 정의한 4개를 모두 구독해야 하나, # 필터를 이용해 한 번만 구독 
 - "asm/iot/pwm/#"
 
 **bridge_cond_ctrl.py**
