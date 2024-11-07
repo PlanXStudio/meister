@@ -53,16 +53,31 @@ while True:
 
 ### 테스트
 xnode 툴을 이용해 구현한 펌웨어를 Auto 제어기에 전송 및 실행한 후 제어 명령을 정의한 데이터 형식으로 전송
+- PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인
+```sh
+xnode scan
+```
+```out
+com13
+```
 
+- 확인한 시리얼 포트 번호를 이용해 펌웨어를 실행한 후 xnode 툴로 PC에서 Auto 제어기로 제어 문자열 전송 
 ```sh
 xnode --sport com13 run -in firm_cond_ctrl.py
 ```
 
+- "pwm.duty(채널, 듀티)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
 ```sh
 pwm.duty(0, 30)
 pwm.duty(0, 0)
 pwm.duty(2, 40)
 pwm.duty(2, 0)
+```
+
+### 펌웨어 실행
+테스트가 완료되면 Ctrl+c로 강제 종료한 후 Auto 제어기에 펌웨어만 실행한 후 xnode 툴은 종료
+```sh
+xnode --sport com13 run -n firm_cond_ctrl.py
 ```
 
 ## 시리얼과 인터넷 연결 브릿지
