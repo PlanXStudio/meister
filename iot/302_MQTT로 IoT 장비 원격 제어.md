@@ -4,6 +4,11 @@ Auto 제어기의 PWM 컨트롤러에 연결된 팬과 조명의 속도 및 밝�
 ## 시스템 구성
 Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리얼-인터넷 브릿지 및 PC2에서 실행하는 GUI 프로그램으로 구성 
 
+```xml
+      펌웨어(micrpython)                   브릿지(python, pyserial, paho-mqtt)                                        GUI(python, pyqt6, paho-mqtt)  
+      MCU               <--- 시리얼 --->   PC1                                <--- 인터넷 ---> 브로커 <--- 인터넷 ---> PC2
+```
+
 ### 준비물
 - Auto 제어기: 1개
   - USB 케이블: 1개
@@ -18,9 +23,25 @@ Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리�
 ### 케이블링
 Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 DIO 포트의 GND에 연결 
 
+### 프로젝트 폴더 구조
+```xml
+CondCtrl  
+   |--- XNode  
+   |    |--- firm_cond_ctrl.py  
+   |  
+   |--- PC  
+        |--- serial_cond_ctrl.py  
+        |--- bridge_cond_ctrl.py  
+        |--- PyQt6  
+                |--- CondCtrl.ui  
+                |--- CondCtrlUi.py  
+                |--- CondCtry.py  
+                |--- PyQt6Mqtt.py  
+```
+                
 ## Auto 제어기
 ### PWM 클래스를 이용해 Auto 제어기용 펌웨어 구현
-시리얼로 수신한 데이터에 따라 PWM 컨트롤러의 각 채널에 PWM 신호 출력
+PWM 클래스를 이용하면 PWM 컨트롤러의 해당 채널에 PWM 신호 출력 가능
 
 - PWM 클래스
   - PWM(): PWM 객체 생성
@@ -31,9 +52,23 @@ Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하
     - ch: 채널 번호 (0 ~ 3)
     - n: 튜티 값 (0 ~ 100)
 
-- PC에서 시리얼로 제어 문자열을 전송하면 펌웨어가 이를 읽어 eval()로 실행
-  - 형식은 PWM 객체의 duty 메소드 호출 구문   
-  - 예) "pwm.duty(0, 50)\r"
+```python
+from xnode.pop.autoctrl import PWM
+import time
+
+pwm = PWM()
+if pwn.scan():
+    pwm.init()
+    pwm.freq(1000) # 1KHz
+
+    pwm.duty(0, 50)
+    time.sleep(0)
+    pwm.duty(0, 0)
+```
+
+PC와 Auto 제어기 펌웨어 사이 통신 규칙 정의
+- PC에서 "pwm.duty(0, 50)\r" 형식의 문자열 전송
+- 펌웨어는 input()으로 이를 수신한 후 eval()에 대입해 실행
 
 **firm_cond_ctrl.py**
 ```python
@@ -53,7 +88,7 @@ while True:
 ```
 
 ### 테스트
-xnode 툴을 이용해 구현한 펌웨어를 Auto 제어기에 전송, 실행한 후 펌웨어서 정의한 데이터 형식으로 제어 문자열 전송
+PC1에서 구현한 펌웨어를 xnode 툴을 이용해 Auto 제어기에 전송 및 실행한 다음 제어 문자열 전송
 
 1. PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인
 ```sh
@@ -63,12 +98,12 @@ xnode scan
 com13
 ```
 
-2. 확인한 시리얼 포트 번호를 이용해 펌웨어를 실행한 후 xnode 툴로 PC에서 Auto 제어기로 제어 문자열 전송 
+2. 펌웨어 전송 및 실행 
 ```sh
-xnode --sport com13 run -in firm_cond_ctrl.py
+xnode --sport com13 run -in CondCtrl\XNode\firm_cond_ctrl.py
 ```
 
-3. "pwm.duty(채널, 듀티)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
+3. "pwm.duty(채널, 듀티값)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
 ```sh
 pwm.duty(0, 30)
 pwm.duty(0, 0)
@@ -79,22 +114,16 @@ pwm.duty(2, 0)
 4. 테스트가 완료되면 Ctrl+c를 눌러 강제 종료
 
 ### 펌웨어 실행
-Auto 제어기에 펌웨어만 실행한 후 xnode 툴은 종료
+Auto 제어기에 펌웨어만 전송 및 실행한 후 xnode 툴은 종료
 ```sh
-xnode --sport com13 run -n firm_cond_ctrl.py
+xnode --sport com13 run -n CondCtrl\XNode\firm_cond_ctrl.py
 ```
 
 ## 시리얼과 인터넷 연결 브릿지
-Auto 제어기와 시리얼로 연결된 PC1에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
-
-PWM 채널에 따른 토픽은 다음과 같으며, 페이로드는 json 문자열 형식의 튜티 값 (0 ~ 100)
-- ams/iot/pwm/light/1
-- ams/iot/pwm/light/2
-- ams/iot/pwm/fan/1
-- ams/iot/pwm/fan/2
+Auto 제어기와 시리얼로 연결된 상태에서 인터넷에도 연결된 PC1에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
 
 ### 시리얼 프로그램 구현
-PySerial을 이용해 PC1에서 사용자가 입력한 채널과 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달 
+PySerial을 이용해 PC1에서 사용자가 입력한 채널 번호와 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달 
 
 **serial_cond_ctrl.py**
 ```python
@@ -114,16 +143,25 @@ if __name__ == "__main__":
 ```
 
 **테스트**
+출력되는 프롬프트에 맞춰 채널 번호와 듀티 값을 입력하면 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함 
 ```sh
-python bridge_cond_ctrl.py
+python CondCtrl\PC\seiral_cond_ctrl.py
 ```
 ```sh
 Enter of channel: 0
 Enter of duty: 20
 ```
 
+테스트가 끝나면 Ctrl+c를 눌러 강제 종료
+
 ### 브릿지 프로그램 구현
 paho-mqtt를 이용해 인터넷으로 구독한 토픽 메시지를 시리얼 통신을 통해 Auto 제어기에 전달.  
+PWM 채널에 따른 토픽은 다음과 같으며, 페이로드는 json 문자열 형식의 튜티 값 (0 ~ 100)
+- 0번 채널: ams/iot/pwm/light/1
+- 1번 채널: ams/iot/pwm/light/2
+- 2번 채널: ams/iot/pwm/fan/1
+- 3번 채널: ams/iot/pwm/fan/2
+
 토픽은 정의한 4개를 모두 구독해야 하나, # 필터를 이용해 한 번만 구독 등록하면, 4개의(실제 4개보다 많을 수 있음) 토픽 메시지를 모두 수신함 
 - "asm/iot/pwm/#"
 
@@ -188,7 +226,12 @@ if __name__ == "__main__":
 ```
 
 **테스트**
-MQTTX를 브릿지와 같은 브로커에 연결한 후 토픽 메시지 발생
+구현한 브릿지 실행
+```sh
+python CondCtrl\PC\bridge_cond_ctrl.py
+```
+
+MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 정의한 토픽(채널 선택)과 Json 문자열 형식의 페이로드(듀티 값) 발행
 
 - 새 연결
   - Name: EclipseProjects
@@ -198,12 +241,13 @@ MQTTX를 브릿지와 같은 브로커에 연결한 후 토픽 메시지 발생
   - Topic: asm/iot/pwm/light/1
   - Payload: 40
 
+
 ## 원격 제어용 GUI
-PC1과 인터넷으로 연결된 PC2에서 진행하며, MQTT 브로커에 토픽 메시지를 발생하는 기능을 pyqt6 기반 GUI로 구현
+인터넷에 연결된 PC2에서 진행하며, QDial 위젯 값이 바뀔때 마다 사전 정의한 토픽과 Json 문자열 형식의 페이로드(듀플 값)를 MQTT 브로커에 발행하는 PhQy6 기반 GUI 구현
 
 ### PyQt6용 MQTT 클라이언트 구현
 MQTT 클라이언트 객체의 비동기 호출을 QT의 신호/슬롯 구조로 변환하는 중간 계층을 추가한 후 이를 통해 QT 응용프로그램과 연결하면, QT 응용프로그램이 쉬워짐
-이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 수행되려면 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경해야 함
+이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 실행되어야 하므로 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경 함
 
 QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호 정의
 - connectSignal: 브로커 연결 요청이 처리되었음을 알리는 신호 보내기
@@ -723,6 +767,150 @@ qt6-tools designer
 pyuic6 CondCtrl.ui -o CondCtrlUi.py
 ```
 
+<details>
+<summary><b>CondCtrlUi.py</b></summary>
+
+```python
+# Form implementation generated from reading ui file 'CondCtrl.ui'
+#
+# Created by: PyQt6 UI code generator 6.4.2
+#
+# WARNING: Any manual changes made to this file will be lost when pyuic6 is
+# run again.  Do not edit this file unless you know what you are doing.
+
+
+from PyQt6 import QtCore, QtGui, QtWidgets
+
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(570, 359)
+        self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.grpLight_1 = QtWidgets.QGroupBox(parent=self.centralwidget)
+        self.grpLight_1.setEnabled(False)
+        self.grpLight_1.setGeometry(QtCore.QRect(20, 20, 261, 151))
+        self.grpLight_1.setObjectName("grpLight_1")
+        self.dialLight_1 = QtWidgets.QDial(parent=self.grpLight_1)
+        self.dialLight_1.setGeometry(QtCore.QRect(11, 18, 121, 121))
+        self.dialLight_1.setAutoFillBackground(False)
+        self.dialLight_1.setMaximum(100)
+        self.dialLight_1.setSingleStep(1)
+        self.dialLight_1.setPageStep(10)
+        self.dialLight_1.setSliderPosition(0)
+        self.dialLight_1.setTracking(True)
+        self.dialLight_1.setInvertedAppearance(False)
+        self.dialLight_1.setInvertedControls(False)
+        self.dialLight_1.setWrapping(False)
+        self.dialLight_1.setNotchTarget(1.0)
+        self.dialLight_1.setNotchesVisible(True)
+        self.dialLight_1.setObjectName("dialLight_1")
+        self.fndLight_1 = QtWidgets.QLCDNumber(parent=self.grpLight_1)
+        self.fndLight_1.setGeometry(QtCore.QRect(150, 46, 100, 60))
+        self.fndLight_1.setFrameShape(QtWidgets.QFrame.Shape.Panel)
+        self.fndLight_1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.fndLight_1.setDigitCount(3)
+        self.fndLight_1.setSegmentStyle(QtWidgets.QLCDNumber.SegmentStyle.Outline)
+        self.fndLight_1.setObjectName("fndLight_1")
+        self.grpLight_2 = QtWidgets.QGroupBox(parent=self.centralwidget)
+        self.grpLight_2.setEnabled(False)
+        self.grpLight_2.setGeometry(QtCore.QRect(290, 20, 261, 151))
+        self.grpLight_2.setObjectName("grpLight_2")
+        self.dialLight_2 = QtWidgets.QDial(parent=self.grpLight_2)
+        self.dialLight_2.setGeometry(QtCore.QRect(11, 18, 121, 121))
+        self.dialLight_2.setAutoFillBackground(False)
+        self.dialLight_2.setMaximum(100)
+        self.dialLight_2.setSingleStep(1)
+        self.dialLight_2.setPageStep(10)
+        self.dialLight_2.setSliderPosition(0)
+        self.dialLight_2.setTracking(True)
+        self.dialLight_2.setInvertedAppearance(False)
+        self.dialLight_2.setInvertedControls(False)
+        self.dialLight_2.setWrapping(False)
+        self.dialLight_2.setNotchTarget(1.0)
+        self.dialLight_2.setNotchesVisible(True)
+        self.dialLight_2.setObjectName("dialLight_2")
+        self.fndLight_2 = QtWidgets.QLCDNumber(parent=self.grpLight_2)
+        self.fndLight_2.setGeometry(QtCore.QRect(150, 46, 100, 60))
+        self.fndLight_2.setFrameShape(QtWidgets.QFrame.Shape.Panel)
+        self.fndLight_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.fndLight_2.setDigitCount(3)
+        self.fndLight_2.setSegmentStyle(QtWidgets.QLCDNumber.SegmentStyle.Outline)
+        self.fndLight_2.setObjectName("fndLight_2")
+        self.grpFan_1 = QtWidgets.QGroupBox(parent=self.centralwidget)
+        self.grpFan_1.setEnabled(False)
+        self.grpFan_1.setGeometry(QtCore.QRect(20, 180, 261, 151))
+        self.grpFan_1.setObjectName("grpFan_1")
+        self.dialFan_1 = QtWidgets.QDial(parent=self.grpFan_1)
+        self.dialFan_1.setGeometry(QtCore.QRect(11, 18, 121, 121))
+        self.dialFan_1.setAutoFillBackground(False)
+        self.dialFan_1.setMaximum(100)
+        self.dialFan_1.setSingleStep(1)
+        self.dialFan_1.setPageStep(10)
+        self.dialFan_1.setSliderPosition(0)
+        self.dialFan_1.setTracking(True)
+        self.dialFan_1.setInvertedAppearance(False)
+        self.dialFan_1.setInvertedControls(False)
+        self.dialFan_1.setWrapping(False)
+        self.dialFan_1.setNotchTarget(1.0)
+        self.dialFan_1.setNotchesVisible(True)
+        self.dialFan_1.setObjectName("dialFan_1")
+        self.fndFan_1 = QtWidgets.QLCDNumber(parent=self.grpFan_1)
+        self.fndFan_1.setGeometry(QtCore.QRect(150, 46, 100, 60))
+        self.fndFan_1.setFrameShape(QtWidgets.QFrame.Shape.Panel)
+        self.fndFan_1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.fndFan_1.setDigitCount(3)
+        self.fndFan_1.setSegmentStyle(QtWidgets.QLCDNumber.SegmentStyle.Outline)
+        self.fndFan_1.setObjectName("fndFan_1")
+        self.grpFan_2 = QtWidgets.QGroupBox(parent=self.centralwidget)
+        self.grpFan_2.setEnabled(False)
+        self.grpFan_2.setGeometry(QtCore.QRect(290, 180, 261, 151))
+        self.grpFan_2.setObjectName("grpFan_2")
+        self.dialFan_2 = QtWidgets.QDial(parent=self.grpFan_2)
+        self.dialFan_2.setGeometry(QtCore.QRect(11, 18, 121, 121))
+        self.dialFan_2.setAutoFillBackground(False)
+        self.dialFan_2.setMaximum(100)
+        self.dialFan_2.setSingleStep(1)
+        self.dialFan_2.setPageStep(10)
+        self.dialFan_2.setSliderPosition(0)
+        self.dialFan_2.setTracking(True)
+        self.dialFan_2.setInvertedAppearance(False)
+        self.dialFan_2.setInvertedControls(False)
+        self.dialFan_2.setWrapping(False)
+        self.dialFan_2.setNotchTarget(1.0)
+        self.dialFan_2.setNotchesVisible(True)
+        self.dialFan_2.setObjectName("dialFan_2")
+        self.fndFan_2 = QtWidgets.QLCDNumber(parent=self.grpFan_2)
+        self.fndFan_2.setGeometry(QtCore.QRect(150, 46, 100, 60))
+        self.fndFan_2.setFrameShape(QtWidgets.QFrame.Shape.Panel)
+        self.fndFan_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.fndFan_2.setDigitCount(3)
+        self.fndFan_2.setSegmentStyle(QtWidgets.QLCDNumber.SegmentStyle.Outline)
+        self.fndFan_2.setObjectName("fndFan_2")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.statusBar = QtWidgets.QStatusBar(parent=MainWindow)
+        self.statusBar.setObjectName("statusBar")
+        MainWindow.setStatusBar(self.statusBar)
+
+        self.retranslateUi(MainWindow)
+        self.dialLight_1.valueChanged['int'].connect(self.fndLight_1.display) # type: ignore
+        self.dialLight_2.valueChanged['int'].connect(self.fndLight_2.display) # type: ignore
+        self.dialFan_2.valueChanged['int'].connect(self.fndFan_2.display) # type: ignore
+        self.dialFan_1.valueChanged['int'].connect(self.fndFan_1.display) # type: ignore
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "Condition Control System"))
+        self.grpLight_1.setTitle(_translate("MainWindow", "Light1"))
+        self.grpLight_2.setTitle(_translate("MainWindow", "Light2"))
+        self.grpFan_1.setTitle(_translate("MainWindow", "Fan1"))
+        self.grpFan_2.setTitle(_translate("MainWindow", "Fan2"))
+```
+
+</details>
+
 ### 코드 구현
 PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발생한 파이썬 코드 구현
 - 4개의 QDial.valueChanged 신호에 대한 슬롯 구현
@@ -801,4 +989,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
+
+PC1에서 브릿지가 실행 중인 상태에서 구현한 GUI 실행
+```sh
+python CondCtrl\PC\PyQt6\CondCtrl.py
 ```
