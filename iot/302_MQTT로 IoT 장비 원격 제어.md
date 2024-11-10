@@ -244,10 +244,11 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 
 
 ## 원격 제어용 GUI
-인터넷에 연결된 PC2에서 진행하며, QDial 위젯 값이 바뀔때 마다 사전 정의한 토픽과 Json 문자열 형식의 페이로드(듀플 값)를 MQTT 브로커에 발행하는 PhQy6 기반 GUI 구현
-
-### PyQt6용 MQTT 클라이언트 구현
-MQTT 클라이언트 객체의 비동기 호출을 QT의 신호/슬롯 구조로 변환하는 중간 계층을 추가한 후 이를 통해 QT 응용프로그램과 연결하면, QT 응용프로그램이 쉬워짐
+인터넷에 연결된 PC2에서 진행하며, 4개의 QDial 위젯 값이 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI 구현
+각각의 QDial 위젯은 사전 정의한 토픽에 대응하고 바뀐 값은 Json 문자열 형식의 페이로드로 듀티 값에 대응
+ 
+### MQTT 클라이언트를 PyQt6에 통합
+MQTT 클라이언트 객체의 이벤트(비동기 호출)를 QT의 신호-슬롯 메커니즘으로 변환하는 중간 계층을 추가하면 MQTT를 사용하는 QT 응용프로그램 구현이 쉬워짐
 이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 실행되어야 하므로 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경 함
 
 QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호 정의
@@ -264,20 +265,20 @@ import json
 from PyQt6.QtCore import QObject, pyqtSignal as Signal
 import paho.mqtt.client as mqtt
 
-class Client(QObject):
+class Client(QObject, mqtt.Client):
     connectSignal = Signal(int)
     publishSignal = Signal(int)
     subscribeSignal = Signal(int, int)
     messageSignal = Signal(str, object)
     
     def __init__(self, parent=None):
-        super().__init__(parent)
-    
-        self.client = mqtt.Client()
-        self.client.on_connect = self.on_connect
-        self.client.on_publish = self.on_publish
-        self.client.on_subscribe = self.on_subscribe
-        self.client.on_message = self.on_message
+        QObject.__init__(self, parent)
+        mqtt.Client.__init__(self)
+        
+        self.on_connect = self.on_connect
+        self.on_publish = self.on_publish
+        self.on_subscribe = self.on_subscribe
+        self.on_message = self.on_message
         
     def on_connect(self, client, userdata, flags, rc):
         self.connectSignal.emit(rc)
@@ -292,11 +293,11 @@ class Client(QObject):
         self.messageSignal.emit(message.topic, json.loads(message.payload))
     
     def connect(self, broker):
-        self.client.connect(broker)
-        self.client.loop_start()
+        super().connect(broker)
+        self.loop_start()
     
     def publish(self, topic, payload):
-        self.client.publish(topic, json.dumps(payload))
+        super().publish(topic, json.dumps(payload))
 ```
 
 ### UI(화면) 디자인
@@ -913,7 +914,7 @@ class Ui_MainWindow(object):
 </details>
 
 ### 코드 구현
-PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발생한 파이썬 코드 구현
+PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발행하는 파이썬 코드 구현
 - 4개의 QDial.valueChanged 신호에 대한 슬롯 구현
   - dialLight_1의 valueChanged 신호를 onLight1ValueChange()에 연결
     - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/light/1" 토픽으로 발행
