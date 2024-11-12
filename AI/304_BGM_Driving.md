@@ -291,7 +291,7 @@ rec clean.mp3 noisered noise.prof 0.18
 play we.ogg we_noisered.ogg clean.mp3
 ```
 
-**홥성음 출력**
+**합성음 출력**
 SoX의 synth는 소리를 합성하는 데 사용되는 강력한 기능입니다. 다양한 파형, 주파수, 효과를 사용하여 원하는 소리를 만들어낼 수 있습니다.  
 
 synth의 기본적인 사용법은 다음과 같습니다. 
