@@ -1,8 +1,8 @@
 # MQTT로 IoT 장비 원격 제어
-Auto 제어기의 PWM 컨트롤러에 연결된 팬과 조명의 속도 및 밝기를 인터넷 환경에서 GUI 프로그램을 이용해 원격 제어
+인터넷으로 연결된 컴퓨터에서 GUI 프로그램을 이용해 Auto 제어기의 PWM 컨트롤러에 연결된 팬과 조명의 속도 및 밝기를 원격 제어합니다.
 
 ## 시스템 구성
-Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리얼-인터넷 브릿지 및 PC2에서 실행하는 GUI 프로그램으로 구성 
+Auto 제어기에서 실행하는 펌웨어와, PC1에서 실행하는 시리얼-인터넷 브릿지 프로그램 및 PC2에서 실행하는 GUI 프로그램으로 구성되며, 환경에 따라 PC1과 PC2는 같은 PC일 수 있습니다.
 
 ```xml
       MCU      <--- 시리얼 ---> PC1      <--- 인터넷 ---> 브로커 <--- 인터넷 ---> PC2
@@ -16,13 +16,13 @@ Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리�
   - 파워 어댑터: 1개 
   - 드라이버: 1개
   - 조명 패키지: 1개 (2개의 조명 포함) 
-  - 팬: 2개
+  - 팬: 2개 (환경에 따라 팬을 1개만 사용할 수 있음)
 - PC: 2대
   - PC1: Audo 제어기와 시리얼 연결
   - PC2: PC1과 인터넷 연결
  
 ### 케이블링
-Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 DIO 포트의 GND에 연결 
+Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 DIO 포트의 GND에 연결합니다. 
 ```sh
                         G   G   G   G
                         |   |   |   |  (Black) 
@@ -32,6 +32,9 @@ PWM Port -->  12V GND   3   2   1   0
 ```
 
 ### 프로젝트 폴더 구조
+현재 작업 공간에 CondCtrl 폴더를 만든 후 하위에 XNode와 PC 폴더를, PC 폴더에는 다시 PyQt6를 추가합니다.
+폴더를 모두 만들었으면, 각 폴더에 다음과 같이 파일을 구현합니다.  
+
 ```xml
 CondCtrl  
    |--- XNode  
@@ -48,8 +51,13 @@ CondCtrl
 ```
                 
 ## Auto 제어기
+PWM 포트에 조명과 팬을 연결한 Auto 제어기에는 시리얼로부터 데이터를 읽어 이를 제어하는 펌웨어를 작성합니다.
+
 ### PWM 클래스를 이용해 Auto 제어기용 펌웨어 구현
-PWM 클래스를 이용하면 PWM 컨트롤러의 해당 채널에 PWM 신호 출력 가능
+PWM(Pulse Width Modulation)은 펄스 폭 변조라고 하며, 디지털 신호를 사용하여 아날로그 회로를 제어하는 기술입니다. 펄스의 폭을 조절하여 전압이나 전류의 평균값을 변경하는 방식으로 작동합니다.  
+PWM 신호는 일정한 주파수를 가지는 펄스로 구성됩니다. 각 펄스의 폭은 듀티 사이클(Duty Cycle)이라고 불리는 비율로 표현됩니다. 듀티 사이클은 펄스가 'High' 상태를 유지하는 시간의 비율을 나타냅니다. 듀티 사이클을 변경하면 펄스의 평균 전압이 변경되어, 아날로그 회로를 제어할 수 있습니다.
+
+Auto 제어기에서는 PWM 클래스를 이용해 PWM 컨트롤러의 해당 채널에 PWM 신호를 출력합니다.
 
 - PWM 클래스
   - PWM(): PWM 객체 생성
@@ -59,6 +67,9 @@ PWM 클래스를 이용하면 PWM 컨트롤러의 해당 채널에 PWM 신호 �
   - duty(ch, n): 채당 채널에 듀티 값에 해당하는 PWM 신호 출력
     - ch: 채널 번호 (0 ~ 3)
     - n: 튜티 값 (0 ~ 100)
+
+기본적인 동작은 다음과 같습니다. 주파수를 1KHz로 설정한 후 0번 채널에 50% 듀티 사이클로 출력한 후 5초 후 0% 듀티 사이클로 변경합니다.  
+0번 채널에 조명이 연결되었다면, 50% 출력에서는 최대 밝기보다 어두어지고, 0% 출력은 완전히 꺼집니다.   
 
 ```python
 from xnode.pop.autoctrl import PWM
@@ -70,13 +81,15 @@ if pwn.scan():
     pwm.freq(1000) # 1KHz
 
     pwm.duty(0, 50)
-    time.sleep(0)
+    time.sleep(3)
     pwm.duty(0, 0)
 ```
 
-PC와 Auto 제어기 펌웨어 사이 통신 규칙 정의
-- PC에서 "pwm.duty(0, 50)\r" 형식의 문자열 전송
+펌웨어를 구현하기 전에 다음과 같이 PC에서 Auto 제어기로 전달한 데이터 형식과 처리 방법을 정의합니다.
+- PC에서 "pwm.duty(0, 50)\r" 형식의 제어 문자열 전송
 - 펌웨어는 input()으로 이를 수신한 후 eval()에 대입해 실행
+
+펌웨어 구현은 다음과 같습니다.
 
 **firm_cond_ctrl.py**
 ```python
@@ -96,9 +109,9 @@ while True:
 ```
 
 ### 테스트
-PC1에서 구현한 펌웨어를 xnode 툴을 이용해 Auto 제어기에 전송 및 실행한 다음 제어 문자열 전송
+PC1에서 구현한 펌웨어를 xnode 툴을 이용해 Auto 제어기에 전송 및 실행한 다음, PC1에서 앞서 정의한 제어 문자열을 전송합니다.
 
-1. PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인
+1. PC에 연결된 Auto 제어기의 시리얼 포트 번호 확인합니다.
 ```sh
 xnode scan
 ```
@@ -106,12 +119,12 @@ xnode scan
 com13
 ```
 
-2. 펌웨어 전송 및 실행 
+2. 펌웨어를 전송 및 실행합니다. 이때, xnode는 계속 실행 상태이므로 Auto 제어기로 데이터를 전송하거나 수신할 수 있습니다.
 ```sh
 xnode --sport com13 run -in CondCtrl\XNode\firm_cond_ctrl.py
 ```
 
-3. "pwm.duty(채널, 듀티값)" 형식의 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함
+3. "pwm.duty(채널, 듀티값)" 형식의 제어 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 합니다.
 ```sh
 pwm.duty(0, 30)
 pwm.duty(0, 0)
@@ -119,19 +132,23 @@ pwm.duty(2, 40)
 pwm.duty(2, 0)
 ```
 
-4. 테스트가 완료되면 Ctrl+c를 눌러 강제 종료
+4. 테스트가 완료되면 Ctrl+c를 눌러 xnode 툴을 강제 종료합니다.
 
 ### 펌웨어 실행
-Auto 제어기에 펌웨어만 전송 및 실행한 후 xnode 툴은 종료
+테스트가 끝나면, Auto 제어기에 펌웨어만 전송 및 실행한 후 xnode 툴은 종료합니다.
 ```sh
 xnode --sport com13 run -n CondCtrl\XNode\firm_cond_ctrl.py
 ```
 
 ## 시리얼과 인터넷 연결 브릿지
-Auto 제어기와 시리얼로 연결된 상태에서 인터넷에도 연결된 PC1에서 진행하며, 인터넷에서 구독한 토픽 메시지를 Auto 제어기에 시리얼로 전달
+PC1은 Auto 제어기와 시리얼 통신을 하면서 동시에 인터넷에 연결되어 있어야 합니다. 브릿지 프로그램은 MQTT를 통해 인터넷에서 수신한 메시지를 Auto 제어기로 시리얼 통신을 이용하여 전달하는 역할을 수행합니다.
 
-### 시리얼 프로그램 구현
-PySerial을 이용해 PC1에서 사용자가 입력한 채널 번호와 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달 
+이 브릿지 프로그램은 2단계로 개발합니다.
+- 1단계: PC1에서 Auto 제어기로 제어 문자열을 전달하는 프로그램을 작성하고 시리얼 통신 검증
+- 2단계: MQTT 구독 기능을 추가하여 최종 프로그램 완성
+
+### 1단계: 시리얼 프로그램 구현
+PySerial을 이용해 PC1에서 사용자가 입력한 채널 번호와 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달합니다.  
 
 **serial_cond_ctrl.py**
 ```python
@@ -151,7 +168,7 @@ if __name__ == "__main__":
 ```
 
 **테스트**
-출력되는 프롬프트에 맞춰 채널 번호와 듀티 값을 입력하면 해당 채널에 연결된 조명이나 팬의 밝기 및 속도 제어가 가능해야 함 
+출력되는 프롬프트에 맞춰 채널 번호와 듀티 값을 입력하면 해당 채널에 연결된 조명이나 팬의 밝기 및 속도가 바뀌어야 합니다.   
 ```sh
 python CondCtrl\PC\seiral_cond_ctrl.py
 ```
@@ -160,18 +177,20 @@ Enter of channel: 0
 Enter of duty: 20
 ```
 
-테스트가 끝나면 Ctrl+c를 눌러 강제 종료
+테스트가 끝나면 Ctrl+c를 눌러 프로그램을 강제 종료합니다.
 
-### 브릿지 프로그램 구현
-paho-mqtt를 이용해 인터넷으로 구독한 토픽 메시지를 시리얼 통신을 통해 Auto 제어기에 전달.  
-PWM 채널에 따른 토픽은 다음과 같으며, 페이로드는 json 문자열 형식의 튜티 값 (0 ~ 100)
+### 2단계: 브릿지 프로그램 구현
+paho-mqtt를 이용해 인터넷으로 구독한 토픽 메시지를 시리얼 통신을 통해 Auto 제어기에 전달하는 기능을 추가합니다.   
+PWM 채널에 따른 토픽 정의는 다음과 같으며, 페이로드는 json 문자열 형식의 튜티 값(0 ~ 100) 입니다.
 - 0번 채널: ams/iot/pwm/light/1
 - 1번 채널: ams/iot/pwm/light/2
 - 2번 채널: ams/iot/pwm/fan/1
 - 3번 채널: ams/iot/pwm/fan/2
 
-토픽은 정의한 4개를 모두 구독해야 하나, # 필터를 이용해 한 번만 구독 등록하면, 4개의(실제 4개보다 많을 수 있음) 토픽 메시지를 모두 수신함 
+토픽은 정의한 4개를 모두 구독해야 하나, # 필터를 이용해 한 번만 구독 등록하면, 4개의(실제 4개보다 많을 수 있음) 토픽 메시지를 모두 수신할 수 있습니다. 
 - "asm/iot/pwm/#"
+
+다음은 최종 브릿지 코드입니다.
 
 **bridge_cond_ctrl.py**
 ```python
@@ -234,12 +253,13 @@ if __name__ == "__main__":
 ```
 
 **테스트**
-구현한 브릿지 실행
+구현한 브릿지를 실행합니다.
+
 ```sh
 python CondCtrl\PC\bridge_cond_ctrl.py
 ```
 
-MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 정의한 토픽(채널 선택)과 Json 문자열 형식의 페이로드(듀티 값) 발행
+MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 정의한 토픽(채널 선택)과 Json 문자열 형식의 페이로드(듀티 값) 발행합니다.
 
 - 새 연결
   - Name: EclipseProjects
@@ -251,12 +271,12 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 
 
 ## 원격 제어용 GUI
-인터넷에 연결된 PC2에서 진행하며, 4개의 QDial 위젯 값이 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI 구현
-각각의 QDial 위젯은 사전 정의한 토픽에 대응하고 바뀐 값은 Json 문자열 형식의 페이로드로 듀티 값에 대응
+인터넷에 연결된 PC2에서 진행하며, 4개의 QDial 위젯 값이 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI를 구현합니다.
+각각의 QDial 위젯은 사전 정의한 토픽에 대응하고 바뀐 값은 Json 문자열 형식의 페이로드로 듀티 값에 대응합니다.
  
 ### MQTT 클라이언트를 PyQt6에 통합
-MQTT 클라이언트 객체의 이벤트(비동기 호출)를 QT의 신호-슬롯 메커니즘으로 변환하는 중간 계층을 추가하면 MQTT를 사용하는 QT 응용프로그램 구현이 쉬워짐
-이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 실행되어야 하므로 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경 함
+MQTT 클라이언트 객체의 이벤트(비동기 호출)를 QT의 신호-슬롯 메커니즘으로 변환하는 중간 계층을 추가하면 MQTT를 사용하는 QT 응용프로그램 구현이 쉬워집니다.
+이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 실행되어야 하므로 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경합니다.
 
 QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호 정의
 - connectSignal: 브로커 연결 요청이 처리되었음을 알리는 신호 보내기
@@ -265,7 +285,9 @@ QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신�
 - messageSignal: 토픽 메시지가 수신되었음을 알리는 신호 보내기
 
 [신호와 슬롯 개념](https://doc.qt.io/qtforpython-6/overviews/signalsandslots.html)
-  
+
+다음은 paho-mqtt를 PyQt6 신호-실롯 메커니즘으로 변환한 일종의 라이브러리 코드입니다.
+
 **PyQt6Mqtt.py**
 ```python
 import json
@@ -308,15 +330,14 @@ class Client(QObject, mqtt.Client):
 ```
 
 ### UI(화면) 디자인
-QMainWindow 폼에 QMenuBar만 제거한 후 4개의 QGroupBox 배치
-- 각 QGroupBox마다 QDial와 QLCDNumber 배치
+QMainWindow 폼에 QMenuBar만 제거한 후 4개의 QGroupBox 배치합니다. 각 QGroupBox마다 QDial와 QLCDNumber를 배치합니다.
 
-1. QT 디자이너를 실행
+1. QT 디자이너를 실행합니다.
 ```sh
 qt6-tools designer
 ```
 
-2. 다음과 같이 UI 디자인
+2. 다음과 같이 UI 디자인합니다.
 > CondCtrl.ui
 
 <img src="res/ui.png"> 
@@ -769,9 +790,9 @@ qt6-tools designer
 
 </details>
 
-3. 완성된 UI를 CondCtrl\PC\PyQt6 경로에 CondCtrl.ui로 저장
+3. 완성된 UI를 CondCtrl\PC\PyQt6 경로에 CondCtrl.ui로 저장합니다.
   
-4. 저장한 UI 파일(CondCtrl.ui)을 파이썬 파일(CondCtrlUi.py)로 변환
+4. 저장한 UI 파일(CondCtrl.ui)을 파이썬 파일(CondCtrlUi.py)로 변환합니다.
 ```sh
 pyuic6 CondCtrl\PC\PyQt6\CondCtrl.ui -o CondCtrl\PC\PyQt6\CondCtrlUi.py
 ```
@@ -921,7 +942,7 @@ class Ui_MainWindow(object):
 </details>
 
 ### 코드 구현
-PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발행하는 파이썬 코드 구현
+PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발행하는 파이썬 코드를 구현합니다.
 - 4개의 QDial.valueChanged 신호에 대한 슬롯 구현
   - dialLight_1의 valueChanged 신호를 onLight1ValueChange()에 연결
     - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/light/1" 토픽으로 발행
@@ -939,7 +960,9 @@ PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 �
   - Client 객체의 publishSignal 신호를 onPublish()에 연결
     - 신호를 받으면 함께 전달된 mid(발행한 메시지 일련번호)를 상태바에 출력하기 위해 QStatusBar의 showMessage() 메소드 호출
   - Client 객체의 connect() 메소드를 호출해 mqtt 클라이언트 라이브러리가 브로커(mqtt.eclipseprojects.io) 연결을 처리하도록 요청
-     
+
+완성된 코드는 다음과 같습니다.
+
 **CondCtrl.py**
 ```python
 import sys
@@ -1000,7 +1023,7 @@ if __name__ == "__main__":
     main()
 ```
 
-PC1에서 브릿지가 실행 중인 상태에서 구현한 GUI 실행
+PC1에서 브릿지가 실행 중인 상태에서 구현한 GUI 프로그램을 실행한 후 최종 결과를 확인합니다.
 ```sh
 python CondCtrl\PC\PyQt6\CondCtrl.py
 ```
