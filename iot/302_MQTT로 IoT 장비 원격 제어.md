@@ -23,6 +23,13 @@ Auto 제어기에서 실행 중인 펌웨어와, PC1에서 실행하는 시리�
  
 ### 케이블링
 Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하고, Black 선은 PWM 및 DIO 포트의 GND에 연결 
+```sh
+                        G   G   G   G
+                        |   |   |   |  (Black) 
+                        F2  F1  L2  L1
+                        |   |   |   |  (Red)
+PWM Port -->  12V GND   3   2   1   0
+```
 
 ### 프로젝트 폴더 구조
 ```xml
