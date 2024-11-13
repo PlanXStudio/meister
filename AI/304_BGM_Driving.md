@@ -401,6 +401,8 @@ def _split(string):
 파이썬에서 subprcess.Popen 클래스를 이용하면, 새로 만든 자식 프로세스에서 리눅스 명령을 실행하고, 프로세스의 입출력을 파이프로 연결하며, 표준 출력과 표준 오류를 통해 실행 결과를 가져올 수 있습니다.
 
 ```python
+import subprocess
+
 def _run_command(cmd, stdout=False):
     process = subprocess.Popen(_split(cmd), **{'stdout':subprocess.PIPE} if stdout else {'stdout':subprocess.DEVNULL, 'stderr':subprocess.DEVNULL})
     
@@ -596,25 +598,20 @@ class Tone:
     
     def __init__(self, tempo=120):
         self.__tempo = tempo
+        self.__fade = (0.05, 0.05)
         self.notes = {("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")[n] : n+1 for n in range(12)}
-        
-    @property
-    def tempo(self):
-        return self.__tempo
-    
-    @tempo.setter
-    def tempo(self, n):
-        self.__tempo = n
-   
-    def play(self, pitch_octave, note, **kwargs):
+
+    def __play(self, pitch_octave, note, **kwargs):
         '''
         pitch: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
         octave: 1 ~ 8
         note: 1, 2, 4, 8, 16, 32
         '''
-        
-        duration = 60 / self.tempo * (4 / note)
-        
+        if note > 0:
+            duration = 60 / self.tempo * (4 / note)
+        elif note < 0:
+            duration = 60 / self.tempo * ((4 / abs(note)) * 1.5)
+            
         if pitch_octave != "REST":
             synth_type = kwargs.get('type', Tone.TYPE_TRAPEZIUM)
             overtone = kwargs.get('overtone', 5)
@@ -639,11 +636,25 @@ class Tone:
                 command.append("-t")
                 
             _run_command(command)
+            
         
         time.sleep(duration)
-        
-    def rest(self, note):
-        self.play("REST", note)
+    
+    def __cb_play(self, melody):
+        for pitch_octave, duration in zip(melody[::2], melody[1::2]):
+            self.__play(pitch_octave, duration)
+    
+    @property
+    def tempo(self):
+        return self.__tempo
+    
+    @tempo.setter
+    def tempo(self, n):
+        self.__tempo = n
+        self.__fade = (0.0, 1/self.tempo*10)
+    
+    def play(self, melody):
+        threading.Thread(target=self.__cb_play, args=(melody,), daemon=True).start()
 ```
 
 **audio.py**  
@@ -651,6 +662,7 @@ class Tone:
  
 ```sh
 import subprocess
+import threading
 import signal
 import time
 import os
@@ -854,25 +866,18 @@ class Tone:
         self.__tempo = tempo
         self.__fade = (0.05, 0.05)
         self.notes = {("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")[n] : n+1 for n in range(12)}
-        
-    @property
-    def tempo(self):
-        return self.__tempo
-    
-    @tempo.setter
-    def tempo(self, n):
-        self.__tempo = n
-        self.__fade = (0.0, 1/self.tempo*10)
-    
-    def play(self, pitch_octave, note, **kwargs):
+
+    def __play(self, pitch_octave, note, **kwargs):
         '''
         pitch: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
         octave: 1 ~ 8
         note: 1, 2, 4, 8, 16, 32
         '''
-        
-        duration = 60 / self.tempo * (4 / note)
-        
+        if note > 0:
+            duration = 60 / self.tempo * (4 / note)
+        elif note < 0:
+            duration = 60 / self.tempo * ((4 / abs(note)) * 1.5)
+            
         if pitch_octave != "REST":
             synth_type = kwargs.get('type', Tone.TYPE_TRAPEZIUM)
             overtone = kwargs.get('overtone', 5)
@@ -900,9 +905,21 @@ class Tone:
             
         
         time.sleep(duration)
-        
-    def rest(self, note):
-        self.play("REST", note)
+    
+    def __cb_play(self, melody):
+        for pitch_octave, duration in zip(melody[::2], melody[1::2]):
+            self.__play(pitch_octave, duration)
+    
+    @property
+    def tempo(self):
+        return self.__tempo
+    
+    @tempo.setter
+    def tempo(self, n):
+        self.__tempo = n
+    
+    def play(self, melody):
+        threading.Thread(target=self.__cb_play, args=(melody,), daemon=True).start()
 ```
 
 **테스트 코드**  
@@ -946,10 +963,8 @@ def tone_test():
     tone = audio.Tone()
     tone.tempo = 200
 
-    melody = melody_tetris
-    for pitch_octave, duration in zip(melody[::2], melody[1::2]):
-        tone.play(pitch_octave, duration)
-
+    tone.play(melody_tetris)
+    input("Press Enter")
 
 if __name__ == "__main__":
     tone_test()
