@@ -12,6 +12,8 @@
 1. 절전 모드와 관련된 서비스를 비활성화합니다.
 ```sh
 sudo systemctl disable sleep.target suspend.target hibernate.target hybrid-sleep.target
+```
+```sh
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 ```
 
