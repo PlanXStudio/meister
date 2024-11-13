@@ -769,11 +769,11 @@ qt6-tools designer
 
 </details>
 
-3. 완성된 UI를 CondCtrl.ui로 저장
+3. 완성된 UI를 CondCtrl\PC\PyQt6 경로에 CondCtrl.ui로 저장
   
 4. 저장한 UI 파일(CondCtrl.ui)을 파이썬 파일(CondCtrlUi.py)로 변환
 ```sh
-pyuic6 CondCtrl.ui -o CondCtrlUi.py
+pyuic6 CondCtrl\PC\PyQt6\CondCtrl.ui -o CondCtrl\PC\PyQt6\CondCtrlUi.py
 ```
 
 <details>
