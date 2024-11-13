@@ -77,7 +77,7 @@ PulseAudio는 사용자 공간에서 ALSA 라이브러리를 이용해 커널의
 PulseAudio 서버는 사용자가 직접 실행하거나 systemd 서비스로 실행 가능한 상태를 만든 후 응용프로그램의 요청을 받으면(소켓 활성화) 자동으로 실행되도록 할 수 있습니다.  
 serbot은 pulseaudio 패키지의 기본값인 드 번째 방법을 사용합니다.  
 
-**유닛 파일**
+**유닛 파일**  
 pulseaudio 패키지에는 systemd를 위한 유닛 파일이 포함되어 있습니다.
 
 - pulseaudio.service
@@ -121,7 +121,7 @@ WantedBy=sockets.target
 
 해당 유닛 파일의 ConditionUser=!root 항목을 통해 root가 아닌 일반 사용자 권한으로 PulseAudio 서비스를 시작하고, 응용프로그램이 사용하려고 소켓이 활성화되면서 자동으로 PulseAudio 서버가 시작됩니다.
 
-**오디오 설정**
+**오디오 설정**  
 사용자는 설정 파일을 통해 PulseAudio 서버의 시작을 제어합니다. /etc/pulse에는 시스템 전체 설정이, ~/.config/pulse에는 현재 사용자에 대한 설정이 위치하는데, 만약 두 위치에 같은 설정 파일이 있고 해당 항목에 대해 값이 다르면 ~/.config/pulse에 위치한 파일 내용을 따릅니다.  
 
 다음은 설정 파일과 주요 내용입니다. 
@@ -153,7 +153,7 @@ set-default-source alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multic
 sudo shutdown -r now
 ```
 
-**~/.config/pulse**
+**~/.config/pulse**  
 사용자가 오디오 응용프로그램을 실행하면, ~/.config/pulse에 포함된 다음과 같은 파일을 통해 PulseAudio에 접근합니다.
 
 - cookie: 바이너리 파일로 응용프로그램(클라이언트)이 PulseAudio(서버)에 접근할 때 필요한 권한 포함
@@ -174,7 +174,7 @@ sudo shutdown -r now
 PluseAudio 설정이 완료되면 소스 데이터를 녹음하고, 오디오 파일 재생을 통해 오디오 입출력을 테스트합니다.   
 앞서 alsa-utils 패키지를 제거했으므로 SoX 패키지를 설치한 후 진행합니다.  
 
-**SoX 설치**
+**SoX 설치**  
 SoX(Sound eXchange)는 명령줄 기반의 다재다능한 오디오 처리 도구로 다양한 파일 형식 변환, 효과 적용, 오디오 분석 등의 작업을 수행할 수 있습니다.  
 
 1. sox 패키지를 설치합니다.
@@ -197,7 +197,7 @@ echo -e 'export AUDIODRIVER=alsa' | tee -a ~/.zshrc
 source ~/.zshrc
 ```
 
-**녹음하고 재생하기**
+**녹음하고 재생하기**  
 녹음은 오디오 장치에서 PCM 데이터를 읽어 WAV 파일로 저장하는 과정이고, 재생은 WAV 파일을 PCM 데이터로 변환하여 오디오 장치에 출력하는 과정입니다.
 SoX는 WAV 외에 FLAC, MP3, Ogg Vorbis 등 다양한 오디오 파일 형식을 지원합니다. 파일 확장자를 변경하여 원하는 형식으로 저장할 수 있습니다.
 
@@ -258,7 +258,7 @@ Permissions Size User Date Modified Name
 play hello1.wav hello2.wav hello.mp3 hello.ogg
 ```
 
-**잡음 제거와 녹음**
+**잡음 제거와 녹음**  
 현재 환경의 잡음 프로파일을 미리 만들어두면, 녹음 시 이를 활용하여 잡음을 효과적으로 제거할 수 있습니다. 잡음 제거 과정에서 미세한 소리 왜곡이 발생할 수 있지만, 전반적으로 더욱 깔끔하고 선명한 녹음 결과를 얻을 수 있습니다.
 
 1. 먼저, 주변 환경의 잡음을 3 ~ 5초 정도 녹음합니다. 이때, 녹음 중에는 음성이나 다른 소리가 포함되지 않도록 주의합니다. 채널은 기본값인 2채널을 사용합니다.
@@ -291,7 +291,7 @@ rec clean.mp3 noisered noise.prof 0.18
 play we.ogg we_noisered.ogg clean.mp3
 ```
 
-**합성음 출력**
+**합성음 출력**  
 SoX의 synth는 소리를 합성하는 데 사용되는 강력한 기능입니다. 다양한 파형, 주파수, 효과를 사용하여 원하는 소리를 만들어낼 수 있습니다.  
 
 synth의 기본적인 사용법은 다음과 같습니다. 
@@ -355,7 +355,7 @@ serbot은 PluseAudio를 사용하므로 pysimple으로 소스 데이터를 녹�
 sudo pip3 install pysimple
 ```
 
-**하위 문자열이 포함된 문자열을 리스트로 변환**
+**하위 문자열이 포함된 문자열을 리스트로 변환**  
 문자열을 리스트로 변환할 때 str 객체의 split() 메소드는 공백을 기준으로 요소를 분할하므로, 문자열 안에 하위 문자열을 추가하면, 하위 문자열을 하나의 요소로 처리하지 않고 동일하게 분할합니다.  
 
 예를 들어 다음과 같이 하위 문자열이 포함된 문자열이 주어질 때,
@@ -397,7 +397,7 @@ def _split(string):
   return result
 ```
 
-**파이썬에서 리눅스 명령 실행**
+**파이썬에서 리눅스 명령 실행**  
 파이썬에서 subprcess.Popen 클래스를 이용하면, 새로 만든 자식 프로세스에서 리눅스 명령을 실행하고, 프로세스의 입출력을 파이프로 연결하며, 표준 출력과 표준 오류를 통해 실행 결과를 가져올 수 있습니다.
 
 ```python
@@ -433,7 +433,7 @@ def _run_pipe_command(*cmds, stdout=False):
 _run_command()는 하나의 자식 프로세스로 단일 명령을 실행하고, _run_pipe_command()는 여러 자식 프로세스의 입출력을 파이프로 연결해 여러 명령을 순차적으로 실행합니다. 두 함수의 반환값은 매개변수 stdout에 따라 다른데, 기본값인 False는 즉시 자식 프로세스를 반환하고 True는 자식 프로세스가 종료할 때까지 기다린 후 표준 출력 결과를 읽어 반환합니다.
 
 
-**볼륨 조절**
+**볼륨 조절**  
 set-<sink|source>-volume 옵션과 함께 pactl을 실행하면 소스와 싱크 볼륨을 설정할 수 있습니다. 볼륨 확인은 get-<sink|source>-volume 옵션을 사용하지만 pulseaudio V15.99 이상이 필요하므로 호환성을 높이기 위해 list <sinks|sources> 옵션 결과를 다른 리눅스 명령으로 걸러 확인합니다.
 
 ```python
@@ -498,7 +498,7 @@ class Volume:
         _run_command(command)
 ```
 
-**녹음**
+**녹음**  
 sox의 심볼 링크인 rec를 이용해 소스로부터 읽은 PCM 데이터를 확장자에 따라 WAV, MP3, OGG 포맷으로 저장합니다. 최초 1회 Record 객체를 만들 때 3초동안 잡음 제거 프로파일도 함께 만들어지며, 이후 start()의  noisered와 attenuation_factor 매개변수로 잡음 제거 효과를 사용 유무를 결정합니다. noisered의 기본값은 False로 잡은 제거 효과를 적용하지 않습니다.
 만약 적용한 잡음 제거 효과가 만족스럽지 않다면 조용한 환경에서 updateNoiseProf()를 호출해 프로파일을 새로 만듧니다.
 
@@ -543,7 +543,7 @@ class Record:
         os.remove(self.__noise_path)
 ```
 
-**재생**
+**재생**  
 sox의 심볼 링크인 play는 mp3 파일을 재생할 수 있습니다.
 
 ```python
@@ -581,7 +581,7 @@ class Play:
         self.__play(self.__play_list[self.__index])
 ```
 
-**톤 출력**
+**톤 출력**  
 sox의 synth 기능을 이용해 음과 음표에 해당하는 소리를 출력합니다. play()에 전달하는 첫 번째 인자는 알파뱃 형식의 음과 오타브이고 두 번째 인자는 음표입니다. 그 외는 키워드 인자로 fade와 chorus를 설정할 수 있습니다.  
 fade의 기본값은 False이지만 (0.1, 0.1) 형식으로 인/아웃 시간을 전달하면 음을 출력할 때 효과가 적용됩니다. chorus는 (0.7, 0.9, 60, 0.4, 0.25, 6) 형식의 기본값이  적용되어 있습니다.
 
@@ -646,7 +646,7 @@ class Tone:
         self.play("REST", note)
 ```
 
-**audio.py**
+**audio.py**  
  지금까지 구현한 내용을 serbot2 라이브러리 폴더(~/.local/lib/python3.8/site-packages/serbot2)에 audio.py란 이름으로 저장합니다.
  
 ```sh
@@ -905,6 +905,7 @@ class Tone:
         self.play("REST", note)
 ```
 
+**테스트 코드**  
 다음은 audio.py를 이용한 테스트 코드입니다.
 ```python
 import serbot2.audio as audio
