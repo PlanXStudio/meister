@@ -46,7 +46,7 @@ CondCtrl
         |--- PyQt6  
                 |--- CondCtrl.ui  
                 |--- CondCtrlUi.py  
-                |--- CondCtry.py  
+                |--- CondCtrl.py  
                 |--- PyQt6Mqtt.py  
 ```
                 
