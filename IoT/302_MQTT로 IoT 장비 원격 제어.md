@@ -962,7 +962,7 @@ class Ui_MainWindow(object):
 - PyQt6Mqtt 모듈의 Client 객체를 생성한 후 해당 신호에 대한 슬롯 구현
   - Client 객체의 connectSignal 신호를 onConnect()에 연결
     - 신호를 받으면 함께 전달된 rc를 검사해 처리
-      - 0이면 모든 QGrouopBox의 setEnabled() 메소드에 True를 전달해 위젯 활성화
+      - 0이면 브로커에 연결된 것이므로 모든 QGrouopBox의 setEnabled() 메소드에 True를 전달해 위젯 활성화
       - 아니면 실패이므로 QMainWindow의 close() 메소드를 호출해 창을 닫음(프로그램 종료)
   - Client 객체의 publishSignal 신호를 onPublish()에 연결
     - 신호를 받으면 함께 전달된 mid(발행한 메시지 일련번호)를 상태바에 출력하기 위해 QStatusBar의 showMessage() 메소드 호출
