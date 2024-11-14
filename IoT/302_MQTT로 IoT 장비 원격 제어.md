@@ -91,7 +91,7 @@ if pwn.scan():
 
 펌웨어 구현은 다음과 같습니다.
 
-**firm_cond_ctrl.py**
+**firm_cond_ctrl.py**  
 ```python
 from xnode.pop.autoctrl import PWM
 
@@ -150,7 +150,7 @@ PC1은 Auto 제어기와 시리얼 통신을 하면서 동시에 인터넷에 �
 ### 1단계: 시리얼 프로그램 구현
 PySerial을 이용해 PC1에서 사용자가 입력한 채널 번호와 듀티 값을 묶어 시리얼 통신으로 Auto 제어기에 전달합니다.  
 
-**serial_cond_ctrl.py**
+**serial_cond_ctrl.py**  
 ```python
 from serial import Serial
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     main()
 ```
 
-**테스트**
+**테스트**  
 출력되는 프롬프트에 맞춰 채널 번호와 듀티 값을 입력하면 해당 채널에 연결된 조명이나 팬의 밝기 및 속도가 바뀌어야 합니다.   
 ```sh
 python CondCtrl\PC\seiral_cond_ctrl.py
@@ -192,7 +192,7 @@ PWM 채널에 따른 토픽 정의는 다음과 같으며, 페이로드는 json 
 
 다음은 최종 브릿지 코드입니다.
 
-**bridge_cond_ctrl.py**
+**bridge_cond_ctrl.py**  
 ```python
 from serial import Serial
 import paho.mqtt.client as mqtt
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     main()
 ```
 
-**테스트**
+**테스트**  
 구현한 브릿지를 실행합니다.
 
 ```sh
@@ -293,7 +293,7 @@ QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신�
 
 다음은 paho-mqtt의 비동기 함수 호출을 PyQt6의 신호-슬롯 메커니즘에 통합한 코드입니다.
 
-**PyQt6Mqtt.py**
+**PyQt6Mqtt.py**   
 ```python
 import json
 from PyQt6.QtCore import QObject, pyqtSignal as Signal
