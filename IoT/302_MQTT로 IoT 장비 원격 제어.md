@@ -274,19 +274,24 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 인터넷에 연결된 PC2에서 진행하며, 4개의 QDial 위젯 값이 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI를 구현합니다.
 각각의 QDial 위젯은 사전 정의한 토픽에 대응하고 바뀐 값은 Json 문자열 형식의 페이로드로 듀티 값에 대응합니다.
  
-### MQTT 클라이언트를 PyQt6에 통합
-MQTT 클라이언트 객체의 이벤트(비동기 호출)를 QT의 신호-슬롯 메커니즘으로 변환하는 중간 계층을 추가하면 MQTT를 사용하는 QT 응용프로그램 구현이 쉬워집니다.
-이때, MQTT 클라이언트 객체의 이벤트 루프와 QT6의 이벤트 루프가 동시에 실행되어야 하므로 MQTT 클라이언트 객체의 이벤트 루프를 loop_forever() 대신 loop_start()로 변경합니다.
+### paho-mqtt를 PyQt6로 변환한 라이브러리 구현
+paho-mqtt는 자체적인 이벤트 루프를 사용하여 비동기 함수 호출을 처리하고, PyQt6 또한 신호-슬롯 메커니즘을 위한 내부 이벤트 루프를 가지고 있습니다. 이로 인해 두 이벤트 루프가 충돌하여 PyQt6 애플리케이션에서 paho-mqtt를 사용하기 어려울 수 있습니다.
 
-QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호 정의
+이 문제를 해결하기 위해 paho-mqtt의 비동기 함수 호출을 PyQt6의 신호-슬롯 메커니즘에 통합하는 것이 좋습니다. 즉, MQTT 이벤트를 PyQt6의 시그널로 변환하여 PyQt6 애플리케이션이 이를 처리하도록 하는 것입니다. 이렇게 하면 MQTT를 사용하는 PyQt6 애플리케이션의 구현이 간편해지고, 두 라이브러리 간의 통합이 원활해집니다.
+
+QObject과 mqtt.Client 클래스를 상속한 Client 클래스에 필요한 신호를 다음과 같이 정의합니다.
 - connectSignal: 브로커 연결 요청이 처리되었음을 알리는 신호 보내기
+  - rc 전달 
 - publishSignal: 토픽 메시지가 발행되었음을 알리는 신호 보내기
+  - mid 전달 
 - subscribeSignal: 토픽 메시지 구독이 완료되었음을 알리는 신호 보내기
+  - mid와 granted_qos 전달
 - messageSignal: 토픽 메시지가 수신되었음을 알리는 신호 보내기
-
+  - topic과 json.loads()로 변환한 payload 전달
+  
 [신호와 슬롯 개념](https://doc.qt.io/qtforpython-6/overviews/signalsandslots.html)
 
-다음은 paho-mqtt를 PyQt6 신호-실롯 메커니즘으로 변환한 일종의 라이브러리 코드입니다.
+다음은 paho-mqtt의 비동기 함수 호출을 PyQt6의 신호-슬롯 메커니즘에 통합한 코드입니다.
 
 **PyQt6Mqtt.py**
 ```python
@@ -330,7 +335,8 @@ class Client(QObject, mqtt.Client):
 ```
 
 ### UI(화면) 디자인
-QMainWindow 폼에 QMenuBar만 제거한 후 4개의 QGroupBox 배치합니다. 각 QGroupBox마다 QDial와 QLCDNumber를 배치합니다.
+QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고, 4개의 그룹 박스(QGroupBox)를 배치합니다. 각 그룹 박스에는 다이얼(QDial)과 LCD 숫자 표시(QLCDNumber) 위젯을 배치하여 사용자 인터페이스를 구성합니다.  
+상태 표시줄(QStatusBar)은 기본 객체 이름인 "statusbar"를 사용합니다.
 
 1. QT 디자이너를 실행합니다.
 ```sh
@@ -716,7 +722,7 @@ qt6-tools designer
     </widget>
    </widget>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections>
@@ -919,9 +925,9 @@ class Ui_MainWindow(object):
         self.fndFan_2.setSegmentStyle(QtWidgets.QLCDNumber.SegmentStyle.Outline)
         self.fndFan_2.setObjectName("fndFan_2")
         MainWindow.setCentralWidget(self.centralwidget)
-        self.statusBar = QtWidgets.QStatusBar(parent=MainWindow)
-        self.statusBar.setObjectName("statusBar")
-        MainWindow.setStatusBar(self.statusBar)
+        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
         self.dialLight_1.valueChanged['int'].connect(self.fndLight_1.display) # type: ignore
@@ -942,7 +948,8 @@ class Ui_MainWindow(object):
 </details>
 
 ### 코드 구현
-PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 바꿀 때마다 대응하는 토픽 메시지를 발행하는 파이썬 코드를 구현합니다.
+앞서 구현한 PyQt6Mqtt.py와 CondCtrlUi.py를 활용하여 사용자 인터페이스에서 QDial 값이 변경될 때마다 해당 값을 MQTT 토픽 메시지로 발행하는 파이썬 코드를 작성합니다.
+
 - 4개의 QDial.valueChanged 신호에 대한 슬롯 구현
   - dialLight_1의 valueChanged 신호를 onLight1ValueChange()에 연결
     - 신호를 받으면 함께 전달된 QDial 값을 "asm/iot/pwm/light/1" 토픽으로 발행
@@ -966,7 +973,6 @@ PyQt6Mqtt.py와 CondCtrlUi.py를 이용해 사용자가 해당 QDial의 값을 �
 **CondCtrl.py**
 ```python
 import sys
-import json
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from CondCtrlUi import Ui_MainWindow
 from PyQt6Mqtt import Client
@@ -993,12 +999,12 @@ class CondCtrl(QMainWindow, Ui_MainWindow):
             self.grpLight_2.setEnabled(True)
             self.grpFan_1.setEnabled(True)
             self.grpFan_2.setEnabled(True)
-            self.statusBar.showMessage("준비")
+            self.statusbar.showMessage("준비")
         else:
             self.close()
     
     def onPublish(self, mid):
-        self.statusBar.showMessage(f"{mid} 번째 메시지가 발행되었습니다.")
+        self.statusbar.showMessage(f"{mid} 번째 메시지가 발행되었습니다.")
     
     def onLight1ValueChange(self, value):
         self.client.publish("asm/iot/pwm/light/1", json.dumps(value))
@@ -1023,7 +1029,9 @@ if __name__ == "__main__":
     main()
 ```
 
-PC1에서 브릿지가 실행 중인 상태에서 구현한 GUI 프로그램을 실행한 후 최종 결과를 확인합니다.
+Auto 제어기에 펌웨어를 설치하고, PC1에서 브릿지 프로그램을 실행한 상태에서 개발한 GUI 프로그램을 실행하여 최종 결과를 확인합니다. 
+해당 그룹의 다이얼을 조작하면, Auto 제어기에 연결된 조명의 밝기 또는 팬의 속도가 실시간으로 변경되어야 합니다.
+
 ```sh
 python CondCtrl\PC\PyQt6\CondCtrl.py
 ```
