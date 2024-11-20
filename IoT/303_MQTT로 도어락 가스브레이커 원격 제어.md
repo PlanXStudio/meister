@@ -32,7 +32,7 @@ PWM Port -->     1   0         Relay Port --->    C   O
 ```
 
 ### 프로젝트 폴더 구조
-현재 작업 공간에 DRGCtrl 폴더를 만든 후 하위에 XNode와 PC 폴더를, PC 폴더에는 다시 PyQt6를 추가합니다.
+현재 작업 공간에 DRGCtrl 폴더를 만든 후 하위에 XNode와 PC 폴더를, PC 폴더에는 다시 GUI 폴더를 추가합니다.
 폴더를 모두 만들었으면, 각 폴더에 다음과 같이 파일을 구현합니다.  
 
 ```xml
@@ -47,7 +47,7 @@ DRGCtrl
                 |--- DRGCtrl.ui  
                 |--- DRGCtrlUi.py  
                 |--- DRGCtrl.py  
-                |--- PyQt6Mqtt.py  
+                |--- PySide6Mqtt.py  
 ```
                 
 ## Auto 제어기
