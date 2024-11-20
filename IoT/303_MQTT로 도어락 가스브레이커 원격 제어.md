@@ -43,7 +43,7 @@ DRGCtrl
    |--- PC  
         |--- serial_drg_ctrl.py  
         |--- bridge_drg_ctrl.py  
-        |--- PyQt6  
+        |--- GUI  
                 |--- DRGCtrl.ui  
                 |--- DRGCtrlUi.py  
                 |--- DRGCtrl.py  
@@ -56,8 +56,8 @@ PWM 포트에 조명과 팬을 연결한 Auto 제어기에는 시리얼로부터
 ### PWM와 Relay 클래스를 이용해 Auto 제어기용 펌웨어 구현
 펌웨어를 구현하기 전에 다음과 같이 PC에서 Auto 제어기로 전달한 데이터 형식과 처리 방법을 정의합니다.
 - PC에서 다음과 같이 3개 문자로 정의한 제어 문자열을 "\r"과 함께 전송
-  - "gbo\r" --> gassBreaker Open
-  - "gbc\r" --> gassBreaker Close
+  - "gbo\r" --> gasBreaker Open
+  - "gbc\r" --> gasBreaker Close
   - "dsc\r" --> doorLock stateChange
 - 펌웨어는 input()으로 이를 수신한 후 if ~ elif로 해당 문자열을 비교한 후 해당 제어 명령을 실행합니다.
 
@@ -78,10 +78,10 @@ def setup():
 
 def loop():
     cmd = input().lower() 
-    if cmd == "gbo": # gassBreaker Open
+    if cmd == "gbo": # gasBreaker Open
         pwm.duty(0, 100)
         pwm.duty(1, 0)
-    elif cmd == "gbc": # gassBreaker Close 
+    elif cmd == "gbc": # gasBreaker Close 
         pwm.duty(0, 0)
         pwm.duty(1, 100)
     elif cmd == "dsc": # doorLock stateChange
@@ -168,8 +168,8 @@ Enter of command: dsc
 
 ### 2단계: 브릿지 프로그램 구현
 사용자 입력 대신 paho-mqtt를 이용해 MQTT 브로커로부터 구독한 토픽 메시지를 제어 문자열로 바꾸는 기능을 추가합니다.   
-- 가스브레이커 열림: ams/iot/drg/gassbreaker/open
-- 가스브레이커 잠금: ams/iot/drg/gassbreaker/close
+- 가스브레이커 열림: ams/iot/drg/gasbreaker/open
+- 가스브레이커 잠금: ams/iot/drg/gasbreaker/close
 - 도어락 상태 변경: ams/iot/drg/doorlock/change
 
 브릿지에서 구독할 토픽은 모두 3개이나, # 필터를 사용하면 한 번에 3개의(실제 3개보다 많을 수 있음) 토픽 메시지를 모두 구독할 수 있습니다. 
@@ -183,11 +183,11 @@ from serial import Serial
 import paho.mqtt.client as mqtt
 import json
 
-XNODE_PORT = "COM14" # 자신의 COM 포트로 변경할 것
+XNODE_PORT = "COM13" # 자신의 COM 포트로 변경할 것
 TOPIC_IOT_DRG = "asm/iot/drg/#"
 """
-asm/iot/drg/gassbreaker/open
-asm/iot/drg/gassbreaker/close 
+asm/iot/drg/gasbreaker/open
+asm/iot/drg/gasbreaker/close 
 asm/iot/drg/doorlock/change
 """
 
@@ -265,18 +265,13 @@ QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고,
 
 1. QT 디자이너를 실행합니다.
 ```sh
-qt6-tools designer
+pyside6-designer
 ```
 
 2. 다음과 같이 UI 디자인합니다.
 > DRGCtrl.ui
 
 <img src="res/drgctl_ui.png"> 
-
-- QMainWindow 폼에 QMenuBar만 제거한 후 2개의 QToolButton 배치.
-  - QMainWindow 속성 중 windowTitle은 "DRG Control System"으로 설정
-  - QDial 4 속성 중 objectName은 diaFan_2, maximum은 100, notchTarget은 1.0, notchesVisible은 체크 선택
-  - QLCDNumber 4 속성 중 objectName은 fndFan_2, frameShape는 Panel, frameShadow은 Sunken, digitCount는 3, segmentStyle은 Outline 선택
 
 <details>
 <summary><b>DrgCtrl.ui</b></summary>
@@ -287,11 +282,11 @@ qt6-tools designer
 
 </details>
 
-3. 완성된 UI를 DRGCtrl\PC\PyQt6 경로에 DRGCtrl.ui로 저장합니다.
+3. 완성된 UI를 DRGCtrl\PC\GUI 경로에 DRGCtrl.ui로 저장합니다.
   
 4. 저장한 UI 파일(DRGCtrl.ui)을 파이썬 파일(DRGCtrlUi.py)로 변환합니다.
 ```sh
-pyuic6 DRGCtrl\PC\PyQt6\DRGCtrl.ui -o DRGCtrl\PC\PyQt6\DRGCtrlUi.py
+pyside6-uic DRGCtrl\PC\GUI\DRGCtrl.ui -o DRGCtrl\PC\GUI\DRGCtrlUi.py
 ```
 
 <details>
