@@ -47,7 +47,7 @@ CondCtrl
                 |--- CondCtrl.ui  
                 |--- CondCtrlUi.py  
                 |--- CondCtrl.py  
-                |--- PyQt6Mqtt.py  
+                |--- PySide6Mqtt.py  
 ```
                 
 ## Auto 제어기
