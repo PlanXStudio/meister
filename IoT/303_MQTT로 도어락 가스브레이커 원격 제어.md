@@ -276,7 +276,7 @@ class MqttClient(mqtt.Client, QObject):
     onUnsubscribe = Signal(int)
     onDisconnect = Signal()
 
-    def __init__(self, client_id="", clean_session=None, userdata=None, protocol=mqtt.MQTTv311, transport="tcp", reconnect_on_failure=True, manual_ack=False, parent=None):
+    def __init__(self, client_id="", clean_session=None, userdata=None, protocol=mqtt.MQTTv5, transport="tcp", reconnect_on_failure=True, manual_ack=False, parent=None):
         mqtt.Client.__init__(self, mqtt.CallbackAPIVersion.VERSION2, client_id, clean_session, userdata, protocol, transport, reconnect_on_failure, manual_ack)
         QObject.__init__(self, parent)
 
