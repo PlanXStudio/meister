@@ -256,8 +256,65 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 ## 원격 제어용 GUI
 인터넷에 연결된 PC2에서 진행하며, 2개의 QToolButton 위젯을 이용해 상태가 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI를 구현합니다.
  
-### paho-mqtt를 PyQt6로 변환한 라이브러리 구현
-앞서 소개한 PyQt6Mqtt.py를 재사용합니다.
+### paho-mqtt를 PySide6로 변환한 라이브러리 구현
+Qt에서 제공하는 QMqtt는 상용 제품에만 포함되므로 Paho MQTT를 PySide6용으로 변환합니다.
+
+**PySide6PahoMqtt.py** 
+```python
+import json
+from PySide6.QtCore import QObject, Signal
+import paho.mqtt.client as mqtt
+
+class MqttClient(mqtt.Client, QObject):
+    onConnect = Signal(int)
+    onConnectFail = Signal()
+    onSubscribe = Signal(int)
+    onMessage = Signal(str, object)
+    onPublish = Signal(int)
+    onUnsubscribe = Signal(int)
+    onDisconnect = Signal()
+
+    def __init__(self, client_id="", clean_session=None, userdata=None, protocol=mqtt.MQTTv311, transport="tcp", reconnect_on_failure=True, manual_ack=False, parent=None):
+        mqtt.Client.__init__(self, mqtt.CallbackAPIVersion.VERSION2, client_id, clean_session, userdata, protocol, transport, reconnect_on_failure, manual_ack)
+        QObject.__init__(self, parent)
+
+        self.on_connect = self.__on_connect
+        self.on_connect_fail = self.__on_connect_fail
+        self.on_subscribe = self.__on_subscribe
+        self.on_message = self.__on_message
+        self.on_publish = self.__on_publish
+        self.on_unsubscribe = self.__on_unsubscribe
+        self.on_disconnect = self.__on_disconnect
+        
+    def __del__(self):
+        self.loop_stop()
+
+    #주의: QObject의 connect()와 paho.mqtt.client.Client의 connect() 이름이 충돌. connection으로 이름 변경 
+    def connection(self, host, port=1883, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None):
+        mqtt.Client.connect(self, host, port, keepalive, bind_address, bind_port, clean_start, properties)
+        self.loop_start()
+
+    def __on_connect(self, client, userdata, connect_flags, reason_code, properties):
+        self.onConnect.emit(reason_code)
+    
+    def __on_connect_fail(self, client, userdata):
+        self.onConnectFail.emit()
+    
+    def __on_subscribe(self, client, userdata, mid, reason_code_list, properties):
+        self.onSubscribe(mid)
+    
+    def __on_message(self, client, userdata, message):
+        self.onMessage.emit(message.topic, json.loads(message.payload))
+    
+    def __on_publish(self, client, userdata, mid, reason_code, properties):
+        self.onPublish.emit(mid)
+    
+    def __on_unsubscribe(self, client, userdata, mid, reason_code_list, properties):
+        self.onUnsubscribe.emit(mid)
+    
+    def __on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
+        self.onDisconnect.emit()
+```
 
 ### UI(화면) 디자인
 QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고, 2개의 툴버튼(QToolButton)을 배치합니다.
@@ -268,7 +325,7 @@ QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고,
 pyside6-designer
 ```
 
-2. 다음과 같이 UI 디자인합니다.
+2. 다음과 같이 UI를 디자인합니다.
 > DRGCtrl.ui
 
 <img src="res/drgctl_ui.png"> 
@@ -300,20 +357,6 @@ pyside6-uic DRGCtrl\PC\GUI\DRGCtrl.ui -o DRGCtrl\PC\GUI\DRGCtrlUi.py
 
 ### 코드 구현
 앞서 구현한 PyQt6Mqtt.py와 DRGCtrlUi.py를 활용하여 사용자 인터페이스에서 QToolButton 상태가 바뀔 때마다 해당 값을 MQTT 토픽 메시지로 발행하는 파이썬 코드를 작성합니다.
-
-- 2개의 QPushButton.clicked 신호에 대한 슬롯 구현
-  - btGassBreaker의 clicked 신호를 onGassBreakerClicked()에 연결
-    - 신호를 받으면 함께 전달된 상태 값으로 "asm/iot/drg/gassbreaker/open" 또는 "asm/iot/drg/gassbreaker/close" 토픽 발행
-  - btDoorLock의 cliecked 신호를 onDoorLockClicked()에 연결
-    - 신호를 받으면 "sm/iot/drg/doorlock/change" 토픽 발행
-- PyQt6Mqtt 모듈의 Client 객체를 생성한 후 해당 신호에 대한 슬롯 구현
-  - Client 객체의 connectSignal 신호를 onConnect()에 연결
-    - 신호를 받으면 함께 전달된 rc를 검사해 처리
-      - 0이면 브로커에 연결된 것이므로 모든 QGrouopBox의 setEnabled() 메소드에 True를 전달해 위젯 활성화
-      - 아니면 실패이므로 QMainWindow의 close() 메소드를 호출해 창을 닫음(프로그램 종료)
-  - Client 객체의 publishSignal 신호를 onPublish()에 연결
-    - 신호를 받으면 함께 전달된 mid(발행한 메시지 일련번호)를 상태바에 출력하기 위해 QStatusBar의 showMessage() 메소드 호출
-  - Client 객체의 connect() 메소드를 호출해 mqtt 클라이언트 라이브러리가 브로커(mqtt.eclipseprojects.io) 연결을 처리하도록 요청
 
 완성된 코드는 다음과 같습니다.
 
