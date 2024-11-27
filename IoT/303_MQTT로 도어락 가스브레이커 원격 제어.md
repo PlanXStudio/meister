@@ -47,7 +47,7 @@ DRGCtrl
                 |--- DRGCtrl.ui  
                 |--- DRGCtrlUi.py  
                 |--- DRGCtrl.py  
-                |--- PySide6Mqtt.py  
+                |--- PySide6PahoMqtt.py  
 ```
                 
 ## Auto 제어기
@@ -257,7 +257,7 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 인터넷에 연결된 PC2에서 진행하며, 2개의 QToolButton 위젯을 이용해 상태가 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI를 구현합니다.
  
 ### paho-mqtt를 PySide6로 변환한 라이브러리 구현
-Qt에서 제공하는 QMqtt는 상용 제품에만 포함되므로 Paho MQTT를 PySide6용으로 변환합니다.
+Qt에서 제공하는 QMqtt는 상용 라이선스에서만 사용할 수 있으므로 paho-mqtt의 콜백 처리 방식을 PySide6의 시그널-슬롯 메커니즘으로 변환합니다.
 
 **PySide6PahoMqtt.py** 
 ```python
@@ -317,12 +317,36 @@ class MqttClient(mqtt.Client, QObject):
 ```
 
 ### UI(화면) 디자인
-QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고, 2개의 툴버튼(QToolButton)을 배치합니다.
-상태 표시줄(QStatusBar)은 기본 객체 이름인 "statusbar"를 사용합니다.
+QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고, 2개의 그룹박스(QGroup)을 추가합니다.
+첫 번째 그룹박스에는 편집줄(QLineEdit)과 버튼(QPushButton)을, 두 번째 그룹박스에는 버튼(QToolButton) 3개 추가합니다.  
 
+- QMainWindow
+  - QBroupBox
+    - title: MQTT Broker 
+    - QLineEdit
+      - objectName: edtBroker 
+    - QPushButton
+      - objectName: btConDiscon
+      - text: Connection
+  - QBroupBox
+    - objectName: grpDRG
+    - title: DoorLock && GasBreaker Controller 
+    - QToolButton
+      - objectName: btDoorLock
+      - enabled: Unchecked
+      - text: DoorLock\nstateChange
+    - QToolButton
+      - objectName: btGBOpen
+      - text: GasBreaker\nOpen
+    - QToolButton
+      - objectName: btGBClose
+      - text: GasBreaker\nClose 
+  - QStatusBar
+    - objectName: statusbar
+ 
 1. QT 디자이너를 실행합니다.
 ```sh
-pyside6-designer
+pyside6-designer 
 ```
 
 2. 다음과 같이 UI를 디자인합니다.
@@ -334,7 +358,128 @@ pyside6-designer
 <summary><b>DrgCtrl.ui</b></summary>
 
 ```xml
-
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>516</width>
+    <height>309</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="grpDRG">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>88</y>
+      <width>491</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>DoorLock &amp;&amp; GasBreaker Controller</string>
+    </property>
+    <widget class="QToolButton" name="btDoorLock">
+     <property name="geometry">
+      <rect>
+       <x>29</x>
+       <y>33</y>
+       <width>131</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DoorLock
+stateChange</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btGBOpen">
+     <property name="geometry">
+      <rect>
+       <x>189</x>
+       <y>33</y>
+       <width>131</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>GasBreaker
+Open</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btGBClose">
+     <property name="geometry">
+      <rect>
+       <x>329</x>
+       <y>33</y>
+       <width>131</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>GasBreaker
+Close</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>9</y>
+      <width>491</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>MQTT Broker</string>
+    </property>
+    <widget class="QLineEdit" name="edtBroker">
+     <property name="geometry">
+      <rect>
+       <x>15</x>
+       <y>26</y>
+       <width>381</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="frame">
+      <bool>true</bool>
+     </property>
+     <property name="dragEnabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btConDiscon">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>20</y>
+       <width>81</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connection</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
 ```
 
 </details>
@@ -350,7 +495,80 @@ pyside6-uic DRGCtrl\PC\GUI\DRGCtrl.ui -o DRGCtrl\PC\GUI\DRGCtrlUi.py
 <summary><b>DRGCtrlUi.py</b></summary>
 
 ```python
+# -*- coding: utf-8 -*-
 
+################################################################################
+## Form generated from reading UI file 'DRGCtrl.ui'
+##
+## Created by: Qt User Interface Compiler version 6.8.0
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QLineEdit, QMainWindow,
+    QPushButton, QSizePolicy, QStatusBar, QToolButton,
+    QWidget)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(516, 309)
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.grpDRG = QGroupBox(self.centralwidget)
+        self.grpDRG.setObjectName(u"grpDRG")
+        self.grpDRG.setEnabled(False)
+        self.grpDRG.setGeometry(QRect(10, 88, 491, 201))
+        self.btDoorLock = QToolButton(self.grpDRG)
+        self.btDoorLock.setObjectName(u"btDoorLock")
+        self.btDoorLock.setGeometry(QRect(29, 33, 131, 141))
+        self.btGBOpen = QToolButton(self.grpDRG)
+        self.btGBOpen.setObjectName(u"btGBOpen")
+        self.btGBOpen.setGeometry(QRect(189, 33, 131, 141))
+        self.btGBClose = QToolButton(self.grpDRG)
+        self.btGBClose.setObjectName(u"btGBClose")
+        self.btGBClose.setGeometry(QRect(329, 33, 131, 141))
+        self.groupBox_2 = QGroupBox(self.centralwidget)
+        self.groupBox_2.setObjectName(u"groupBox_2")
+        self.groupBox_2.setGeometry(QRect(10, 9, 491, 71))
+        self.edtBroker = QLineEdit(self.groupBox_2)
+        self.edtBroker.setObjectName(u"edtBroker")
+        self.edtBroker.setGeometry(QRect(15, 26, 381, 31))
+        self.edtBroker.setFrame(True)
+        self.edtBroker.setDragEnabled(False)
+        self.btConDiscon = QPushButton(self.groupBox_2)
+        self.btConDiscon.setObjectName(u"btConDiscon")
+        self.btConDiscon.setGeometry(QRect(400, 20, 81, 41))
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar.setObjectName(u"statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.grpDRG.setTitle(QCoreApplication.translate("MainWindow", u"DoorLock && GasBreaker Controller", None))
+        self.btDoorLock.setText(QCoreApplication.translate("MainWindow", u"DoorLock\n"
+"stateChange", None))
+        self.btGBOpen.setText(QCoreApplication.translate("MainWindow", u"GasBreaker\n"
+"Open", None))
+        self.btGBClose.setText(QCoreApplication.translate("MainWindow", u"GasBreaker\n"
+"Close", None))
+        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"MQTT Broker", None))
+        self.btConDiscon.setText(QCoreApplication.translate("MainWindow", u"Connection", None))
+    # retranslateUi
 ```
 
 </details>
