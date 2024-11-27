@@ -352,7 +352,7 @@ pyside6-designer
 2. 다음과 같이 UI를 디자인합니다.
 > DRGCtrl.ui
 
-<img src="res/drgctl_ui.png"> 
+<img src="res/drgctrlui.png"> 
 
 <details>
 <summary><b>DrgCtrl.ui</b></summary>
