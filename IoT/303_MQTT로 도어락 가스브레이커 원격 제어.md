@@ -321,6 +321,7 @@ QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고,
 첫 번째 그룹박스에는 편집줄(QLineEdit)과 버튼(QPushButton)을, 두 번째 그룹박스에는 버튼(QToolButton) 3개 추가합니다.  
 
 - QMainWindow
+  - windowTitle: DRGCtrl System 
   - QBroupBox
     - title: MQTT Broker 
     - QLineEdit
