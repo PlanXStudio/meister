@@ -47,7 +47,7 @@ DRGCtrl
                 |--- DRGCtrl.ui  
                 |--- DRGCtrlUi.py  
                 |--- DRGCtrl.py  
-                |--- PySide6PahoMqtt.py  
+                |--- PahoMqtt.py  
 ```
                 
 ## Auto 제어기
@@ -258,12 +258,14 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
  
 ### paho-mqtt를 PySide6로 변환한 라이브러리 구현
 Qt에서 제공하는 QMqtt는 상용 라이선스에서만 사용할 수 있으므로 paho-mqtt의 콜백 처리 방식을 PySide6의 시그널-슬롯 메커니즘으로 변환합니다.
+다음 파일 내용을 프로젝트 또는 PySide6 라이브러리 경로에 저장합니다. 
 
-**PySide6PahoMqtt.py** 
+**PahoMqtt.py** 
 ```python
 import json
 from PySide6.QtCore import QObject, Signal
 import paho.mqtt.client as mqtt
+import socket
 
 class MqttClient(mqtt.Client, QObject):
     onConnect = Signal(int)
@@ -289,10 +291,12 @@ class MqttClient(mqtt.Client, QObject):
     def __del__(self):
         self.loop_stop()
 
-    #주의: QObject의 connect()와 paho.mqtt.client.Client의 connect() 이름이 충돌. connection으로 이름 변경 
     def connection(self, host, port=1883, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None):
-        mqtt.Client.connect(self, host, port, keepalive, bind_address, bind_port, clean_start, properties)
-        self.loop_start()
+        try:
+            mqtt.Client.connect(self, host, port, keepalive, bind_address, bind_port, clean_start, properties)
+            self.loop_start()
+        except socket.gaierror:
+            raise ValueError("Unknown host")
 
     def __on_connect(self, client, userdata, connect_flags, reason_code, properties):
         self.onConnect.emit(reason_code)
@@ -301,7 +305,7 @@ class MqttClient(mqtt.Client, QObject):
         self.onConnectFail.emit()
     
     def __on_subscribe(self, client, userdata, mid, reason_code_list, properties):
-        self.onSubscribe(mid)
+        self.onSubscribe.emit(mid)
     
     def __on_message(self, client, userdata, message):
         self.onMessage.emit(message.topic, json.loads(message.payload))
@@ -318,7 +322,7 @@ class MqttClient(mqtt.Client, QObject):
 
 ### UI(화면) 디자인
 QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고, 2개의 그룹박스(QGroup)을 추가합니다.
-첫 번째 그룹박스에는 편집줄(QLineEdit)과 버튼(QPushButton)을, 두 번째 그룹박스에는 버튼(QToolButton) 3개 추가합니다.  
+첫 번째 그룹박스에는 편집줄(QLineEdit)과 버튼(QPushButton)을, 두 번째 그룹박스에는 버튼(QToolButton) 3개를 추가한 다음 2번째 그룹박스를 비활성화 합니다.  
 
 - QMainWindow
   - windowTitle: DRGCtrl System 
@@ -356,7 +360,7 @@ pyside6-designer
 <img src="res/drgctrlui.png"> 
 
 <details>
-<summary><b>DrgCtrl.ui</b></summary>
+<summary><b>DRGCtrl.ui</b></summary>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -574,8 +578,8 @@ class Ui_MainWindow(object):
 
 </details>
 
-### 코드 구현
-앞서 구현한 PyQt6Mqtt.py와 DRGCtrlUi.py를 활용하여 사용자 인터페이스에서 QToolButton 상태가 바뀔 때마다 해당 값을 MQTT 토픽 메시지로 발행하는 파이썬 코드를 작성합니다.
+### 코드 구현  
+PahoMqtt.py와 DRGCtrlUi.py를 활용하여 브리지와 같은 브로커에 접속한 토픽을 발생하는 파이썬 코드를 작성합니다.
 
 완성된 코드는 다음과 같습니다.
 
