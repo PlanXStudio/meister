@@ -256,8 +256,10 @@ MQTTX를 실행한 다음 브릿지와 같은 브로커에 연결하고, 앞서 
 ## 원격 제어용 GUI
 인터넷에 연결된 PC2에서 진행하며, 2개의 QToolButton 위젯을 이용해 상태가 바뀔때 마다 토픽 메시지를 MQTT 브로커에 발행하는 PhQy6 기반 GUI를 구현합니다.
  
-### paho-mqtt를 PySide6로 변환한 라이브러리 구현
-Qt에서 제공하는 QMqtt는 상용 라이선스에서만 사용할 수 있으므로 paho-mqtt의 콜백 처리 방식을 PySide6의 시그널-슬롯 메커니즘으로 변환합니다.
+### PySide6용 paho-mqtt 랩퍼 구현
+Qt에서 제공하는 QMqtt는 상용 라이선스에서만 사용할 수 있으므로 paho-mqtt의 콜백 처리 방식을 PySide6의 시그널-슬롯 메커니즘으로 변환할 필요가 있습니다.  
+paho.mqtt.client.Client와 QObject을 상속한 새 클래스(MqttClient)를 정의할 때 양쪽 부모 모두 connect()와 disconnect() 메소드가 정되어 있어 이름 충돌이 발생합니다.  
+따라서 connection()과 disconnection()으로 
 다음 파일 내용을 프로젝트 또는 PySide6 라이브러리 경로에 저장합니다. 
 
 **PahoMqtt.py** 
@@ -375,14 +377,50 @@ pyside6-designer
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
-    <height>309</height>
+    <width>580</width>
+    <height>436</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>DRGCtrl System</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>561</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>MQTT Broker</string>
+    </property>
+    <widget class="QLineEdit" name="edtBroker">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>421</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btConDiscon">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>30</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connection</string>
+     </property>
+    </widget>
+   </widget>
    <widget class="QGroupBox" name="grpDRG">
     <property name="enabled">
      <bool>false</bool>
@@ -390,21 +428,21 @@ pyside6-designer
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>88</y>
-      <width>491</width>
-      <height>201</height>
+      <y>120</y>
+      <width>561</width>
+      <height>291</height>
      </rect>
     </property>
     <property name="title">
-     <string>DoorLock &amp;&amp; GasBreaker Controller</string>
+     <string>DoorLock &amp;&amp; GasBreaker</string>
     </property>
     <widget class="QToolButton" name="btDoorLock">
      <property name="geometry">
       <rect>
-       <x>29</x>
-       <y>33</y>
-       <width>131</width>
-       <height>141</height>
+       <x>20</x>
+       <y>30</y>
+       <width>161</width>
+       <height>241</height>
       </rect>
      </property>
      <property name="text">
@@ -415,10 +453,10 @@ stateChange</string>
     <widget class="QToolButton" name="btGBOpen">
      <property name="geometry">
       <rect>
-       <x>189</x>
-       <y>33</y>
-       <width>131</width>
-       <height>141</height>
+       <x>213</x>
+       <y>30</y>
+       <width>161</width>
+       <height>241</height>
       </rect>
      </property>
      <property name="text">
@@ -429,57 +467,15 @@ Open</string>
     <widget class="QToolButton" name="btGBClose">
      <property name="geometry">
       <rect>
-       <x>329</x>
-       <y>33</y>
-       <width>131</width>
-       <height>141</height>
+       <x>378</x>
+       <y>30</y>
+       <width>161</width>
+       <height>241</height>
       </rect>
      </property>
      <property name="text">
       <string>GasBreaker
 Close</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>9</y>
-      <width>491</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>MQTT Broker</string>
-    </property>
-    <widget class="QLineEdit" name="edtBroker">
-     <property name="geometry">
-      <rect>
-       <x>15</x>
-       <y>26</y>
-       <width>381</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="frame">
-      <bool>true</bool>
-     </property>
-     <property name="dragEnabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btConDiscon">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>20</y>
-       <width>81</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Connection</string>
      </property>
     </widget>
    </widget>
@@ -489,6 +485,7 @@ Close</string>
  <resources/>
  <connections/>
 </ui>
+
 ```
 
 </details>
@@ -529,33 +526,31 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(516, 309)
+        MainWindow.resize(580, 436)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+        self.groupBox = QGroupBox(self.centralwidget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setGeometry(QRect(10, 10, 561, 91))
+        self.edtBroker = QLineEdit(self.groupBox)
+        self.edtBroker.setObjectName(u"edtBroker")
+        self.edtBroker.setGeometry(QRect(20, 30, 421, 31))
+        self.btConDiscon = QPushButton(self.groupBox)
+        self.btConDiscon.setObjectName(u"btConDiscon")
+        self.btConDiscon.setGeometry(QRect(450, 30, 91, 31))
         self.grpDRG = QGroupBox(self.centralwidget)
         self.grpDRG.setObjectName(u"grpDRG")
         self.grpDRG.setEnabled(False)
-        self.grpDRG.setGeometry(QRect(10, 88, 491, 201))
+        self.grpDRG.setGeometry(QRect(10, 120, 561, 291))
         self.btDoorLock = QToolButton(self.grpDRG)
         self.btDoorLock.setObjectName(u"btDoorLock")
-        self.btDoorLock.setGeometry(QRect(29, 33, 131, 141))
+        self.btDoorLock.setGeometry(QRect(20, 30, 161, 241))
         self.btGBOpen = QToolButton(self.grpDRG)
         self.btGBOpen.setObjectName(u"btGBOpen")
-        self.btGBOpen.setGeometry(QRect(189, 33, 131, 141))
+        self.btGBOpen.setGeometry(QRect(213, 30, 161, 241))
         self.btGBClose = QToolButton(self.grpDRG)
         self.btGBClose.setObjectName(u"btGBClose")
-        self.btGBClose.setGeometry(QRect(329, 33, 131, 141))
-        self.groupBox_2 = QGroupBox(self.centralwidget)
-        self.groupBox_2.setObjectName(u"groupBox_2")
-        self.groupBox_2.setGeometry(QRect(10, 9, 491, 71))
-        self.edtBroker = QLineEdit(self.groupBox_2)
-        self.edtBroker.setObjectName(u"edtBroker")
-        self.edtBroker.setGeometry(QRect(15, 26, 381, 31))
-        self.edtBroker.setFrame(True)
-        self.edtBroker.setDragEnabled(False)
-        self.btConDiscon = QPushButton(self.groupBox_2)
-        self.btConDiscon.setObjectName(u"btConDiscon")
-        self.btConDiscon.setGeometry(QRect(400, 20, 81, 41))
+        self.btGBClose.setGeometry(QRect(378, 30, 161, 241))
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -567,16 +562,16 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.grpDRG.setTitle(QCoreApplication.translate("MainWindow", u"DoorLock && GasBreaker Controller", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"DRGCtrl System", None))
+        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"MQTT Broker", None))
+        self.btConDiscon.setText(QCoreApplication.translate("MainWindow", u"Connection", None))
+        self.grpDRG.setTitle(QCoreApplication.translate("MainWindow", u"DoorLock && GasBreaker", None))
         self.btDoorLock.setText(QCoreApplication.translate("MainWindow", u"DoorLock\n"
 "stateChange", None))
         self.btGBOpen.setText(QCoreApplication.translate("MainWindow", u"GasBreaker\n"
 "Open", None))
         self.btGBClose.setText(QCoreApplication.translate("MainWindow", u"GasBreaker\n"
 "Close", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"MQTT Broker", None))
-        self.btConDiscon.setText(QCoreApplication.translate("MainWindow", u"Connection", None))
     # retranslateUi
 ```
 
@@ -589,7 +584,61 @@ PahoMqtt.py와 DRGCtrlUi.py를 활용하여 브리지와 같은 브로커에 접
 
 **DRGCtrl.py**
 ```python
+import sys
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
+from DRGCtrlUi import Ui_MainWindow
+from PahoMqtt import MqttClient
 
+class DRGCtrlUi(QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        
+        self.btConDiscon.clicked.connect(self.onConDiscon)
+        self.btDoorLock.clicked.connect(self.onDoorLock)
+        self.btGBOpen.clicked.connect(self.onGBOpen)
+        self.btGBClose.clicked.connect(self.onGBClose)   
+        
+        self.mqtt = MqttClient()
+        self.mqtt.onConnect.connect(self.onConnect)    
+        self.mqtt.onPublish.connect(self.onPublish)
+    
+    def onConDiscon(self):
+        if self.btConDiscon.text() == "Connection":
+            host = self.edtBroker.text()
+            self.mqtt.connection(host)
+        else:
+            self.mqtt.disconnection()
+            self.btConDiscon.setText("Connection")
+            self.grpDRG.setEnabled(False)
+            self.statusbar.showMessage("")
+            
+    def onDoorLock(self):
+        self.mqtt.publish("asm/iot/drg/doorlock/change", 0)
+    
+    def onGBOpen(self):
+        self.mqtt.publish("asm/iot/drg/gasbreaker/open", 0)
+    
+    def onGBClose(self):
+        self.mqtt.publish("asm/iot/drg/gasbreaker/close", 0)
+    
+    def onConnect(self, rc):
+        if rc == 0:
+            self.grpDRG.setEnabled(True)
+            self.btConDiscon.setText("Disconn")
+            self.statusbar.showMessage("준비")
+        else:
+            QMessageBox.information(self, "MQTT Broker", "브로커 연결이 실패했습니다.")
+    
+    def onPublish(self, mid):
+        self.statusbar.showMessage(f"{mid} 번째 토픽 메시지가 발행되었습니다.")
+        
+        
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    win = DRGCtrlUi()
+    win.show()
+    app.exec() # Event Handler or Message Loop (Pump)
 ```
 
 Auto 제어기에 펌웨어를 설치하고, PC1에서 브릿지 프로그램을 실행한 상태에서 개발한 GUI 프로그램을 실행하여 최종 결과를 확인합니다. 
