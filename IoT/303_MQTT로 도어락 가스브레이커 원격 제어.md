@@ -298,6 +298,10 @@ class MqttClient(mqtt.Client, QObject):
         except socket.gaierror:
             raise ValueError("Unknown host")
 
+    def disconnection(self, reasoncode=None, properties=None):
+        self.loop_stop()
+        mqtt.Client.disconnect(self, reasoncode, properties)
+        
     def __on_connect(self, client, userdata, connect_flags, reason_code, properties):
         self.onConnect.emit(reason_code)
     
