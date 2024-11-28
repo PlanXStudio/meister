@@ -625,7 +625,7 @@ class DRGCtrlUi(QMainWindow, Ui_MainWindow):
     def onConnect(self, rc):
         if rc == 0:
             self.grpDRG.setEnabled(True)
-            self.btConDiscon.setText("Disconn")
+            self.btConDiscon.setText("Disconnection")
             self.statusbar.showMessage("준비")
         else:
             QMessageBox.information(self, "MQTT Broker", "브로커 연결이 실패했습니다.")
