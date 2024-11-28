@@ -223,7 +223,7 @@ def on_message(*args):
     ser.write(f"{cmd}\r".encode())
 
 def main():
-    c = mqtt.Client()
+    c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     c.on_connect = on_connect
     c.on_subscribe = on_subscribe
     c.on_message = on_message
