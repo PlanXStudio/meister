@@ -357,7 +357,7 @@ QMainWindow에서 기본으로 제공되는 메뉴바(QMenuBar)를 제거하고,
  
 1. QT 디자이너를 실행합니다.
 ```sh
-pyside6-designer 
+pyside6-designer  
 ```
 
 2. 다음과 같이 UI를 디자인합니다.
