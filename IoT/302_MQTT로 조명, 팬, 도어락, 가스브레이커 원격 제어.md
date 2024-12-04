@@ -68,7 +68,9 @@ def setup():
     pwm.freq(1000)
 
 def loop():
-    cmd = input().lower().split()  # ["gasbreaker", "none", "open"] 
+    cmd = input().lower().split()  # ["gasebreaker", "none", "open"] 
+    if len(cmd) != 3:
+        return
     if cmd[0] == "gasbreaker":
         if cmd[2] == "open":
             pwm.duty(0, 100)
@@ -106,5 +108,32 @@ if __name__ == "__main__":
     setup()
     while True:
         loop()
-        time.sleep_ms(1)
+```
+
+## 브릿지
+**serial_total_ctrl.py**  
+```python
+from serial import Serial
+
+XNODE_PORT = "COM20" # 자신의 COM 포트로 변경할 것
+ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
+
+def main():
+    while True:
+        device_name = input("Enter of device name: ")
+        group_name = input("Enter of group name: ")
+        action = input("Enter of action: ")
+        
+        cmd = f"{device_name} {group_name} {action}\r".encode()
+        print(cmd)
+        
+        ser.write(cmd)
+
+if __name__ == "__main__":
+    main()
+```
+
+**bridge_total_ctrl.py**
+```python
+
 ```
