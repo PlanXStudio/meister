@@ -23,7 +23,28 @@ Auto 제어기에서 실행하는 펌웨어와, PC1에서 실행하는 시리얼
   - PC1: Audo 제어기와 시리얼 연결
   - PC2: PC1과 인터넷 연결
 
-### 펌웨어
+### 케이블링
+GasBreaker의 Red를 PWM 포트 0,  Black은 1에 연결하고, Fan의 Red는 PWM 포트 3, Black은 GND에 연결합니다. 
+
+```sh
+                        G   
+                        |         
+                        Fan     GasBreaker
+                        |  (Black)|    |(Red)
+PWM Port -->  12V GND   3    2    1    0
+```
+
+DoorLock은 Relay 1에 Black 2선을 모두 연결하고, Light1과 Light2의 Red는 각각 Relay 2, Realy 3의 O에, Black은 각각 GND에 연결합니다.  
+```sh
+                              G        G
+                              |        |
+                  DoorLock    Light1    Light2
+                   |   |           |        |
+Relay Port --->    C   O      C    O    C   O
+                  RELAY_1
+```
+
+## Auto 제어기 펌웨어
 
 **firm_total_ctrl.py**  
 ```python
@@ -58,10 +79,10 @@ light           1 | 2           on | off
 """
 
 
-pwm = PWM()
-doorlock = Relay(DIO.P_RELAY[0])    #relay 1 -> doorlock
-light1 = Relay(DIO.P_RELAY[1])      #relay 2 -> light1
-light2 = Relay(DIO.P_RELAY[2])      #relay 3 -> light2
+pwm = PWM()                        # gasbreaker: ch[1:0], fan: ch[3]
+doorlock = Relay(DIO.P_RELAY[0])   # relay 1
+light1 = Relay(DIO.P_RELAY[1])     # relay 2
+light2 = Relay(DIO.P_RELAY[2])     # relay 3
 
 def setup():
     pwm.init()
@@ -111,6 +132,7 @@ if __name__ == "__main__":
 ```
 
 ## 브릿지
+
 **serial_total_ctrl.py**  
 ```python
 from serial import Serial
@@ -120,12 +142,12 @@ ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
 
 def main():
     while True:
-        device_name = input("Enter of device name: ")
-        group_name = input("Enter of group name: ")
-        action = input("Enter of action: ")
+        device = input("Enter of Devic: ") # gasbreaker | fan | doorlock | light
+        group = input("Enter of Group: ") # none | 1 | 2
+        action = input("Enter of Action: ") # open | close | stop | 0..100 | statechange | on | off
         
-        cmd = f"{device_name} {group_name} {action}\r".encode()
-        print(cmd)
+        cmd = f"{device} {group} {action}\r".encode()
+        print(">>> Write:", cmd)
         
         ser.write(cmd)
 
@@ -135,5 +157,66 @@ if __name__ == "__main__":
 
 **bridge_total_ctrl.py**
 ```python
+from serial import Serial
+import paho.mqtt.client as mqtt
+import json
 
+
+XNODE_PORT = "COM20" # 자신의 COM 포트로 변경할 것
+TOPIC_IOT_TOTAL = "asm/iot/total/#"
+"""
+topic                       payload {"group":<value>, "action":<value>}
+asm/iot/total/gasbreaker    none    open | 1close | stop
+asm/iot/total/fan           none    0..10
+asm/iot/totla/doorlock      none    statechange
+asm/iot/totla/light         1 | 2   on | off
+"""
+
+ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
+
+def on_connect(*args):
+    if args[3] == 0:
+        print("브로커에 연결되었습니다.")
+        args[0].subscribe(TOPIC_IOT_TOTAL)
+    else:
+        pass
+
+def on_subscribe(*args):
+    print(f"브로커에 {TOPIC_IOT_TOTAL} 토픽 구독이 등록되었습니다.")
+
+def on_message(*args):    
+    topic = args[2].topic
+    try:
+        group_action = json.loads(args[2].payload)
+    except ValueError:
+        return
+    
+    print(group_action)
+    
+    if topic == "asm/iot/total/gasbreaker":
+        device = "gasbreaker"
+    elif topic == "asm/iot/total/fan":
+        device = "fan"
+    elif topic == "asm/iot/total/doorlock":
+        device = "doorlock"
+    elif topic == "asm/iot/total/light":
+        device = "light"
+    else:
+        return
+    
+    cmd = f"{device} {group_action['group']} {group_action['action']}\r".encode()
+    print(cmd)
+    ser.write(cmd)
+
+def main():
+    c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    c.on_connect = on_connect
+    c.on_subscribe = on_subscribe
+    c.on_message = on_message
+    
+    c.connect("mqtt.eclipseprojects.io")
+    c.loop_forever() 
+    
+if __name__ == "__main__":
+    main()
 ```
