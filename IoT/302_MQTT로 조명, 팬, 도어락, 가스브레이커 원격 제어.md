@@ -68,7 +68,7 @@ def setup():
     pwm.freq(1000)
 
 def loop():
-    cmd = input().lower().split()  # ["gasebreaker", "none", "open"] 
+    cmd = input().lower().split()  # ["gasbreaker", "none", "open"] 
     if cmd[0] == "gasbreaker":
         if cmd[2] == "open":
             pwm.duty(0, 100)
@@ -106,4 +106,5 @@ if __name__ == "__main__":
     setup()
     while True:
         loop()
+        time.sleep_ms(1)
 ```
