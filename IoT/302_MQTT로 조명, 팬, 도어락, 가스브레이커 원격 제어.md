@@ -181,6 +181,86 @@ if __name__ == "__main__":
         loop()
 ```
 
+### 심화1: 함수 리펙토링
+복잡한 구문을 함수로 분할하면, 가독성이 높아지고, 나중에 기능을 추가할 때 도움이 됩니다.
+
+``` python
+def gasBreaker(group, action):
+    if action == "open": 
+        pwm.duty(0, 100)
+        pwm.duty(1, 0)
+    elif action == "close":
+        pwm.duty(0, 0)
+        pwm.duty(1, 100)
+    elif action == "stop":
+        pwm.duty(0, 0)
+        pwm.duty(1, 0)    
+
+def fan(group, action):
+    try:
+        val = int(action)
+        pwm.duty(3, val)
+    except:
+        pass    
+
+def doorLock(group, action):
+    if action == "statechange":
+        doorlock.on()
+        time.sleep(0.5)
+        doorlock.off()
+
+def light(group, action):
+    if group == "1":  
+        if action == "on":
+            light1.on()
+        elif action == "off":
+            light1.off()
+    elif group == "2":
+        if action == "on":
+            light2.on()
+        elif action == "off":
+            light2.off()
+
+def loop():
+    cmd = input().lower().split()   # ["light"]
+    
+    if len(cmd) != 3:
+        return
+    
+    device = cmd[0]
+    
+    if device == "gasbreaker":
+        gasBreaker(cmd[1], cmd[2])
+    elif device == "fan":
+        fan(cmd[1], cmd[2])
+    elif device == "doorlock":
+        doorLock(cmd[1], cmd[2])
+    elif device == "light":
+        light(cmd[1], cmd[2])
+```
+
+### 심화2: 함수 호출 테이블
+조건에 따른 함수 호출 구조를 딕셔터리로 변경하면 구조가 개선되고, 더 빠르게 함수가 호출됩니다.
+
+``` python
+def loop():
+    cmd = input().lower().split()   # ["light"]
+    
+    if len(cmd) != 3:
+        return
+    
+    try:
+        {
+            "gasbreaker": gasBreaker, 
+            "fan": fan, 
+            "doorlock":doorLock, 
+            "light":light 
+        }[cmd[0]](cmd[1], cmd[2])   
+    except:
+        pass
+```
+
+
 ### 테스트
 PC1에서 구현한 펌웨어를 xnode 툴을 이용해 Auto 제어기에 전송 및 실행한 다음, PC1에서 앞서 정의한 제어 문자열을 전송합니다.
 
@@ -197,7 +277,7 @@ com13
 xnode --sport com13 run -in TotalCtrl\XNode\firm_total_ctrl.py
 ```
 
-3. 앞서 정의한 프로토콜 형식대로 해당 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 가스브레이커나, 팬, 도어락, 조명의 제어가 가능해야 합니다.
+3. 앞서 정의한 프로토콜 형식대로 해당 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 가스브레이커나, 팬, 도어락, 조명의 제어가 가능해야 합니다. group이 없는 device의 group에는 임의 문자 하나를 사용합니다.
 ```sh
 gasbreaker n open
 fan n 40
@@ -344,6 +424,31 @@ def main():
     
 if __name__ == "__main__":
     main()
+```
+
+### 심화: 토픽에서 device 추출
+토픽의 마지막 문자열이 device이므로 토픽에서 직접 device를 추출한 후 이를 정의한 이름에 포함하는지 검사하면 조건문을 제거할 수 있습니다.
+
+```python
+def on_message(*args):
+    topic = args[2].topic
+    try:
+        group_action = json.loads(args[2].payload)
+    except ValueError:
+        return
+
+    devices = ["gasbreaker", "fan", "doorlock", "light"]
+    device = topic.split('/')[-1]
+    if not device in devices:
+        return 
+    
+    group = group_action["group"]
+    action = group_action["action"]
+    
+    cmd = f"{device} {group} {action}\r".encode()
+    
+    print(">>> Write:", cmd)
+    ser.write(cmd)
 ```
 
 ### 브릿지 테스트
