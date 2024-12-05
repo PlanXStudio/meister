@@ -274,8 +274,8 @@ if __name__ == "__main__":
 ### 브릿지 테스트
 XNode에 펌웨어를 실행하고 PC1에 브릿지를 실행했다면 "mqtt.eclipseprojects.io" 브로커에 연결된 MQTTX 툴로 토픽 메시지를 발행해 해당 디바이스가 제어되는지 확인합니다.  
 
-페이로드는 JSON 형식이므로 도어락을 제어하는 토픽 메시지는 다음과 같습니다.
-<img src="res/total_mqttx1.png"> 
+페이로드는 JSON 형식이므로 도어락을 제어하는 토픽 메시지는 다음과 같습니다.  
+<img src="res/total_mqttx1.png">   
 
-다음은 조명을 제어하는 토픽 메시지입니다.
-<img src="res/total_mqttx2.png"> 
+다음은 조명을 제어하는 토픽 메시지입니다.  
+<img src="res/total_mqttx2.png">   
