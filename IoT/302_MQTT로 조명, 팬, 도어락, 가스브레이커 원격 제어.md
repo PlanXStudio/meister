@@ -69,13 +69,15 @@ Relay
             off
 ```
 
-분석 결과를 토대로 다음과 같이 프로토콜을 정의합니다.
+분석 결과를 토대로 GaseBreaker, Fan, DoorLock, Light를 device로, Light의 1, 2를 group으로(나머지는 그룹 없음), 각 디자이스의 동작을 action으로 구분해 프로토콜 구조를 확정합니다.
 ```sh
-<device name>   <group name>    <action>
+<device> <group> <action>
 ```
 
-정의한 프로토콜을 충족하려면 PC는 Auto 제어기로 다음과 같은 형식의 문자열을 전송해야 합니다.
+따라서 PC에서 Auto 제어기로 전송하는 문자열은 다음과 같은 형식입니다.
 ``` sh
+device          group           action
+-----------------------------------------------------
 gasbreaker      none            open | close | stop
 fan             none            0..100
 doorlock        none            statechange
@@ -83,6 +85,24 @@ light           1 | 2           on | off
 ```
 
 ### 펌웨어 구현
+PC로부터 수신한 문자열에서 공백 문자를 기준으로 3개의 문자열로 나눈 후 deivce와 group, action을 검사해 해당 동작을 수행합니다.
+
+```python
+cmd = input().lower().split()  
+```
+
+만약 수신한 문자열이 "light 1 on"이라면 split() 결과는 리스트로 ["light", "1", "on"]입니다. 따라서 cmd[0]은 device, cmd[1]은 group, cmd[2]는 action에 해당합니다.
+
+```python
+if cmd[0] == "light":            # device
+    if cmd[1] == "1":            # group
+        if cmd[2] == "on":       # action
+            # 조명1을 켭니다.
+        elif cmd[2] == "off":
+            # 조명1을 끕니다.          
+```
+
+전체 코드는 다음과 같습니다.
 
 **firm_total_ctrl.py**  
 ```python
@@ -100,9 +120,11 @@ def setup():
     pwm.freq(1000)
 
 def loop():
-    cmd = input().lower().split()  # ["gasebreaker", "none", "open"] 
+    cmd = input().lower().split()  
+
     if len(cmd) != 3:
         return
+
     if cmd[0] == "gasbreaker":
         if cmd[2] == "open":
             pwm.duty(0, 100)
@@ -143,6 +165,10 @@ if __name__ == "__main__":
 ```
 
 ## 브릿지
+인터넷에서 MQTT로 구독한 토픽 메시지를 Auto 제어기 프로토콜로 변환해 시리얼로 Auto 제어기에 전송하는 브릿지를 2단계로 구현합니다.
+
+### 1단계: 시리얼 프로토콜 확인
+먼저 해당 프로토콜을 시리얼 통신으로 Auto 제어기에 전송해 해당 디바이스가 정상적으로 제어되는지 확인합니다.
 
 **serial_total_ctrl.py**  
 ```python
@@ -153,9 +179,9 @@ ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
 
 def main():
     while True:
-        device = input("Enter of Devic: ") # gasbreaker | fan | doorlock | light
-        group = input("Enter of Group: ") # none | 1 | 2
-        action = input("Enter of Action: ") # open | close | stop | 0..100 | statechange | on | off
+        device = input("Enter of Devic: ")     # gasbreaker | fan | doorlock | light
+        group = input("Enter of Group: ")      # none | 1 | 2
+        action = input("Enter of Action: ")    # open | close | stop | 0..100 | statechange | on | off
         
         cmd = f"{device} {group} {action}\r".encode()
         print(">>> Write:", cmd)
@@ -166,6 +192,22 @@ if __name__ == "__main__":
     main()
 ```
 
+### 2단계: 시리얼에 MQTT 결합
+시리얼 프로토콜 확인이 끝나면 MQTT 토픽 메시지를 정의한 후 이를 구독하는 기능을 추가합니다.
+프로토콜을 참조해 정의한 토픽 메시지 구조는 다음과 같습니다. 토픽은 디바이스를, 페이로드는 딕셔너리(JSON)로 그룹과 액션을 포함합니다. 
+```sh
+topic (device)              payload (group, action)
+----------------------------------------------------------------------------------
+asm/iot/total/gasbreaker    {"group":none,  "action":<"open"|"close"|"stop">}
+asm/iot/total/fan           {"group":none,  "action":<0..100>}
+asm/iot/totla/doorlock      {"group":none,  "action":"statechange"}
+asm/iot/totla/light         {"group":<1|2>, "action":<"on"|"off">}
+```
+
+브릿지는 "asm/iot/totla/#"을 구독한 후 수신된 토픽을 검사해 device 값을 정하고, 딕셔너리 타입의 페이로드에서 "group"과 "action" 키로 group과 action 값을 얻습니다. 
+
+브릿지의 전체 코드는 다음과 같습니다.
+
 **bridge_total_ctrl.py**
 ```python
 from serial import Serial
@@ -175,13 +217,6 @@ import json
 
 XNODE_PORT = "COM20" # 자신의 COM 포트로 변경할 것
 TOPIC_IOT_TOTAL = "asm/iot/total/#"
-"""
-topic                       payload {"group":<value>, "action":<value>}
-asm/iot/total/gasbreaker    none    open | 1close | stop
-asm/iot/total/fan           none    0..10
-asm/iot/totla/doorlock      none    statechange
-asm/iot/totla/light         1 | 2   on | off
-"""
 
 ser = Serial(XNODE_PORT, 115200, inter_byte_timeout=1)
 
@@ -237,6 +272,10 @@ if __name__ == "__main__":
 ```
 
 ### 브릿지 테스트
+XNode에 펌웨어를 실행하고 PC1에 브릿지를 실행했다면 "mqtt.eclipseprojects.io" 브로커에 연결된 MQTTX 툴로 토픽 메시지를 발행해 해당 디바이스가 제어되는지 확인합니다.  
 
+페이로드는 JSON 형식이므로 도어락을 제어하는 토픽 메시지는 다음과 같습니다.
 <img src="res/total_mqttx1.png"> 
+
+다음은 조명을 제어하는 토픽 메시지입니다.
 <img src="res/total_mqttx2.png"> 
