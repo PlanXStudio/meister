@@ -203,8 +203,12 @@ def on_message(*args):
         device = "light"
     else:
         return
-    
-    cmd = f"{device} {group_action['group']} {group_action['action']}\r".encode()
+
+    group = group_action['group']
+    action = group_action['action']
+
+    cmd = f"{device} {group} {action}\r".encode()
+
     print(cmd)
     ser.write(cmd)
 
