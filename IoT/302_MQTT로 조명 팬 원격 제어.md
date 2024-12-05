@@ -28,7 +28,7 @@ Light1, Light2, Fan1, Fan2의 Red 선(VCC)을 PWM 포트 0, 1, 2, 3에 연결하
                         |   |   |   |  (Black) 
                         F2  F1  L2  L1
                         |   |   |   |  (Red)
-PWM Port -->  12V GND   3   2   1   0
+PWM Port -->  GND 12V   3   2   1   0
 ```
 
 ### 프로젝트 폴더 구조
