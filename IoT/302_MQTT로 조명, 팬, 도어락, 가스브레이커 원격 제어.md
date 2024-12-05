@@ -1,4 +1,4 @@
-# MQTT로 도어락, 가스브레이커 원격 제어
+# MQTT로 조명, 팬, 도어락, 가스브레이커 원격 제어
 인터넷으로 연결된 컴퓨터에서 GUI 프로그램을 이용해 Auto 제어기의 PWM 컨트롤러에 연결된 가스브레이커와 팬 및 릴레이에 연결된 도어락, 조명 상태를 원격 제어합니다.
 
 ## 시스템 구성
@@ -45,14 +45,11 @@ Relay Port --->    C   O      C    O    C   O
 ```
 
 ## Auto 제어기 펌웨어
+Auto 제어기에 연결된 장치를 제어하는데 필요한 펌웨어를 구현해 봅니다.
 
-**firm_total_ctrl.py**  
-```python
-from xnode.pop.autoctrl import PWM
-from xnode.pop.autoctrl import Relay, DIO
-import time
-
-"""
+### 프로토콜 정의
+먼저 PWM과 Relay에 연결된 장치와 이들의 동작을 분석해 봅니다.
+```sh
 PWM
     GaseBreaker 
         Open
@@ -70,14 +67,28 @@ Relay
         2
             on
             off
-protocals
-<device name>   [group name]    <action>
+```
+
+분석 결과를 토대로 다음과 같이 프로토콜을 정의합니다.
+```sh
+<device name>   <group name>    <action>
+```
+
+정의한 프로토콜을 충족하려면 PC는 Auto 제어기로 다음과 같은 형식의 문자열을 전송해야 합니다.
+``` sh
 gasbreaker      none            open | close | stop
 fan             none            0..100
 doorlock        none            statechange
 light           1 | 2           on | off
-"""
+```
 
+### 펌웨어 구현
+
+**firm_total_ctrl.py**  
+```python
+from xnode.pop.autoctrl import PWM
+from xnode.pop.autoctrl import Relay, DIO
+import time
 
 pwm = PWM()                        # gasbreaker: ch[1:0], fan: ch[3]
 doorlock = Relay(DIO.P_RELAY[0])   # relay 1
