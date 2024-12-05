@@ -235,3 +235,8 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+### 브릿지 테스트
+
+<img src="res/total_mqttx1.png"> 
+<img src="res/total_mqttx2.png"> 
