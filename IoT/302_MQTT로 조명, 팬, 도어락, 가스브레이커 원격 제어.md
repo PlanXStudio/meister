@@ -24,17 +24,16 @@ Auto 제어기에서 실행하는 펌웨어와, PC1에서 실행하는 시리얼
   - PC2: PC1과 인터넷 연결
 
 ### 케이블링
-GasBreaker의 Red를 PWM 포트 0,  Black은 1에 연결하고, Fan의 Red는 PWM 포트 3, Black은 GND에 연결합니다. 
+GasBreaker의 Red 선(VCC)은 PWM 포트 0,  Black 선은 1에 연결하고, Fan의 Red 선(VCC)은 PWM 포트 3, Black 선은 PWM의 GND에 연결합니다. 
 
-```sh
-                        G   
-                        |         
-                        Fan     GasBreaker
-                        |  (Black)|    |(Red)
-PWM Port -->  12V GND   3    2    1    0
+```sh         
+                ___Fan___        GasBreaker
+         (Black)|       |(Red)    |    | 
+                |       |  (Black)|    |(Red)
+PWM Port -->  GND  12V  3    2    1    0
 ```
 
-DoorLock은 Relay 1에 Black 2선을 모두 연결하고, Light1과 Light2의 Red는 각각 Relay 2, Realy 3의 O에, Black은 각각 GND에 연결합니다.  
+DoorLock은 Relay 1에 Black 2선을 모두 연결하고, Light1과 Light2의 Red(VCC) 선은 각각 Relay 2, Realy 3의 O에, Black 선은 각각 DIO 포트의 GND에 연결합니다.  
 ```sh
                               G        G
                               |        |
@@ -44,8 +43,26 @@ Relay Port --->    C   O      C    O    C   O
                   RELAY_1
 ```
 
+### 프로젝트 폴더 구조
+현재 작업 공간에 TotalCtrl 폴더를 만든 후 하위에 XNode와 PC 폴더를, PC 폴더에는 다시 GUI를 추가합니다. 폴더를 모두 만들었으면, 각 폴더에 다음과 같이 파일을 구현합니다.
+```xml
+TotalCtrl  
+   |--- XNode  
+   |    |--- firm_total_ctrl.py  
+   |  
+   |--- PC  
+        |--- serial_total_ctrl.py  
+        |--- bridge_total_ctrl.py  
+        |--- GUI  
+                |--- TotalCtrl.ui  
+                |--- TotalCtrlUi.py  
+                |--- TotalCtrl.py  
+                |--- PySide6Mqtt.py  
+```
+
 ## Auto 제어기 펌웨어
-Auto 제어기에 연결된 장치를 제어하는데 필요한 펌웨어를 구현해 봅니다.
+PWM 포트에 가스브레이커와 팬, Relay 포트에 도어락과 조명을 연결한 Auto 제어기에는 시리얼로부터 데이터를 읽어 이를 제어하는 펌웨어를 작성합니다.
+앞서 배운 Relay와 PWM 객체를 이용해 Auto 제어기에 연결된 장치를 제어하는데 필요한 펌웨어를 구현해 봅니다.
 
 ### 프로토콜 정의
 먼저 PWM과 Relay에 연결된 장치와 이들의 동작을 분석해 봅니다.
@@ -164,11 +181,46 @@ if __name__ == "__main__":
         loop()
 ```
 
-## 브릿지
-인터넷에서 MQTT로 구독한 토픽 메시지를 Auto 제어기 프로토콜로 변환해 시리얼로 Auto 제어기에 전송하는 브릿지를 2단계로 구현합니다.
+### 테스트
+PC1에서 구현한 펌웨어를 xnode 툴을 이용해 Auto 제어기에 전송 및 실행한 다음, PC1에서 앞서 정의한 제어 문자열을 전송합니다.
 
-### 1단계: 시리얼 프로토콜 확인
-먼저 해당 프로토콜을 시리얼 통신으로 Auto 제어기에 전송해 해당 디바이스가 정상적으로 제어되는지 확인합니다.
+1. PC에 연결된 Auto 제어기의 시리얼 포트 번호를 확인합니다.
+```sh
+xnode scan
+```
+```out
+com13
+```
+
+2. 펌웨어를 전송 및 실행합니다. 이때, xnode는 계속 실행 상태이므로 Auto 제어기로 데이터를 전송하거나 수신할 수 있습니다.
+```sh
+xnode --sport com13 run -in TotalCtrl\XNode\firm_total_ctrl.py
+```
+
+3. 앞서 정의한 프로토콜 형식대로 해당 문자열을 Auto 제어기에 전송하면, 해당 채널에 연결된 가스브레이커나, 팬, 도어락, 조명의 제어가 가능해야 합니다.
+```sh
+gasbreaker n open
+fan n 40
+doorlock n statechange
+light 1 on
+```
+
+4. 테스트가 완료되면 Ctrl+c를 눌러 xnode 툴을 강제 종료합니다. 단, Auto 제어기에서 실행 중인 펌웨어는 전원을 끄거나 리셋을 누를 때까지 계속 실행 중입니다.
+
+5. Auto 제어기의 전원을 다시 켠 상태라면 다음과 같이 펌웨어만 실행할 수 있습니다.
+```
+xnode --sport com13 run -n TotalCtrl\XNode\firm_total_ctrl.py
+```
+
+## 브릿지
+PC1은 Auto 제어기와 시리얼 통신을 하면서 동시에 인터넷에 연결되어 있어야 합니다. 브릿지 프로그램은 MQTT를 통해 인터넷에서 수신한 메시지를 Auto 제어기로 시리얼 통신을 이용하여 전달하는 역할을 수행합니다.
+
+이 브릿지 프로그램은 2단계로 개발합니다.
+- 1단계: PC1에서 Auto 제어기로 제어 문자열을 전달하는 프로그램을 작성하고 시리얼 통신 검증
+- 2단계: MQTT 구독 기능을 추가하여 최종 프로그램 완성
+
+### 1단계: 시리얼 프로토콜 검증
+PC1에서 사용자가 프로토콜에 해당하는 문자열을 시리얼 통신으로 Auto 제어기에 전송해 해당 장치가 정상적으로 제어되는지 확인합니다.
 
 **serial_total_ctrl.py**  
 ```python
@@ -192,9 +244,21 @@ if __name__ == "__main__":
     main()
 ```
 
+**테스트**  
+device와 group, action 값을 입력하면 해당 채널에 연결된 가스브레이커나, 팬, 도어락, 조명이 제어되어야 합니다.   
+
+```sh
+python TotalCtrl\PC\seiral_total_ctrl.py
+```
+```sh
+Enter of Device: light
+Enter of Group: 1
+Enter of Action: on
+```
+
 ### 2단계: 시리얼에 MQTT 결합
 시리얼 프로토콜 확인이 끝나면 MQTT 토픽 메시지를 정의한 후 이를 구독하는 기능을 추가합니다.
-프로토콜을 참조해 정의한 토픽 메시지 구조는 다음과 같습니다. 토픽은 디바이스를, 페이로드는 딕셔너리(JSON)로 그룹과 액션을 포함합니다. 
+프로토콜을 참조해 정의한 토픽 메시지 구조는 다음과 같습니다. 토픽은 장치를, 페이로드는 딕셔너리(JSON)로 그룹과 액션을 포함합니다. 
 ```sh
 topic (device)              payload (group, action)
 ----------------------------------------------------------------------------------
@@ -205,8 +269,19 @@ asm/iot/totla/light         {"group":<1|2>, "action":<"on"|"off">}
 ```
 
 브릿지는 "asm/iot/totla/#"을 구독한 후 수신된 토픽을 검사해 device 값을 정하고, 딕셔너리 타입의 페이로드에서 "group"과 "action" 키로 group과 action 값을 얻습니다. 
+```python
+def on_message(*args): 
+    topic = args[2].topic
+    group_action = json.loads(args[2].payload)
 
-브릿지의 전체 코드는 다음과 같습니다.
+    if topic == "asm/iot/total/gasbreaker":
+        device = "gasbreaker"
+
+    group = group_action['group']
+    action = group_action['action']
+```
+
+다음은 pyserial과 paho-mqtt가 결합된 최종 브릿지 코드입니다.
 
 **bridge_total_ctrl.py**
 ```python
@@ -273,6 +348,10 @@ if __name__ == "__main__":
 
 ### 브릿지 테스트
 XNode에 펌웨어를 실행하고 PC1에 브릿지를 실행했다면 "mqtt.eclipseprojects.io" 브로커에 연결된 MQTTX 툴로 토픽 메시지를 발행해 해당 디바이스가 제어되는지 확인합니다.  
+
+```sh
+python TotalCtrl\PC\bridge_total_ctrl.py
+```
 
 페이로드는 JSON 형식이므로 도어락을 제어하는 토픽 메시지는 다음과 같습니다.  
 <img src="res/total_mqttx1.png">   
