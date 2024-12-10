@@ -12,8 +12,7 @@ pip install cvzone
 python -c 'import cv2; print(cv2.__version__)'
 ```
 
-[OpenCV 강좌1](https://opencv-python.readthedocs.io/en/latest/)  
-[OpenCV 강좌2](https://076923.github.io/posts/Python-opencv-2/)  
+[OpenCV 강좌](https://opencv-python.readthedocs.io/en/latest/)  
 [MediaPipe 예제](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker)  
 [cvzone 예제](https://github.com/cvzone/cvzone/tree/master/Examples)  
 
