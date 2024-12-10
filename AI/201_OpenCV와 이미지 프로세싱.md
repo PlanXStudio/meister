@@ -1,8 +1,8 @@
 # OpenCV와 이미지 프로세싱
+SerBot2에는 CUDA 기반 ARM64용 OpenCV가 설치되어 있습니다.
 
 ## 라이브러리 설치
 ```python
-pip install opencv-python
 pip install mediapipe
 pip install cvzone
 ```
