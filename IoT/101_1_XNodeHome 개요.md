@@ -93,7 +93,7 @@ Auto 제어기에는 PCB에 견고하게 고정된 나사식 터미널 블록이
 
 Auto 제어기의 PWM 채널, 릴레이 채널, 그리고 사용자가 용도에 맞게 설정할 수 있는 디지털 IO 핀들이 터미널 블록을 통해 외부로 연결됩니다. 따라서 사용자는 터미널 블록의 각 단자에 필요한 전선을 연결함으로써 다양한 외부 장치와 편리하게 연결하고 제어할 수 있습니다.
 
-![Terminal Block](res/auto_term_block.png)
+<img src="res/auto_term_block.png" width=70%>  
 
 디지털 IO 터미널 블록의 단자 구성은 다음과 같습니다.
 
@@ -172,12 +172,14 @@ USB 허브는 여러 대의 IoT 모트와 Auto 제어기를 하나의 PC에 연�
 
 [101 개발환경]:https://github.com/PlanXStudio/meister/blob/main/common/101_개발환경.md
 
-다음은 전체 실습 환경 구성입니다.
-<img src="res/lect_evn.png" width=40%>
+다음은 전체 실습 환경 구성입니다.  
 
-### XNode 모트
+<img src="res/lect_env.png" width=90%>  
+
+
+### IoT 모트
 - 한 개의 XNode 모트 사용
-  - XNode 모트의 Micro B 포트와 PC의 USB A 포토를 USB 케이블로 연결
+  - XNode 모트의 Micro B 포트와 PC의 USB A USB 케이블로 연결
     - 만약 PC에 Type C 포트만 제공하면 Type C to USB A 변환기를 별도 준비해야 함
   - PC에서 XNode 모트의 시리얼 포트 확인 
 - 여러 개의 XNode 모트 사용
