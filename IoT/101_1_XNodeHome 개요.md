@@ -172,8 +172,8 @@ USB 허브는 여러 대의 IoT 모트와 Auto 제어기를 하나의 PC에 연�
 
 [101 개발환경]:https://github.com/PlanXStudio/meister/blob/main/common/101_개발환경.md
 
-
-실습장비(마이크로파이썬, xnode 라이브러리) <-----시리얼통신------> PC (VSCode, 파이썬 SDK, xnode 툴 등)
+다음은 전체 실습 환경 구성입니다.
+<img src="res/lect_evn.png" width=40%>
 
 ### XNode 모트
 - 한 개의 XNode 모트 사용
