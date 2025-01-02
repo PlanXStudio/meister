@@ -31,7 +31,8 @@ XNode Home은 3개의 IoT 모트를 제공하며, 각 IoT 모트는 다음과 �
 - 전원 스위치 및 리셋 버튼 내장
 - 전용 26핀 확장 커넥터로 기능을 확장하는 추가 모듈 지원
 
-**IoT 모트 확장 커넥터**  
+**IoT 모트 확장 커넥터** 
+
 ![Ext Connector](res/mote_ext_connect.png)
 
 ### IoT 모트용 확장 모듈
@@ -40,29 +41,29 @@ XNode Home은 3개의 IoT 모트를 제공하며, 각 IoT 모트는 다음과 �
 **BASIC 모듈**  
 BASIC 모듈은 LED, 버튼, 부저와 같은 필수적인 입출력 요소를 통합하여, 사용자가 별도의 부품 없이도 간단한 인터페이스를 빠르게 구성할 수 있도록 설계되었습니다. 따라서, 간단한 기능 테스트를 위한 시제품 제작에 적합합니다.
 
-<img src="res/ext_basic.png" width=23%>
+<img src="res/ext_basic.png" width=15%>
 
 **PIR 모듈**  
 PIR 모듈에 내장된 PIR 센서(Passive Infrared Sensor)는 사람이나 동물의 움직임을 감지하는 데 사용되는 전자 센서입니다. 수동적이라는 이름에서 알 수 있듯이, 센서 자체가 적외선을 방출하는 것이 아니라 주변 환경에서 방출되는 적외선을 감지하여 작동합니다. 주로 보안 시스템, 자동 조명, 자동문 등 다양한 분야에서 활용됩니다.
 
-<img src="res/ext_pir.png" width=23%>
+<img src="res/ext_pir.png" width=15%>
 
 **IRTHERMO 모듈**  
 IRTHERMO 모듈에 내장된 적외선 온도 센서는 물체에서 방출되는 적외선 복사 에너지를 감지하여 온도를 측정하는 비접촉식 온도 센서입니다. 물체에 직접 접촉하지 않고 온도를 측정할 수 있기 때문에 다양한 산업 및 일상 생활에서 널리 사용됩니다.
 
-<img src="res/ext_irthermo.png" width=23%>
+<img src="res/ext_irthermo.png" width=15%>
 
 **IMU 모듈**  
 IMU 모듈에 내장된 관성 측정 장치(IMU: Inertial Measurement Unit)는 물체의 움직임과 방향을 측정하는 전자 장치입니다. 우리 주변의 스마트폰, 드론, 로봇, 자동차 내비게이션 시스템 등 다양한 곳에서 사용되고 있습니다. IMU 모듈은 가속도계, 자이로스코프, 지자기 센서(자력계)를 결합하여 3차원 공간에서의 움직임을 정밀하게 측정합니다.
 
-<img src="res/ext_imu.png" width=23%>
+<img src="res/ext_imu.png" width=15%>
 
 **GPS 모듈**  
 범지구 위치 결정 시스템(GPS: Global Positioning System)는 지구 궤도를 도는 여러 개의 위성을 이용하여 지구상의 위치를 정확하게 측정하는 위성 항법 시스템입니다. 미국 국방부에서 군사 목적으로 개발되었지만, 현재는 민간에서 내비게이션, 측량, 지도 제작, 시간 동기화 등 다양한 용도로 널리 사용되고 있습니다.  
 GPS 모듈에 내장된 GPS 수신기는 최소 4개 이상의 GPS 위성으로부터 신호를 받아 자신의 위치를 계산합니다. 각 위성은 고유의 신호와 함께 신호를 보낸 시간 정보를 포함하여 전파를 송신합니다. 수신기는 각 위성에서 보낸 신호가 도달하는 시간 차이를 측정하여 각 위성과의 거리를 계산합니다.   
 이때 삼변 측량(Trilateration)이라는 수학적 원리가 사용됩니다. 3개의 위성과의 거리를 알면 2차원 평면에서의 위치를 결정할 수 있고, 4개의 위성과의 거리를 알면 3차원 공간에서의 위치(위도, 경도, 고도)를 정확하게 결정할 수 있습니다.
 
-<img src="res/ext_gps.png" width=23%>
+<img src="res/ext_gps.png" width=15%>
 
 ### Auto 제어기
 Auto 제어기는 릴레이, PWM 컨트롤러, IO 포트를 통해 산업 현장의 다양한 장치를 제어할 수 있습니다. 릴레이를 이용하여 12V 조명이나 환풍기를 켜고 끌 수 있으며, PWM 컨트롤러로는 12V 조명의 밝기나 DC 모터의 속도를 정밀하게 조절할 수 있습니다. 또한, IO 포트를 통해 3.3V 스위치, 가스 누설 감지 센서 등을 연결하여 다양한 상황을 감지하고 대응할 수 있습니다. 
@@ -80,7 +81,7 @@ Auto 제어기의 두뇌에 해당하는 IoT 모트는 배터리 대신 외부 �
 **터미널 블록**  
 단자대 또는 단자판으로도 불리는 터미널 블록은 전기 회로에서 전선들을 연결하기 위한 모듈식 연결 장치입니다. 간단히 말해, 여러 전선을 안전하고 깔끔하게 연결할 수 있도록 해주는 부품입니다. 특히 산업 현장이나 제어 패널 등에서 배선을 정리하고 유지 보수를 용이하게 하기 위해 널리 사용됩니다. 
 
-<img src="res/term_block.png" width=30%>
+<img src="res/term_block.png" width=20%>
 
 터미널 블록은 크게 다음과 같은 부분으로 구성됩니다.
 
@@ -93,7 +94,7 @@ Auto 제어기에는 PCB에 견고하게 고정된 나사식 터미널 블록이
 
 Auto 제어기의 PWM 채널, 릴레이 채널, 그리고 사용자가 용도에 맞게 설정할 수 있는 디지털 IO 핀들이 터미널 블록을 통해 외부로 연결됩니다. 따라서 사용자는 터미널 블록의 각 단자에 필요한 전선을 연결함으로써 다양한 외부 장치와 편리하게 연결하고 제어할 수 있습니다.
 
-<img src="res/auto_term_block.png" width=70%>  
+<img src="res/auto_term_block.png" width=50%>  
 
 디지털 IO 터미널 블록의 단자 구성은 다음과 같습니다.
 
@@ -154,7 +155,7 @@ XNode Home에 포함된 감지기는 가스 누출이 감지되면, 연결된 �
 엣지 게이트웨이는 Zigbee 기반의 IoT 기기(예: IoT 모트, Auto 제어기)와 인터넷 간의 통신을 중계하는 역할을 하는 소형 컴퓨터입니다. Wi-Fi 또는 이더넷 연결을 통해 인터넷에 접속하며, 여러 대의 IoT 기기를 동시에 관리할 수 있습니다.  
 NVIDA의 Jetson nano 플랫폼에서 Ubuntu 리눅스로 운영되며, 오픈 MQTT(Message Queuing Telemetry Transport) 브로커인 모스키토(Mosquitto)가 내장되어 있습니다. 
 
-<img src="res/edge.png" width=40%>
+<img src="res/edge.png" width=37%>
 
 ### 전원 공급기
 전원 공급기는 12V DC 입력을 받아 최대 3개의 12V DC 출력으로 분배합니다. 이를 통해 여러 대의 Auto 제어기 및 엣지 게이트웨이에 안정적인 전원 공급이 가능합니다. 또한, Auto 제어기와 동일하게 IoT 모트와 터미널 IO 블록을 내장하고 있어 필요에 따라 주변 장치를 추가로 연결할 수 있습니다.  
@@ -176,78 +177,130 @@ USB 허브는 여러 대의 IoT 모트와 Auto 제어기를 하나의 PC에 연�
 
 <img src="res/lect_env.png" width=90%>  
 
+### PC에 실습 장비 연결
+IoT 모트는 내장 배터리를 통해 전원 스위치를 켜는 즉시 사용할 수 있으며, PC와 USB 케이블로 연결하면 자동으로 충전됩니다. 반면 Auto 제어기에 포함된 IoT 모트는 배터리 없이 외부 전원을 연결하여 작동하며, 따라서 전원 스위치가 없습니다.  
+실습 장비와 PC를 연결하기 위해 제공되는 USB 케이블의 PC 연결 부분은 USB Type A 커넥터 형태입니다. 만약 사용자의 PC에 USB Type A 포트가 없고 Type C 포트만 있다면, 별도로 **Type C to A 변환 젠더**를 준비하여 연결해야 합니다.
 
-### IoT 모트
-- 한 개의 XNode 모트 사용
-  - XNode 모트의 Micro B 포트와 PC의 USB A USB 케이블로 연결
-    - 만약 PC에 Type C 포트만 제공하면 Type C to USB A 변환기를 별도 준비해야 함
-  - PC에서 XNode 모트의 시리얼 포트 확인 
-- 여러 개의 XNode 모트 사용
-  - 5V USB 허브용 전원 어댑터를 USB 허브에 연결한 후 전용 케이블로 PC(USB 3.0 A 포트)와 USB 허브(USB 3.0 MicroB 포트) 연결.
-    - USB 허브의 USB A 포트에 여러 개의 XNode 모트 연결  
-  - PC에서 여러 Auto 제어기의 시리얼 포트 확인
-    - XNode 모트를 하나씩 연결하면서 확인할 것
+**IoT 모트**  
 
-### Auto 제어기 
-- 한 개의 Auto 제어기 사용
-  - 12V DC 전원 입력을 Auto 제어기 전원 포트에 연결
-  - Auto 제어기의 Micro B 포트와 PC의 USB A 포토를 USB 케이블로 연결
-    - 만약 PC에 Type C 포트만 제공하면 Type C to USB A 변환기를 별도 준비해야 함
-  - PC에서 Auto 제어기의 시리얼 포트 확인 
-- 여러 개의 Auto 제어기 사용
-  - 5V USB 허브용 전원 어댑터를 USB 허브에 연결한 후 전용 케이블로 PC(USB 3.0 A 포트)와 USB 허브(USB 3.0 MicroB 포트) 연결.
-    - USB 허브의 USB A 포트에 여러 개의 Auto 제어기 연결  
-  - 12V DC 전원 입력을 전공 공급기에 연결한 후 전용 케이블을 각각의 Auto 제어기 전원 포트에 연결
-  - PC에서 여러 Auto 제어기의 시리얼 포트 확인
-    - Auto 제어기를 하나씩 연결하면서 확인할 것
+<img src="res/iot_mote_simple.png" width=20%>  
+
+1. 전원 스위치를 꺼짐 쪽으로 욺기면, 전원 LED가 켜집니다.
+
+2. Micro USB Type B 커넥터를 PC의 USB Type A 커넥터에 제공된 USB 케이블로 연결하면, 배터리 잔량이 부족할 경우 충전 LED가 점등되면서 충전이 시작됩니다.
+
+3. PC에서 가상 시리얼 포트가 생성되었는지 확인합니다.
+   1. 윈도우: '장치 관리자 > 포트(COM & LPT) > USB Serial Port(COMx)'
+   2. 리눅스/맥: '터미널 > ls /dev/tty*'
+
+
+<img src="res/iot_mote_connect.png" width=45%>  
+
+
+**Auto 제어기**  
+1. 제공되는 12V DC 전원 어댑터를 실습 장비의 전원 포트에 연결합니다. 
+
+2. 실습 장비의 Micro USB Type B 커넥터와 PC의 USB Type A 커넥터를 제공되는 USB 케이블로 연결합니다.
+
+3. PC에서 가상 시리얼 포트가 생성되었는지 확인합니다.
+
+
+<img src="res/auto_ctrl_connect.png" width=45%>  
+
+
+**USB 허브**   
+여러 대의 실습 장비를 PC의 USB 포트에 직접 연결하는 대신, 제공된 USB 허브를 이용하여 한 번에 연결할 수 있습니다.
+
+1. 5V USB 허브용 전원 어댑터를 USB 허브에 연결합니다.
+
+2. USB 허브의 Micro USB 3.0 Type B 커넥터와 PC의 USB 3.0 Type A 커넥터를 제공되는 USB 허브 전용 케이블로 연결합니다.
+
+3. 실습 장비를 PC 대신 USB 허브의 USB Type A 커넥터에 연결합니다.
+
+4. PC에서 가상 시리얼 포트가 생성되었는지 확인하는데, 한 번에 하나씩 확인하면서 연결합니다.
+
+**전원 공급기**    
+여러 대의 Auto 제어기를 USB 허브를 이용하여 연결할 때 하나의 전원 어댑터로 통합하여 전원을 공급하면 더욱 편리하게 시스템을 운영할 수 있습니다. 이는 복수의 전원 어댑터를 사용해야 하는 번거로움을 줄여줍니다.
+
+1. 제공되는 12V DC 전원 어댑터를 전원 공급기의 입력 포트에 연결합니다.
+
+2. 별도 전원 케이블을 이용해 전원 공급기의 출력과 실습 장비의 전원 포트를 연결합니다.
+
+<img src="res/total_connect.png" width=70%>  
 
 ### 개발 툴 설치
-xnode와 micropython-magic을 비롯해 실습에 필요한 툴 설치.
+VSCode, 파이썬 확장, 파이썬 SDK가 설치된 PC 환경에서 xnode, micropython-magic과 같은 추가적인 도구 및 파이썬 라이브러리를 설치하여 개발 환경을 구축합니다.
 
 **xnode**
-xnode는 실습장치 초기화를 비롯해 PC에서 작성한 마이크로파이썬 파일을 실습장치로 전송해 실행하거, 실행 중인 프로그램과 시리얼 통신을 수행하며, 실습장치의 파일 관리 같은 부가 기능 수행.  
+xnode는 명령행 도구로 마이크로파이썬 개발 환경을 확장하여 PC와 마이크로컨트롤러 간의 원활한 통신 및 코드 실행을 지원하는 툴입니다. 실습 장비의 초기화, 코드 업로드, 시리얼 통신, 파일 시스템 관리 등의 기능을 제공하여 효율적인 임베디드 시스템 개발을 가능하게 합니다.
 
 ```sh
 pip install -U xnode
-pip install -U genlib s2u quat3d smon
 ```
 
 **micropython-magic** 
-micropython-magic은 주피터 노트북 환경에서 실시간으로 마이크로파이썬 코드를 셀 단위로 실습장치로 전송해 실행해 줌.
-주로 실습장비를 테스트하거나 특정 함수나 클래스의 사용법을 익힐 때 사용
+마이크로파이썬 매직(micropython-magic)은 파이썬 개발 환경에서 마이크로파이썬 코드를 더욱 효율적으로 개발하고 실행할 수 있도록 돕는 강력한 도구입니다. 특히 Jupyter Notebook과 같은 환경에서 마이크로파이썬 코드를 작성하고 실행하는 것을 매우 편리하게 만들어줍니다.
 
 ```sh
 pip install -U micropython-magic
 ```
 
 ## 시작하기
-실습장비를 PC에 연결한 후 VSCode와 xnote 툴을 이용해 실습 진행
+실습 장비를 PC에 연결한 후 VSCode와 xnote 툴을 이용해 실습을 진행합니다.
 
-1. scan 명령으로 PC에 연결된 실습장비의 시리얼 포트 확인
-   > - **실습 장비가 바뀔 때마다 확인**할 것! (com4로 가정)
+1. VSCode를 실행한 후 터미널 창을 선택합니다.
+
+2. 터미널 창에서 scan 명령으로 PC에 연결된 실습 장비의 시리얼 포트를 확인합니다.
+
 ```sh
 xnode scan
 ```
 
-- 만약 시리얼 포트가 여러개 출력되면 다음과 같이 장치 관리자를 실행한 후 **포트(COM & LPT) > USB Serial PortI(COMx)** 확인
-```
-devmgmt.msc 
+> scan 명령은 시리얼 포트를 스캔하여 마이크로파이썬 환경이 구축된 장치를 감지하고, 해당 장치의 시리얼 포트 번호를 출력하는 기능을 제공합니다.
+```out
+OM8 (v1.12-1556-gcc82fa9 on 2021-06-22; XBee3 Zigbee with EFR32MG)
 ```
 
-2. init 명령으로 처음 사용하는 실습장비 초기화(포맷 및 전용 라이브러리 설치)
-   > 해당 장비당 한 번만 수행하며,약 2분정도 소요됨
+3. init 명령은 실습 장비의 초기 상태를 설정하는 명령으로, 장비의 초기화가 필요한 경우에 한 번만 실행하면 됩니다. 이때, 앞서 확인한 시리얼 포트 번호를 옵션으로 사용합니다.
 ```sh
-xnode --sport com4 init
+xnode --sport com8 init
 ```
 
-3. ls 명령으로 전용 라이브러리(xnode/pop) 설치 확인
-   > /flash/lib 경로에 라이브러리 위치  
+> init 명령을 실행하면 장비를 포맷하고 마이크로파이썬으로 구현한 pop 라이브러리를 실습 장비에 설치합니다.
+```out
+Formatting...
+Formatting is complete!
+Installing the pop library on the board.
+/flash/lib/xnode/pop/autoctrl.py
+[########################################] 100%
+/flash/lib/xnode/pop/core.py
+[########################################] 100%
+/flash/lib/xnode/pop/ext.py
+[########################################] 100%
+/flash/lib/xnode/pop/tphg.py
+[########################################] 100%
+The job is done!
+```
+
+4. ls 명령으로 실습 장비의 /flash/lib/xnode/pop 경로에 설치된 파일을 확인합니다.
 ```sh
-xnode --sport com4 ls /flash/lib/xnode/pop
+xnode --sport com8 ls /flash/lib/xnode/pop
 ```
 
-4. VSCode에서 새 파이썬 파일(my.py)을 만든 후 코드 작성
-   > PC에서 계산 가능한 식을 시리얼 통신으로 실습장비에 전달하면 실습장비는 이를 계산한 결과를 다시 PC로 전송 
+> ls 명령은 실습 장비의 파일 시스템에서 특정 디렉토리의 내용을 목록 형태로 출력하는 명령입니다. 파일 종류에 따라 색상으로 구분하여 가독성을 높였습니다.
+```out
+autoctrl.py
+core.py
+ext.py
+tphg.py
+```
+
+
+### 첫 번째 마이크로파이썬 프로그램
+계산 식을 입력하면 결과를 반환하는 간단한 프로그램을 작성해 봅니다.
+
+1. VSCode에서 simple_express.py란 이름으로 새 파일을 만든 후 다음과 같이 코드를 작성합니다.
+
 ```python
 def setup():
     print("Start...")
@@ -266,53 +319,99 @@ if __name__ == "__main__":
         loop()
 ```
 
-- 마이크로파이썬에서 input()은 시리얼로부터 문자열 데이터 읽기, print()는 출력할 문자열을 시리얼로 전송
 
-5. 작성한 코드는 run 명령으로 실습장비에 전송해 실행
-   > xnode 툴이 실습장비와 시리얼 통신 수행.  
-   >> 사용자가 PC 터미널에서 입력한 문자열을 실습장비로 전송하고, 실습장비가 전송한 문자열을 읽어 화면에 표시
+2. run 명령을 사용하면 완성한 simple_express.py 파일을 실습 장비에서 바로 실행해 볼 수 있습니다.
 
 ```sh
-xnode --sport com4 run my.py
+xnode --sport com8 run simple_express.py
 ```
-- 프로그램이 무한 루프일 때 터미널에서 Ctrl+c를 누르면 xnode 툴은 종료하지만, 프로그램은 계속 실행됨.
-  - 실습장비의 리셋 버튼을 누르면, 실행 중인 프로그램 강제 종료
 
-6. run과 함께 -ni(또는 -in)을 사용하면 에코 기능이 꺼지므로 입력 문자가 중복 출력되지 않음
+> run 명령은 로컬 시스템에 있는 파이썬 스크립트를 원격 장비로 전송하고 실행하는 기능을 제공합니다. 추가 옵션을 사용하지 않는 한 PC의 표준 입출력 스트림과 실습 장비의 표준 입출력 스트림을 시리얼 통신으로 연결하여 상호 작용을 가능하게 하므로, PC의 키 입력은 실습 장비의 input()으로 전달되고, 실습 장비의 print() 출력은 PC로 전달됩니다.
+```out
+Start...
+> 3+4*5
+23
+> 
+```
+
+3. Ctrl+C 키 조합을 입력하면 시리얼 통신이 강제 종료되어 PC와 실습 장비 간의 연결이 끊어집니다. 하지만 실습 장비에서 실행 중이던 프로그램은 계속 동작합니다.
+
+
+### 두 번째 마이크로파이썬 프로그램
+실습 장비의 사용자 LED를 지속적으로 깜빡이는 프로그램을 작성해 봅니다.
+
+1. VSCode에서 blink_led.py란 이름으로 새 파일을 만든 후 다음과 같이 코드를 작성합니다.
+
+```python
+import machine 
+import time
+
+led = machine.Pin('D9', machine.Pin.OUT, value=1)
+
+def setup():
+    print("Start...")
+      
+def loop():
+    led.value(0)
+    time.sleep(0.1)
+    led.value(1)
+    time.sleep(0.1)
+    
+if __name__ == "__main__":
+    setup()
+    while True:
+        loop()
+```
+
+
+2. run 명령으로 완성한 blink_led.py를 실습 장비에서 실행 합니다. 이때 loop() 함수 안에 input() 호출이 없으므로 PC에서 키를 입력하는 것은 무의미 합니다. 따라서 -n 옵션을 함께 사용합니다.
+
 ```sh
-xnode --sport com4 run -ni my.py
+xnode --sport com8 run -n blink_led.py
 ```
 
-7. run과 함께 -n을 사용하면 파이썬 코드를 실습장비에서 실행한 후 바로 xnode 툴 종료
+> 옵션 때문에 실습 장비에서 프로그램이 실행되면, 시리얼 통신은 강제로 종료합니다.
+
+3. LED가 깜빡이는 것을 멈추려면 실습 장비의 리셋 버튼을 눌러 프로그램을 강제 종료합니다.
+
+### xnode 설정 파일
+xnode 툴의 옵션을 관리하는 설정 파일을 만들면, 해당 옵션을 생략할 수 있습니다. 예를 들어 --sport <serial_name> 옵션은 대부분의 명령에서 필수적으로 사용하는데 이를 생략할 수 있습니다.
+
+1. VSCode에서 .xnode란 이름으로 새 파일을 만듦니다.
+
+2. SERIAL_PORT 변수에 scan 명령으로 확인한 시리얼 포트 이름을 입력합니다.
 ```sh
-xnode --sport com4 run -n my.py
+SERIAL_PORT=com8
 ```
 
-8. xnode 툴 대신 PuTTY와 같은 시리얼 응용프로그램 사용
-   > 앞서 실행한 프로그램 테스트 진행
-```py
-winget install PuTTY.PuTTY
-```
-- [주의] **xnode 툴과 putty는 동시에 실행할 수 없으므로** 반드시 xnode 툴은 종료 상태여야 함
-- 설치가 완료되면 putty를 실행한 후 다음과 같이 설정
-  - Connection type: Serial
-  - Serial line: COMx,
-  - Speed는 115200
-  - Open 버튼 클릭
+3. 파일을 저장합니다.
 
-9. put 명령으로 PC에서 작성한 my.py를 main.py란 이름으로 바꿔 실습장비에 옮기기
-   > 실습장비에 전원이 공급(또는 리셋)되면, /flash 폴더에 main.py가 있는지 검사 후 있으면 자동으로 실행
+실습 장비가 바뀌면 시리얼 포트 이름도 바뀔 수 있는데, 이때는 반드시 .xnode 내용을 수정합니다.
+
+
+### 실습 장비에 파일 저장
+xnode의 run 명령은 PC의 마이크로파이썬 코드를 일시적으로 실습 장비에서 실행합니다. 하지만 해당 파일을 main.py란 이름으로 실습 장비에 저장하면 리셋 또는 재 시작할 때 자동으로 main.py가 실행됩니다.
+앞서 소개한 설정 파일을 만들었다면 xnode 툴을 사용할 때 --sport <serial_name> 옵션은 생략합니다. 
+
+1. put 명령으로 앞서 작성한 blink_led.py를 main.py란 이름으로 실습 장비에 저장합니다. 
 
 ```sh
-xnode --sport com4 put my.py /flash/main.py
-xnode --sport com4 ls /flash
+xnode put blink_led.py /flash/main.py
 ```  
 
-- 앞서 설치한 PuTTY로 결과 확인
-
-10. 실습장치의 파일시스템에 위치한 파일을 rm 명령으로 삭제하기
-    > 앞서 옮긴 /flash/main.py 삭제
+2. ls 명령으로 결과를 확인합니다.
 ```sh
-xnode --sport com4 rm /flash/main.py
-xnode --sport com4 ls /flash
+xnode ls /flash
+```
+
+3. get 명령은 put과 반대로 실습 장비의 파일을 PC오 가져오지만 PC에 저장할 파일 이름을 생략하면 내용만 보여 줍니다.
+```sh
+xnode get /flash/main.py
+```
+
+4. 실습 장비의 리셋 버튼을 누르거나 전원을 컸다 켜면 자동으로 main.py가 실행되므로 LED가 깜빡입니다.
+
+5. rm 명령으로 실습 장비에 저장된 파일을 삭제합니다.
+```sh
+xnode rm /flash/main.py
 ```
