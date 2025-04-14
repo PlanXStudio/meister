@@ -1,3 +1,7 @@
-PrePkgInstaller.cmd : Font and PowerShell 7, Oh-my-posh, Modules for PowerShell 7  
-VSCodeInstaller : VSCode portable  
-PostPkgInstaller : Python and Pip  
+VSCode Install Scripts
+- PrePkgInstaller.cmd
+  - Font and Oh-my-posh, PowerShell 7, Modules
+- VSCodeInstaller
+  - VSCode portable  
+- PostPkgInstaller
+  - Python (embd) and Pip  
