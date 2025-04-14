@@ -5,3 +5,5 @@ VSCode Install Scripts
   - VSCode portable  
 - PostPkgInst.cmd
   - Python (embd) and Pip  
+- TotalInst.cmd
+  - PrePkgInst.cmd + VSCodeInst.cmd + PostPkgInst.cmd
