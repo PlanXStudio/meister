@@ -209,16 +209,16 @@ if __name__ == "__main__":
 
 ### Serbot2 제어 API
 **serbot2.driving**  
-class Driving : 옴니휠 메커니즘 제어관련 클래스 
--	steering : 조향 값. -1.0 ~ 1.0 
--	throttle : 출력 값. 0 ~ 100
--	forward(throttle=None) : 전진 
--	backward(throttle=None) : 후진
-- spinLeft(throttle=None) : 왼쪽 회전
-- spinRight(throttle=None) : 오른쪽 회전
-- move(angle, throttle=None) : 해당 각도로 이동
-  - angle: degree 각   
--	stop() : 정지
+- class Driving : 옴니휠 메커니즘 제어관련 클래스 
+  -	steering : 조향 값. -1.0 ~ 1.0 
+  -	throttle : 출력 값. 0 ~ 100
+  -	forward(throttle=None) : 전진 
+  -	backward(throttle=None) : 후진
+  - spinLeft(throttle=None) : 왼쪽 회전
+  - spinRight(throttle=None) : 오른쪽 회전
+  - move(angle, throttle=None) : 해당 각도로 이동
+    - angle: degree 각   
+  -	stop() : 정지
 
 ```python
 from serbot2.driving import Driving
