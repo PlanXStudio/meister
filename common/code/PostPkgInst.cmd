@@ -8,8 +8,8 @@ set "VSCodeDir=C:\VSCode"
 set "TempDir=C:\Temp"
 
 if not exist "%TempDir%" mkdir "%TempDir%"
-if exist "%VSCodeDir%" (
-    echo The path %VSCodeDir% already exists.
+if not exist "%VSCodeDir%" (
+    echo You need to install VSCode(%VSCodeDir%) first.
     exit /b 1
 )
 
