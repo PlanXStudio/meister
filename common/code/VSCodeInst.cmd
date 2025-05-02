@@ -61,22 +61,34 @@ echo Writing VSCode settings...
 (
 echo {
 echo     "files.autoSave": "onFocusChange",
+echo     "files.autoSaveDelay": 500,
+echo     "files.exclude": {
+echo       "**/largeFolder": true,    
+echo       "**/__pycache__": true,
+echo       "**/.venv": true
+echo     },
 echo     "editor.mouseWheelZoom": true,
-echo     "editor.fontFamily": "'0xProto Nerd Font Mono', DalseoHealing",
+echo     "editor.fontFamily": "'0xProto Nerd Font Mono', DalseoHealing, Consolas, 'Courier New', monospace",
 echo     "editor.minimap.enabled": false,
+echo     "editor.renderWhitespace": "boundary",
+echo     "editor.cursorSmoothCaretAnimation": "on",
+echo     "editor.smoothScrolling": true,
 echo     "workbench.colorTheme": "One Dark Pro Darker",
 echo     "workbench.iconTheme": "ayu",
 echo     "workbench.startupEditor": "none",
-echo     "security.workspace.trust.untrustedFiles": "open",
+echo     "security.workspace.trust.untrustedFiles": "newWindow",
+echo     "window.commandCenter": false,
 echo     "terminal.integrated.mouseWheelZoom": true,
 echo     "terminal.integrated.fontSize": 14,
-echo     "terminal.integrated.profiles.windows": "pwsh",
-echo     "terminal.explorerKind": "external",
+echo     "terminal.integrated.defaultProfile.windows": "pwsh",
+echo     "terminal.explorerKind": "integrated",
 echo     "terminal.integrated.env.windows": {
 echo         "PATH": "${execPath}\\..\\bin;${execPath}\\..\\data\\lib\\python;${execPath}\\..\\data\\lib\\python\\Scripts;${env:PATH}"
 echo     },
 echo     "python.defaultInterpreterPath": "${execPath}\\..\\data\\lib\\python\\python.exe",
-echo     "window.commandCenter": false
+echo     "python.createEnvironment.trigger": "off",
+echo     "explorer.confirmDelete": false,
+echo     "explorer.confirmPasteNative": false,
 echo }
 ) > "%SettingsJson%"
 
