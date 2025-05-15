@@ -9,7 +9,7 @@ set "TempDir=C:\Temp"
 
 if not exist "%TempDir%" mkdir "%TempDir%"
 if not exist "%VSCodeDir%" (
-    echo You need to install VSCode(%VSCodeDir%) first.
+    echo "You need to install VSCode(%VSCodeDir%) first."
     exit /b 1
 )
 
